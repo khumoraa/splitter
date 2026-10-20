@@ -420,5 +420,18 @@
     "back": "< Ortga",
     "defaultItem": "Tovar",
     "noItems": "Hech qanday element biriktirilmagan"
+  },
+  "finish": {
+    "title": "Hisob xulosasi",
+    "receipt": "Chek #{{id}}",
+    "status": {
+      "finalized": "Yakunlangan"
+    },
+    "totalAmount": "Umumiy summa",
+    "byParticipant": "Ishtirokchilar bo'yicha:",
+    "noParticipants": "Ishtirokchilar ma'lumoti hali mavjud emas.",
+    "byItem": "Pozitsiyalar bo'yicha:",
+    "noAllocations": "Tayinlash tafsilotlari mavjud emas.",
+    "complete": "Hisob-kitobni yakunlash"
   }
 }

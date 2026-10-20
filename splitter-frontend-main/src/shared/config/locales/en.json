@@ -420,5 +420,18 @@
     "back": "< Back",
     "defaultItem": "Item",
     "noItems": "No items assigned"
+  },
+  "finish": {
+    "title": "Bill Summary",
+    "receipt": "Receipt #{{id}}",
+    "status": {
+      "finalized": "Finalized"
+    },
+    "totalAmount": "Total Amount",
+    "byParticipant": "Split by participant:",
+    "noParticipants": "No participant data available yet.",
+    "byItem": "Split by item:",
+    "noAllocations": "No allocation details available.",
+    "complete": "Complete settlement"
   }
 }

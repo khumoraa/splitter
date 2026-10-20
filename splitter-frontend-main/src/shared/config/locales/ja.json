@@ -420,5 +420,18 @@
     "back": "< 戻る",
     "defaultItem": "項目",
     "noItems": "割り当てられた項目はありません"
+  },
+  "finish": {
+    "title": "会計の概要",
+    "receipt": "レシート #{{id}}",
+    "status": {
+      "finalized": "確定済み"
+    },
+    "totalAmount": "合計金額",
+    "byParticipant": "参加者ごとの内訳:",
+    "noParticipants": "参加者のデータはまだありません。",
+    "byItem": "項目ごとの内訳:",
+    "noAllocations": "割り当ての詳細はありません。",
+    "complete": "精算を完了"
   }
 }
