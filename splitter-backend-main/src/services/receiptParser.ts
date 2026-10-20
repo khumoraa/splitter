@@ -372,6 +372,14 @@ export async function parseReceipt(
     } catch (err: any) {
       lastError = err;
       const status = err?.status || err?.statusCode;
+      // An invalid or forbidden API key fails identically on every model: stop instead of trying all of them
+      if (status === 401 || status === 403) {
+        console.error(`[parseReceipt] Gemini rejected the API key (HTTP ${status})`);
+        throw new ReceiptParseError(
+          "Receipt recognition is misconfigured on the server (invalid API key)",
+          503
+        );
+      }
       if (DEBUG_PARSE)
         console.warn(
           `[parseReceipt] Error with model ${modelName} (status=${status}) → ${
