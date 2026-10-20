@@ -335,5 +335,12 @@
     "defaultName": "Foydalanuvchi",
     "defaultUsername": "@user",
     "bio": "{{name}} endi sizning do'stingiz!"
+  },
+  "participants": {
+    "select": "Tanlash",
+    "selected": "Tanlangan",
+    "groupFallback": "Guruh #{{id}}",
+    "search": "Qidirish…",
+    "next": "Keyingi"
   }
 }

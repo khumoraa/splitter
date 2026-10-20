@@ -5,6 +5,7 @@ import {
 } from 'tamagui';
 import { Users as UsersIcon, Check } from '@tamagui/lucide-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useFriendsStore } from '@/features/friends/model/friends.store';
 import UserAvatar from '@/shared/ui/UserAvatar';
 import { useAppStore } from '@/shared/lib/stores/app-store';
@@ -16,6 +17,7 @@ type LiteUser = { uniqueId: string; username: string; avatarUrl?: string | null 
 export default function SessionParticipantsScreen() {
   const { receiptId } = useLocalSearchParams<{ receiptId?: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   // stores
@@ -247,7 +249,7 @@ export default function SessionParticipantsScreen() {
       jc="center"
     >
       <Text fontSize={14} fontWeight="500" color={on ? '#FFFFFF' : '#2C3D4FCC'}>
-        {on ? 'Selected' : 'Select'}
+        {on ? t('participants.selected', 'Selected') : t('participants.select', 'Select')}
       </Text>
     </Button>
   );
@@ -300,7 +302,7 @@ export default function SessionParticipantsScreen() {
             <GroupChip
               key={g.id}
               id={g.id}
-              name={g.name ?? `Group #${g.id}`}
+              name={g.name ?? t('participants.groupFallback', { id: g.id, defaultValue: 'Group #{{id}}' })}
               count={groupCount(g.id)}
               active={activeGroupId === g.id}
               loading={!!groupLoading[g.id]}
@@ -312,7 +314,7 @@ export default function SessionParticipantsScreen() {
 
       {/* Search */}
       <Input
-        placeholder="Search…"
+        placeholder={t('participants.search', 'Search…')}
         value={q}
         onChangeText={setQ}
         h={41}
@@ -386,7 +388,7 @@ export default function SessionParticipantsScreen() {
           opacity={canNext ? 1 : 0.5}
         >
           <Text fontSize={16} fontWeight="500" color="#FFFFFF" style={{ lineHeight: 25 }}>
-            Next
+            {t('participants.next', 'Next')}
           </Text>
         </Button>
       </YStack>

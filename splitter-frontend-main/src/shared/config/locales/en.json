@@ -335,5 +335,12 @@
     "defaultName": "User",
     "defaultUsername": "@user",
     "bio": "{{name}} is now your friend!"
+  },
+  "participants": {
+    "select": "Select",
+    "selected": "Selected",
+    "groupFallback": "Group #{{id}}",
+    "search": "Search…",
+    "next": "Next"
   }
 }

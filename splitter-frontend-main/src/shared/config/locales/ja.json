@@ -335,5 +335,12 @@
     "defaultName": "ユーザー",
     "defaultUsername": "@user",
     "bio": "{{name}} さんと友だちになりました!"
+  },
+  "participants": {
+    "select": "選択",
+    "selected": "選択済み",
+    "groupFallback": "グループ #{{id}}",
+    "search": "検索…",
+    "next": "次へ"
   }
 }
