@@ -22,8 +22,9 @@ req "friends list" $B/friends -H "Authorization: Bearer $TA"
 req "groups create" -X POST $B/groups -H "$J" -H "Authorization: Bearer $TA" -d '{"name":"G1"}'
 GID=$(grep -o '"id":[0-9]*' $O | head -1 | cut -d: -f2)
 req "groups list" $B/groups -H "Authorization: Bearer $TA"
-req "scan (no gemini key)" -X POST $B/sessions/scan -H "$J" -H "Authorization: Bearer $TA" -d '{"sessionName":"s","language":"en","image":{"mimeType":"image/jpeg","data":"AAAA"}}'
-SID=$(grep -o '"sessionId":[0-9]*' $O | head -1 | cut -d: -f2)
+req "scan with fake image (expects 502/503 or mock)" -X POST $B/sessions/scan -H "$J" -H "Authorization: Bearer $TA" -d '{"sessionName":"s","language":"en","image":{"mimeType":"image/jpeg","data":"AAAA"}}'
+req "create session" -X POST $B/sessions -H "$J" -H "Authorization: Bearer $TA" -d "{}"
+SID=$(grep -o "\"id\":[0-9]*" $O | head -1 | cut -d: -f2)
 req "scan missing image" -X POST $B/sessions/scan -H "$J" -H "Authorization: Bearer $TA" -d '{"sessionName":"s","language":"en"}'
 req "finalize ok" -X POST $B/sessions/finalize -H "$J" -H "Authorization: Bearer $TA" -d '{"sessionId":'$SID',"sessionName":"s","currency":"USD","participants":[{"uniqueId":"'$UA'","username":"Alice"},{"uniqueId":"'$UB'","username":"Bob"}],"items":[{"id":"1","name":"Pizza","price":10,"quantity":1,"splitMode":"equal","assignedTo":["'$UA'","'$UB'"]},{"id":"2","name":"Beer","price":0.1,"quantity":3,"splitMode":"count","perPersonCount":{"'$UA'":1,"'$UB'":2}}]}'
 req "finalize unassigned" -X POST $B/sessions/finalize -H "$J" -H "Authorization: Bearer $TA" -d '{"sessionId":'$SID',"participants":[{"uniqueId":"'$UA'"}],"items":[{"id":"1","name":"P","price":10,"quantity":1,"splitMode":"equal","assignedTo":[]}]}'
