@@ -1,3 +1,4 @@
+import { ErrorRetry } from '@/shared/ui/ErrorRetry';
 import React, { useEffect, useState, useMemo } from 'react';
 import { YStack, XStack, Paragraph, Input, ScrollView, Spinner, Separator, Text } from 'tamagui';
 import { useRouter } from 'expo-router';
@@ -65,7 +66,11 @@ export default function FriendsScreen() {
           />
         </XStack>
 
-        {error && <Paragraph col="$red10" p="$4">{error}</Paragraph>}
+        {error && (
+          <YStack px="$4">
+            <ErrorRetry message={error} onRetry={() => fetchAll()} disabled={loading} />
+          </YStack>
+        )}
         
         <ScrollView f={1} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
           {filteredFriends.length > 0 && (
