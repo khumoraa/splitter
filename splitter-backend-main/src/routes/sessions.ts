@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma.js";
 import type { Prisma } from "@prisma/client";
 import { authenticateToken, type AuthRequest } from "../middleware/auth.js";
 import { parseReceipt, ReceiptParseError } from "../services/receiptParser.js";
+import { fromMinor, splitMinor, toMinor } from "../utils/money.js";
 
 const router = Router();
 
@@ -475,9 +476,9 @@ router.post(
       // We'll derive totals AFTER generating allocations to have a single source of truth.
       const itemMeta = new Map<string, { name: string; kind?: string }>();
 
-      function round2(n: number) {
-        return Math.round(n * 100) / 100;
-      }
+      // All money math below is done in integer cents (see utils/money.ts) so that
+      // the shares of every item sum exactly to the item total.
+      let itemIndex = 0;
 
       if (process.env.DEBUG_PARSE === "1") {
         console.log(
@@ -490,6 +491,7 @@ router.post(
 
       for (const raw of items as ItemInput[]) {
         if (!raw || typeof raw !== "object") continue;
+        const rotation = itemIndex++;
         const { id, name, quantity } = raw;
         // prefer explicit price/unitPrice; else derive from totalPrice/quantity
         let unitPrice = Number(
@@ -547,12 +549,13 @@ router.post(
           }
           for (const [pid, units] of Object.entries(counts)) {
             const u = Number(units) || 0;
-            const shareAmount = round2(u * unitPrice);
+            const shareMinor = toMinor(u * unitPrice);
             allocs.push({
               itemId: id,
               participantId: pid,
               shareUnits: u,
-              shareAmount,
+              shareAmount: fromMinor(shareMinor),
+              shareMinor,
             });
             // participant totals will be derived later
           }
@@ -563,29 +566,25 @@ router.post(
               error: `assignedTo required for equal split item ${id}`,
             });
           }
-          const valid = assigned.filter((pid) => participantIndex.has(pid));
-          if (valid.length !== assigned.length) {
+          const valid = Array.from(new Set(assigned)).filter((pid) =>
+            participantIndex.has(pid)
+          );
+          if (valid.length !== new Set(assigned).size) {
             return res.status(400).json({
               error: `Unknown participant in assignedTo for item ${id}`,
             });
           }
           const ratio = 1 / valid.length;
-          let allocated = 0;
+          const shares = splitMinor(toMinor(unitPrice * qty), valid.length, rotation);
           valid.forEach((pid, idx) => {
-            let shareAmount = unitPrice * qty * ratio; // raw
-            if (idx === valid.length - 1) {
-              // last one gets the remainder to avoid rounding drift
-              shareAmount = unitPrice * qty - allocated;
-            }
-            shareAmount = round2(shareAmount);
-            allocated = round2(allocated + shareAmount);
+            const shareMinor = shares[idx]!;
             allocs.push({
               itemId: id,
               participantId: pid,
               shareRatio: ratio,
-              shareAmount,
+              shareAmount: fromMinor(shareMinor),
+              shareMinor,
             });
-            // participant totals will be derived later
           });
         } else {
           return res.status(400).json({
@@ -599,10 +598,11 @@ router.post(
         string,
         { itemId: string; name: string; total: number; kind?: string }
       >();
-      const byParticipantTotals = new Map<string, number>();
+      const byItemMinor = new Map<string, number>();
+      const byParticipantMinor = new Map<string, number>();
       for (const a of allocs) {
         const itemId = a.itemId;
-        const shareAmount = Number(a.shareAmount) || 0;
+        const shareMinor: number = a.shareMinor;
         if (!byItemMap.has(itemId)) {
           const meta = itemMeta.get(itemId);
           byItemMap.set(itemId, {
@@ -612,18 +612,19 @@ router.post(
             ...(meta?.kind ? { kind: meta.kind } : {}),
           });
         }
-        const entry = byItemMap.get(itemId)!;
-        entry.total = round2(entry.total + shareAmount);
+        byItemMinor.set(itemId, (byItemMinor.get(itemId) || 0) + shareMinor);
         const pid = a.participantId;
-        byParticipantTotals.set(
-          pid,
-          round2((byParticipantTotals.get(pid) || 0) + shareAmount)
-        );
+        byParticipantMinor.set(pid, (byParticipantMinor.get(pid) || 0) + shareMinor);
       }
-      const byItem = Array.from(byItemMap.values());
-      const grandTotal = round2(byItem.reduce((s, it) => s + it.total, 0));
+      const byItem = Array.from(byItemMap.values()).map((it) => ({
+        ...it,
+        total: fromMinor(byItemMinor.get(it.itemId) || 0),
+      }));
+      let grandMinor = 0;
+      for (const v of byItemMinor.values()) grandMinor += v;
+      const grandTotal = fromMinor(grandMinor);
       const byParticipant = pList.map((p) => {
-        const amount = round2(byParticipantTotals.get(p.uniqueId) || 0);
+        const amount = fromMinor(byParticipantMinor.get(p.uniqueId) || 0);
         return {
           uniqueId: p.uniqueId,
           username: p.username,
@@ -653,7 +654,7 @@ router.post(
           byParticipant,
           byItem,
         },
-        allocations: allocs,
+        allocations: allocs.map(({ shareMinor: _shareMinor, ...rest }) => rest),
       } satisfies Record<string, unknown>;
 
       const participantUniqueIds = Array.from(
