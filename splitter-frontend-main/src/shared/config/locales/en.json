@@ -437,5 +437,12 @@
     "byItem": "Split by item:",
     "noAllocations": "No allocation details available.",
     "complete": "Complete settlement"
+  },
+  "settlement": {
+    "title": "Who owes whom",
+    "paidBy": "{{name}} paid the bill",
+    "you": "You",
+    "transfer": "{{from}} → {{to}}",
+    "nothing": "Nobody owes anything."
   }
 }

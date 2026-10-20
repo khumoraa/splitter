@@ -437,5 +437,12 @@
     "byItem": "項目ごとの内訳:",
     "noAllocations": "割り当ての詳細はありません。",
     "complete": "精算を完了"
+  },
+  "settlement": {
+    "title": "誰が誰にいくら払うか",
+    "paidBy": "{{name}} さんが支払いました",
+    "you": "あなた",
+    "transfer": "{{from}} → {{to}}",
+    "nothing": "精算が必要な人はいません。"
   }
 }

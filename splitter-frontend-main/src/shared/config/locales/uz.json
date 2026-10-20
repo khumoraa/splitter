@@ -437,5 +437,12 @@
     "byItem": "Pozitsiyalar bo'yicha:",
     "noAllocations": "Tayinlash tafsilotlari mavjud emas.",
     "complete": "Hisob-kitobni yakunlash"
+  },
+  "settlement": {
+    "title": "Kim kimga qarzdor",
+    "paidBy": "{{name}} hisobni to'ladi",
+    "you": "Siz",
+    "transfer": "{{from}} → {{to}}",
+    "nothing": "Hech kim qarzdor emas."
   }
 }
