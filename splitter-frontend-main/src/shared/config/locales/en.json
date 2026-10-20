@@ -6,7 +6,7 @@
   "features": {
     "scan": "Scan",
     "scanDesc": "Take photos of your receipts",
-    "split": "Split Bills", 
+    "split": "Split Bills",
     "splitDesc": "Divide costs with friends",
     "calculate": "Calculate",
     "calculateDesc": "Know who owes what"

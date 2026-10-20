@@ -31,7 +31,9 @@
     "usernamePlaceholder": "Foydalanuvchi nomini kiriting",
     "forgotPassword": "Parolni unutdingizmi?",
     "noAccount": "Hisobingiz yo'qmi?",
-    "haveAccount": "Hisobingiz bormi?"
+    "haveAccount": "Hisobingiz bormi?",
+    "loginError": "Kirishda xatolik yuz berdi",
+    "registerError": "Ro'yxatdan o'tishda xatolik yuz berdi"
   },
   "common": {
     "welcome": "Xush kelibsiz",
@@ -177,5 +179,16 @@
         "uz": "O'zbek tili"
       }
     }
+  },
+  "friends": {
+    "title": "Do'stlar",
+    "requests": "So'rovlar",
+    "add": "Do'st qo'shish",
+    "empty": "Hali do'stlar yo'q. Qo'shish uchun + ni bosing.",
+    "searchPlaceholder": "uniqueId kiriting, masalan USER#1234",
+    "send": "So'rov yuborish",
+    "remove": "O'chirish",
+    "loading": "Yuklanmoqda...",
+    "error": "Yuklab bo'lmadi"
   }
 }
