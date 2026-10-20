@@ -7,7 +7,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "node --test src/shared/lib/utils/money.test.mjs src/shared/config/locales.test.mjs src/shared/lib/utils/settlement.test.mjs src/shared/api/api-error.test.mjs"
+    "test": "node --test src/shared/lib/utils/money.test.mjs src/shared/config/locales.test.mjs src/shared/lib/utils/settlement.test.mjs src/shared/api/api-error.test.mjs",
+    "lint": "expo lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -71,6 +72,8 @@
     "@types/yargs": "^17.0.33",
     "@types/yargs-parser": "^21.0.3",
     "babel-preset-expo": "~54.0.10",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
   },
   "overrides": {
