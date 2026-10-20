@@ -10,7 +10,7 @@ import { DEFAULT_LANGUAGE } from '@/shared/config/languages';
 // Provider component for initialization
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { onUnauthorized } from '@/shared/api/auth-events';
+import { onUnauthorized, resetUnauthorizedCooldown } from '@/shared/api/auth-events';
 
 export interface User {
   id: number;
@@ -63,6 +63,7 @@ export const useAppStore = create<AppStore>()(
       },
 
       setAuth: (token: string, user: User) => {
+        resetUnauthorizedCooldown();
         set({ token, user });
       },
 

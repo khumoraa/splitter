@@ -7,7 +7,18 @@ export function onUnauthorized(listener: UnauthorizedListener): () => void {
   return () => unauthorizedListeners.delete(listener);
 }
 
-export function emitUnauthorized(): void {
+/** Several requests often fail with 401 at once (expired token); notify listeners (logout, navigation) once. */
+export const UNAUTHORIZED_COOLDOWN_MS = 1500;
+let lastEmitAt = -Infinity;
+
+/** Call after a successful sign-in so a new 401 is never swallowed by the cooldown of the previous session. */
+export function resetUnauthorizedCooldown(): void {
+  lastEmitAt = -Infinity;
+}
+
+export function emitUnauthorized(now: number = Date.now()): void {
+  if (now - lastEmitAt < UNAUTHORIZED_COOLDOWN_MS) return;
+  lastEmitAt = now;
   unauthorizedListeners.forEach((listener) => {
     try {
       const result = listener();
