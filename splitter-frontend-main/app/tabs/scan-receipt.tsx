@@ -312,9 +312,11 @@ export default function ScanReceiptScreen() {
             {t('scan.fromGallery', 'Choose from gallery')}
           </Button>
 
-          <Button size="$2" borderRadius="$3" theme="gray" variant="outlined" onPress={useMock} disabled={parsing}>
-            {t('scan.useMock', 'Use mock receipt')}
-          </Button>
+          {__DEV__ && (
+            <Button size="$2" borderRadius="$3" theme="gray" variant="outlined" onPress={useMock} disabled={parsing}>
+              {t('scan.useMock', 'Use mock receipt')}
+            </Button>
+          )}
         </YStack>
       </View>
     </View>
