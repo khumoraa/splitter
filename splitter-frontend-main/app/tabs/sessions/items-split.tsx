@@ -269,6 +269,7 @@ export default function ItemsSplitScreen() {
   const [editing, setEditing] = useState<Editing>(null);
   // item whose name/price/quantity is being edited (separate from the "who pays" modal above)
   const [formItemId, setFormItemId] = useState<string | null>(null);
+  const [addingItem, setAddingItem] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
@@ -378,6 +379,26 @@ export default function ItemsSplitScreen() {
         })
       );
       setFormItemId(null);
+    },
+    [commitItems]
+  );
+
+  const addItem = useCallback(
+    (values: ItemFormValues) => {
+      commitItems((prev) => [
+        ...prev,
+        {
+          id: `custom-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+          name: values.name,
+          price: values.price,
+          quantity: values.quantity,
+          totalPrice: Math.round(values.price * values.quantity * 100) / 100,
+          splitMode: values.quantity > 1 ? 'count' : 'equal',
+          assignedTo: [],
+          perPersonCount: {},
+        },
+      ]);
+      setAddingItem(false);
     },
     [commitItems]
   );
@@ -965,6 +986,23 @@ export default function ItemsSplitScreen() {
                 </YStack>
               );
             })}
+
+            <Button
+              unstyled
+              onPress={() => setAddingItem(true)}
+              height={41}
+              borderRadius={10}
+              borderWidth={1}
+              borderStyle="dashed"
+              borderColor="#2ECC71"
+              ai="center"
+              jc="center"
+              flexDirection="row"
+              gap="$2"
+            >
+              <Plus size={16} color="#2ECC71" />
+              <Text color="#2ECC71" fontWeight="600">Add item</Text>
+            </Button>
           </YStack>
         </YStack>
       </ScrollView>
@@ -1032,6 +1070,17 @@ export default function ItemsSplitScreen() {
           />
         );
       })()}
+
+      {addingItem && (
+        <ItemEditModal
+          mode="new"
+          initial={{ name: '', price: 0, quantity: 1 }}
+          currency={storeCurrency || 'UZS'}
+          topInset={insets.top}
+          onSave={addItem}
+          onClose={() => setAddingItem(false)}
+        />
+      )}
 
       {/* Assign Modal */}
       {editing && (

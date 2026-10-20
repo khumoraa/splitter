@@ -12,6 +12,8 @@ type Props = {
   /** Initial values; the modal is rendered only while the parent keeps it mounted */
   initial: { name: string; price: number; quantity: number };
   currency: string;
+  /** 'new' shows "Add item" and hides the assignment-reset hint */
+  mode?: 'edit' | 'new';
   topInset?: number;
   onSave: (values: ItemFormValues) => void;
   onClose: () => void;
@@ -24,7 +26,7 @@ const parseNumber = (raw: string): number => {
   return Number(cleaned);
 };
 
-export function ItemEditModal({ initial, currency, topInset = 0, onSave, onClose }: Props) {
+export function ItemEditModal({ initial, currency, mode = 'edit', topInset = 0, onSave, onClose }: Props) {
   const { t } = useTranslation();
   const [name, setName] = useState(initial.name);
   const [price, setPrice] = useState(String(initial.price));
@@ -54,7 +56,7 @@ export function ItemEditModal({ initial, currency, topInset = 0, onSave, onClose
     <YStack position="absolute" inset={0} bg="rgba(0,0,0,0.35)" ai="center" pt={topInset + 12} zIndex={20}>
       <YStack w={358} maxWidth="94%" bg="$color1" borderRadius={8} p="$3" gap="$3">
         <Text fontSize={16} fontWeight="700">
-          {t('items.editTitle', 'Edit item')}
+          {mode === 'new' ? t('items.addTitle', 'Add item') : t('items.editTitle', 'Edit item')}
         </Text>
 
         <YStack gap="$1">
@@ -75,9 +77,11 @@ export function ItemEditModal({ initial, currency, topInset = 0, onSave, onClose
           </YStack>
         </XStack>
 
-        <Text fontSize={12} color="$gray10">
-          {t('items.assignmentsReset', 'Changing the quantity clears who was assigned to this item.')}
-        </Text>
+        {mode === 'edit' && (
+          <Text fontSize={12} color="$gray10">
+            {t('items.assignmentsReset', 'Changing the quantity clears who was assigned to this item.')}
+          </Text>
+        )}
 
         {error && <Text color="$red10" fontSize={13}>{error}</Text>}
 
