@@ -1,3 +1,4 @@
+import { ErrorRetry } from '@/shared/ui/ErrorRetry';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { Pressable, RefreshControl } from 'react-native';
@@ -166,11 +167,7 @@ export default function SessionsHistoryScreen() {
             {t('history.loading', 'Loading...')}
           </Text>
         )}
-        {error && (
-          <Text color="$red10" fontSize={14}>
-            {error}
-          </Text>
-        )}
+        {error && <ErrorRetry message={error} onRetry={onRefresh} disabled={loading || refreshing} />}
         {!loading && !error && !history.length && (
           <Text color="$gray10" fontSize={14}>
             {t('history.empty', 'No history yet')}
