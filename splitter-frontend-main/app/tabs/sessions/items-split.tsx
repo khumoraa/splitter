@@ -660,15 +660,6 @@ export default function ItemsSplitScreen() {
         perPersonCount: mode === 'count' ? (item.perPersonCount || {}) : undefined,
       };
 
-  // Debug log
-  console.log('Finalizing item:', {
-    id: item.id,
-    name: item.name,
-    mode,
-    assignedTo: payload.assignedTo,
-    perPersonCount: payload.perPersonCount,
-  });
-
   return payload;
 });
 
