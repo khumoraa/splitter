@@ -228,7 +228,42 @@
         "ja": "日本語",
         "uz": "ウズベク語"
       }
-    }
+    },
+    "account": {
+      "title": "アカウント設定",
+      "description": "以下のフォームでユーザー名とパスワードを更新できます。"
+    },
+    "username": {
+      "title": "ユーザー名",
+      "placeholder": "新しいユーザー名を入力",
+      "save": "ユーザー名を保存",
+      "saving": "保存中...",
+      "reset": "リセット",
+      "errorEmpty": "ユーザー名は空にできません",
+      "errorShort": "ユーザー名は2文字以上にしてください",
+      "updated": "ユーザー名を更新しました。",
+      "signInRequired": "ユーザー名を更新するにはサインインしてください。",
+      "updateFailed": "ユーザー名を更新できませんでした。"
+    },
+    "password": {
+      "title": "パスワード",
+      "current": "現在のパスワード",
+      "new": "新しいパスワード",
+      "confirm": "新しいパスワード(確認)",
+      "hint": "パスワードは8文字以上で、大文字・小文字・数字・記号を含める必要があります。",
+      "change": "パスワードを変更",
+      "changing": "更新中...",
+      "updatedTitle": "パスワードを更新しました",
+      "updatedMessage": "パスワードが変更されました。",
+      "signInRequired": "パスワードを変更するにはサインインしてください。",
+      "changeFailed": "パスワードを変更できませんでした。",
+      "errorCurrent": "現在のパスワードを入力してください",
+      "errorLength": "新しいパスワードは8文字以上にしてください",
+      "errorStrength": "パスワードには大文字・小文字・数字・記号を含めてください",
+      "errorMismatch": "パスワードが一致しません",
+      "errorSame": "別のパスワードを選んでください"
+    },
+    "unavailable": "利用できません"
   },
   "groups": {
     "title": "グループ",

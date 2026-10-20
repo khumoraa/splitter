@@ -179,7 +179,42 @@
         "ja": "Yapon tili",
         "uz": "O'zbek tili"
       }
-    }
+    },
+    "account": {
+      "title": "Hisob sozlamalari",
+      "description": "Foydalanuvchi nomi va parolni quyidagi shakllar orqali yangilang."
+    },
+    "username": {
+      "title": "Foydalanuvchi nomi",
+      "placeholder": "Yangi foydalanuvchi nomini kiriting",
+      "save": "Nomni saqlash",
+      "saving": "Saqlanmoqda...",
+      "reset": "Tiklash",
+      "errorEmpty": "Foydalanuvchi nomi bo'sh bo'lishi mumkin emas",
+      "errorShort": "Foydalanuvchi nomi kamida 2 ta belgidan iborat bo'lishi kerak",
+      "updated": "Foydalanuvchi nomi yangilandi.",
+      "signInRequired": "Foydalanuvchi nomini yangilash uchun tizimga kiring.",
+      "updateFailed": "Foydalanuvchi nomini yangilab bo'lmadi."
+    },
+    "password": {
+      "title": "Parol",
+      "current": "Joriy parol",
+      "new": "Yangi parol",
+      "confirm": "Yangi parolni tasdiqlang",
+      "hint": "Parol kamida 8 ta belgidan iborat bo'lib, bosh harf, kichik harf, raqam va maxsus belgini o'z ichiga olishi kerak.",
+      "change": "Parolni o'zgartirish",
+      "changing": "Yangilanmoqda...",
+      "updatedTitle": "Parol yangilandi",
+      "updatedMessage": "Parolingiz o'zgartirildi.",
+      "signInRequired": "Parolni o'zgartirish uchun tizimga kiring.",
+      "changeFailed": "Parolni o'zgartirib bo'lmadi.",
+      "errorCurrent": "Joriy parolni kiriting",
+      "errorLength": "Yangi parol kamida 8 ta belgidan iborat bo'lishi kerak",
+      "errorStrength": "Parolda bosh harf, kichik harf, raqam va maxsus belgi bo'lishi kerak",
+      "errorMismatch": "Parollar mos kelmadi",
+      "errorSame": "Boshqa parol tanlang"
+    },
+    "unavailable": "Mavjud emas"
   },
   "friends": {
     "title": "Do'stlar",

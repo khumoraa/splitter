@@ -228,7 +228,42 @@
         "ja": "Japanese",
         "uz": "Uzbek"
       }
-    }
+    },
+    "account": {
+      "title": "Account settings",
+      "description": "Update your username and password using the forms below."
+    },
+    "username": {
+      "title": "Username",
+      "placeholder": "Enter a new username",
+      "save": "Save username",
+      "saving": "Saving...",
+      "reset": "Reset",
+      "errorEmpty": "Username cannot be empty",
+      "errorShort": "Username must be at least 2 characters",
+      "updated": "Username updated.",
+      "signInRequired": "Sign in to update your username.",
+      "updateFailed": "Could not update the username."
+    },
+    "password": {
+      "title": "Password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "hint": "Password must be at least 8 characters and include uppercase, lowercase, number, and special symbol.",
+      "change": "Change password",
+      "changing": "Updating...",
+      "updatedTitle": "Password updated",
+      "updatedMessage": "Your password has been changed.",
+      "signInRequired": "Sign in to change your password.",
+      "changeFailed": "Could not change the password.",
+      "errorCurrent": "Enter your current password",
+      "errorLength": "New password must be at least 8 characters",
+      "errorStrength": "Password must include uppercase, lowercase, number, and special character",
+      "errorMismatch": "Passwords do not match",
+      "errorSame": "Choose a different password"
+    },
+    "unavailable": "Unavailable"
   },
   "groups": {
     "title": "Groups",
