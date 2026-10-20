@@ -12,7 +12,7 @@ TypeScript + ESM Express API with Prisma (PostgreSQL), JWT auth, and Swagger doc
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 22+
 - PostgreSQL database
 
 ## Setup
@@ -42,9 +42,12 @@ Env variables (minimum):
 - `DEBUG_AUTH=1` — verbose JWT verification logs
 - `DEFAULT_AVATAR_URL` — fallback avatar URL (optional)
 
+Running together with the phone app: see "Run on a phone (Expo Go) with the local backend" in `splitter-frontend-main/README.md` (use the computer's LAN IP, port 3001; the server listens on 0.0.0.0).
+
 Receipt parsing (Gemini) optional:
 
-- `GEMINI_API_KEY` — enables real receipt parsing (without it, server returns deterministic mock items)
+- `GEMINI_API_KEY` — enables real receipt parsing. Without it `/sessions/scan` answers 503; an invalid key (HTTP 401/403 from Google) also answers 503 immediately; other model failures answer 502
+- `ALLOW_MOCK_OCR=1` — development only: return a sample receipt (`source: "mock"`) instead of an error when recognition is unavailable
 - `GEMINI_MODEL_PARSE` — model name (default `gemini-1.5-flash`)
 - `DEBUG_PARSE=1` — include raw model text & timing in response under `_debug`
 
