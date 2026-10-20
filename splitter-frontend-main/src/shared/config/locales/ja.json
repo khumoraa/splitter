@@ -196,7 +196,8 @@
       "passwordChangeFailed": "パスワードを変更できませんでした。",
       "logoutFailed": "ログアウトできませんでした。もう一度お試しください。",
       "imageMissing": "画像ファイルのURIが見つかりません。",
-      "uploadReadFailed": "選択したファイルを読み込めませんでした。"
+      "uploadReadFailed": "選択したファイルを読み込めませんでした。",
+      "avatarStorageUnavailable": "現在アバターをアップロードできません。サーバーで画像ストレージが設定されていません。"
     },
     "validation": {
       "usernameRequired": "ユーザー名を入力してください。",

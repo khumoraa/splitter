@@ -144,7 +144,8 @@
       "passwordChangeFailed": "Parolni o'zgartirib bo'lmadi.",
       "logoutFailed": "Chiqib bo'lmadi. Iltimos, yana urinib ko'ring.",
       "imageMissing": "Rasm faylining URI topilmadi.",
-      "uploadReadFailed": "Tanlangan faylni o'qib bo'lmadi."
+      "uploadReadFailed": "Tanlangan faylni o'qib bo'lmadi.",
+      "avatarStorageUnavailable": "Avatar yuklash hozir mavjud emas: serverda rasm xotirasi sozlanmagan."
     },
     "validation": {
       "usernameRequired": "Foydalanuvchi nomini kiriting.",

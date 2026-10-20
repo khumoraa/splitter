@@ -196,7 +196,8 @@
       "passwordChangeFailed": "Could not change the password.",
       "logoutFailed": "Could not log out. Please try again.",
       "imageMissing": "Image file is missing a URI.",
-      "uploadReadFailed": "Unable to read the selected file for upload."
+      "uploadReadFailed": "Unable to read the selected file for upload.",
+      "avatarStorageUnavailable": "Avatar upload is not available right now: image storage is not configured on the server."
     },
     "validation": {
       "usernameRequired": "Username cannot be empty",

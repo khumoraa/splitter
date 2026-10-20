@@ -12,6 +12,7 @@ import UserAvatar from '@/shared/ui/UserAvatar';
 import Input from '@/shared/ui/Input';
 import PasswordInput from '@/shared/ui/PasswordInput';
 import { useAppStore } from '@/shared/lib/stores/app-store';
+import { isApiError } from '@/shared/api/api-error';
 import { changePassword, resetAvatar, updateEmail, updateUsername, uploadAvatar } from '@/features/auth/api';
 import { LANGUAGE_OPTIONS, type LanguageCode } from '@/shared/config/languages';
 import { LanguageSegmentedControl } from '@/shared/ui/LanguageSegmentedControl';
@@ -501,7 +502,13 @@ export default function ProfileScreen() {
       } catch (error) {
         console.error('Avatar upload error:', error);
         const fallback = t('profile.alerts.avatarUpdateFailed', 'Could not update the avatar.');
-        const message = error instanceof Error && error.message ? error.message : fallback;
+        // 503 = the server has no image storage (R2) configured: say so in the user's language
+        const message =
+          isApiError(error) && error.status === 503
+            ? t('profile.alerts.avatarStorageUnavailable', 'Avatar upload is not available right now: image storage is not configured on the server.')
+            : error instanceof Error && error.message
+            ? error.message
+            : fallback;
         Alert.alert(t('common.error', 'Error'), message);
       } finally {
         setIsSavingAvatar(false);
