@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import multer from "multer";
 import { authenticateToken } from "../middleware/auth.js";
-import { uploadAvatarObject } from "../config/r2.js";
+import { R2NotConfiguredError, uploadAvatarObject } from "../config/r2.js";
 import { prisma } from "../config/prisma.js";
 
 type UploadFile = {
@@ -143,6 +143,10 @@ router.post(
       return;
     } catch (err) {
       console.error("POST /uploads/avatar error:", err);
+      if (err instanceof R2NotConfiguredError) {
+        res.status(503).json({ error: "Avatar storage is not configured" });
+        return;
+      }
       res.status(500).json({ error: "Server error" });
       return;
     }
