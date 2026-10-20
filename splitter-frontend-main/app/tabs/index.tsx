@@ -1,3 +1,4 @@
+import { ErrorRetry } from '@/shared/ui/ErrorRetry';
 import React, { useEffect, useMemo, useRef, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -255,9 +256,11 @@ export default function HomePage() {
             </Text>
           )}
           {error && (
-            <Text color="$red10" fontSize={14}>
-              {error}
-            </Text>
+            <ErrorRetry
+              message={error}
+              onRetry={() => { fetchHistory(HOME_HISTORY_LIMIT).catch(() => {}); }}
+              disabled={loading}
+            />
           )}
           {!loading && !error && !recent.length && (
             <Text color="$gray10" fontSize={14}>
