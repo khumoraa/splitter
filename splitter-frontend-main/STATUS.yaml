@@ -1,0 +1,306 @@
+# STATUS.yaml — Receipt Splitter Frontend Progress
+
+status_entries:
+  - status_id: "status_001"
+    roadmap_ref: "chapter_01_auth"
+    timestamp: "2025-01-20T15:30:00+05:00"
+    done:
+      - "Настроена аутентификация (login/register) с JWT токенами"
+      - "Интегрирован с бэкендом https://splitter-backend-qeig.onrender.com"
+      - "Реализовано сохранение токенов (SecureStore/AsyncStorage)"
+      - "Настроен роутинг Expo Router (welcome → auth → tabs)"
+      - "Добавлен функционал logout с подтверждением"
+      - "Переведен интерфейс на английский язык"
+    next:
+      - "Перейти к фазе UI/UX дизайна"
+      - "Выбрать и настроить UI библиотеку"
+      - "Создать дизайн-систему и компоненты"
+    evidence:
+      - "app/_layout.tsx - главный layout с роутингом"
+      - "src/features/auth/ - модуль аутентификации"
+      - "src/shared/lib/stores/app-store.ts - Zustand store"
+      - "src/shared/lib/utils/token-storage.ts - работа с токенами"
+      - ".env - конфигурация API"
+    decisions:
+      - "Использован Axios для HTTP запросов вместо fetch"
+      - "Выбран Zustand для state management"
+      - "Интерфейс переведен на английский для международности"
+    open_questions:
+      - "Какую UI библиотеку выбрать (NativeBase/Tamagui/RN Elements)?"
+      - "Нужны ли анимации переходов между экранами?"
+      - "Требуется ли dark theme поддержка?"
+    stack:
+      tech_stack: "Expo SDK 53, TypeScript, Expo Router, Zustand, Axios, React Hook Form, Zod"
+      backend: "https://splitter-backend-qeig.onrender.com"
+      auth_method: "JWT tokens"
+    metrics:
+      features_completed: 7
+      screens_working: 4
+      api_endpoints_integrated: 3
+      auth_flow_status: "fully_working"
+
+  - status_id: "status_002"
+    roadmap_ref: "chapter_02_design"
+    timestamp: "2025-08-20T04:06:00+05:00"
+    done:
+      - "Установлен и настроен Tamagui как UI библиотека"
+      - "Создана кастомная дизайн-система с зелёным цветом #2ECC71"
+      - "Созданы базовые UI компоненты (Button, Input, Card, ScreenContainer)"
+      - "Настроена поддержка light/dark тем"
+      - "Создана новая Welcome страница с переключением языков"
+      - "Добавлена поддержка узбекского языка (en/ja/uz)"
+      - "Переработаны формы аутентификации в новом дизайне"
+      - "Интегрированы иконки Lucide (@tamagui/lucide-icons)"
+      - "Убраны все debug логи из production кода"
+    next:
+      - "Рефакторить остальные экраны под новую дизайн-систему"
+      - "Добавить анимации и переходы между экранами"
+      - "Реализовать функциональность добавления друзей"
+    evidence:
+      - "tamagui.config.ts - конфигурация UI библиотеки с кастомными цветами"
+      - "src/shared/ui/ - базовые UI компоненты дизайн-системы"
+      - "app/index.tsx - новая Welcome страница с языками"
+      - "src/features/auth/components/ - обновлённые формы входа/регистрации"
+      - "src/shared/config/locales/ - локализация на 3 языка (en/ja/uz)"
+      - "src/application/providers/TamaguiProvider.tsx - провайдер UI"
+    decisions:
+      - "Выбран Tamagui вместо NativeBase/RN Elements для лучшей производительности"
+      - "Использован зелёный цвет #2ECC71 как primary brand color"
+      - "Добавлен узбекский язык для локального рынка Ташкента"
+      - "Использованы иконки Lucide вместо эмодзи для профессионального вида"
+      - "Убраны console.log для production-ready кода"
+    open_questions:
+      - "Нужны ли дополнительные анимации для улучшения UX?"
+      - "Требуется ли тёмная тема на первом этапе MVP?"
+      - "Какие компоненты добавить в UI kit для экранов друзей/групп?"
+    stack:
+      tech_stack: "Expo SDK 53, TypeScript, Expo Router, Zustand, Axios, React Hook Form, Zod, Tamagui, Lucide Icons"
+      ui_library: "Tamagui v1.x с кастомной темой"
+      design_system: "Собственная на базе Tamagui"
+      languages: "English, Japanese, Uzbek"
+      backend: "https://splitter-backend-qeig.onrender.com"
+      auth_method: "JWT tokens"
+    metrics:
+      features_completed: 12
+      screens_working: 6
+      ui_components_created: 4
+      languages_supported: 3
+      design_system_status: "fully_implemented"
+      auth_flow_status: "redesigned_and_working"
+
+  - status_id: "status_003"
+    roadmap_ref: "chapter_03_friends"
+    timestamp: "2025-08-26T12:00:00+05:00"
+    done:
+      - "Сформулированы цели MVP модуля «Друзья» (поиск, запросы, список, удаление)"
+      - "Подготовлены скелеты экранов Friends/Requests/Search"
+      - "Черновые API-обёртки под /friends, /friends/requests, /friends/search, /friends/request, /friends/accept, /friends/reject, /friends/{userId}"
+      - "Черновой Zustand-store для друзей (fetchAll/refresh/send/accept/decline/remove)"
+    next:
+      - "Уточнить контракт ответов у бэкенда и скорректировать Zod-схемы"
+      - "Подключить экраны к стору, обработать ошибки/лоадинги и пустые состояния"
+    evidence:
+      - "src/features/friends/api/friends.api.ts"
+      - "src/features/friends/model/friends.store.ts"
+      - "app/tabs/friends/index.tsx"
+      - "app/tabs/friends/requests.tsx"
+      - "app/tabs/friends/search.tsx"
+    decisions:
+      - "Оптимистичные операции + последующий refresh"
+      - "Zod для валидации ответов"
+      - "i18n (en/ja/uz) по ключам"
+    open_questions:
+      - "Точные поля ответов на /friends и /friends/requests"
+      - "Связка uniqueId vs userId/requesterId в accept/reject/remove"
+    stack:
+      tech_stack: "Expo SDK 53, TypeScript, Expo Router, Zustand, Axios, Zod, Tamagui"
+      backend: "https://splitter-backend-qeig.onrender.com"
+    metrics:
+      screens_sketched: 3
+      store_actions: 6
+
+  - status_id: "status_004"
+    roadmap_ref: "chapter_03_friends"
+    timestamp: "2025-08-27T12:00:00+05:00"
+    done:
+      - "Вернута структура Variant A: друзья внутри папки tabs (доступ через /tabs/friends)"
+      - "Убраны редиректы из layout’ов, чтобы исключить циклы навигации"
+      - "Сохранён текущий дизайн Home (кнопки 171×48, круг 64/26, хедер 358×46)"
+    next:
+      - "Починить переход Friends: проверить путь router.push('/tabs/friends') и названия файлов маршрутов"
+      - "Оставить 5 вкладок в нижнем таб-баре (как временная мера) и скрыть лишние заголовки/дубли"
+      - "Добавить стабильные селекторы в useFriendsStore для счётчика заявок"
+    evidence:
+      - "app/_layout.tsx — провайдеры без редиректов"
+      - "app/tabs/_layout.tsx — Tabs с 5 экранами (временная конфигурация)"
+      - "app/tabs/index.tsx — Home c рабочими кнопками и счётчиком заявок"
+    decisions:
+      - "Навигационные редиректы держим только на app/index.tsx (Welcome), чтобы исключить зацикливание"
+      - "Временная демонстрационная схема с 5 табами оставлена до стабилизации навигации"
+    open_questions:
+      - "Почему переход на /tabs/friends не срабатывает на некоторых сборках (проверить регистр имён файлов, глубину путей, типизацию Href)?"
+      - "Оставляем 5 табов временно или возвращаемся к 2 (Home/Settings) после фикса роутинга?"
+    stack:
+      tech_stack: "Expo SDK 53, Expo Router, Tamagui, Zustand, Axios"
+      notes: "Проблема воспроизводится на реальном устройстве в Expo Go"
+    metrics:
+      known_issues: 2
+      screens_touched: 3
+      regressions_blocking: 1
+  
+  - status_id: "status_005"
+    roadmap_ref: "chapter_03_friends"
+    timestamp: "2025-08-27T08:26:00+05:00"
+    done:
+      - "Исправлена навигация на экран друзей с главной страницы."
+      - "Реализован новый дизайн для экрана списка друзей (`/tabs/friends`) в соответствии с макетом."
+      - "Список друзей стилизован как единый сгруппированный блок с правильными границами и скруглениями."
+      - "Обновлены стили плавающей кнопки добавления друга (FAB) согласно Figma (размер, иконка)."
+      - "Создана универсальная шапка в `app/tabs/_layout.tsx` для консистентного вида на всех вкладках."
+      - "Откатили экспериментальный компонент `Sheet` для профиля обратно к стабильному `Alert` из-за неразрешимой ошибки `PortalProvider`."
+    next:
+      - "Завершить реализацию логики на экране поиска друзей (`/tabs/friends/search`)."
+      - "Подключить и стилизовать экран заявок в друзья (`/tabs/friends/requests`)."
+      - "Протестировать полный цикл: поиск, отправка заявки, принятие, удаление друга."
+    evidence:
+      - "app/tabs/friends/index.tsx - Новый дизайн списка друзей."
+      - "src/features/friends/ui/FriendListItem.tsx - Обновленный компонент элемента списка."
+      - "src/shared/ui/Fab.tsx - Обновленная плавающая кнопка."
+      - "app/tabs/_layout.tsx - Реализована универсальная шапка и откачена логика профиля."
+      - "src/shared/lib/stores/app-store.tsx - Убрано состояние для `ProfileSheet`."
+    decisions:
+      - "Реализация кастомной шторки профиля (`Sheet`) отложена из-за блокирующей ошибки `PortalProvider`. Функционал возвращен к стандартному `Alert` для сохранения стабильности приложения."
+      - "Основная шапка приложения централизована в `app/tabs/_layout.tsx` для обеспечения единого UX на всех вкладках."
+    open_questions:
+      - "Достаточно ли `Alert` для профиля в рамках MVP, или стоит выделить отдельную задачу для исследования проблемы с `PortalProvider`?"
+    stack:
+      tech_stack: "Expo SDK 53, Expo Router, Tamagui, Zustand, Axios"
+      notes: "Проблема с PortalProvider временно заблокировала улучшение UX профиля."
+    metrics:
+      regressions_resolved: 1
+      ui_screens_updated: 1
+      known_issues: 1
+
+status_id: "2025-09-03-requests-ui-and-uniqueid-remove"
+timestamp: "2025-09-03T02:48:44+05:00"  # Asia/Tashkent
+roadmap_ref:
+  chapter: "chapter_03_friends"
+  stage: "in_progress"
+
+done:
+  - Tabs: hide Friends routes from tab bar, keep routes accessible via navigation
+  - Requests screen: full UI pass (cards, Accept/Reject, loading/empty/error, auto-dismiss notice 2.5s)
+  - Search screen: explicit Add button, statuses (You/Friend/Requested/Incoming), Enter-to-search, notices
+  - RequestList component: styled lists for incoming/outgoing with actions on incoming
+  - Friends list: Remove by uniqueId with optimistic hide and server reconciliation
+  - API: DELETE /friends/{uniqueId} (encode '#' via encodeURIComponent)
+  - Store: 'remove(uniqueId: string) signature; fetchAll after mutations'
+  - Header/Bell: preload/refresh requests on mount, focus, and app foreground
+  - Navigation: “Back to Friends” button on Requests screen
+
+next:
+  - Add optimistic updates for accept/reject in store (then reconcile via fetchAll)
+  - Optional: pull-to-refresh on Requests and Friends screens
+  - Debounce + masking for uniqueId input (USER#1234) in Search
+  - Unify friend data normalization (prefer uniqueId-only shape)
+  - Tests: store actions (accept/reject/remove), smoke tests for screens
+
+evidence:
+  - app/tabs/_layout.tsx
+  - app/tabs/friends/requests.tsx
+  - app/tabs/friends/search.tsx
+  - app/tabs/friends/index.tsx
+  - src/features/friends/ui/RequestList.tsx
+  - src/features/friends/ui/FriendListItem.tsx
+  - src/features/friends/model/friends.store.ts
+  - src/features/friends/api/friends.api.ts
+
+decisions:
+  - Use uniqueId everywhere for removal; numeric IDs only where backend requires (accept/reject requesterId)
+  - Bell badge counts only incoming requests
+  - No cancel for outgoing (not supported by backend)
+  - Notices are transient (2.5s), include target username/uniqueId
+  - Hidden tabs via options.href = null for friends/*
+
+open_questions:
+  - Should we surface outgoing count somewhere (separate badge?) or keep bell = incoming only?
+  - Any backend rate limits / throttling on /friends/request to reflect in UI?
+  - Do we want to block self-invite in store (needs meUniqueId in friends store or via selector)?
+
+  - status_id: "status_006_qr_invites_unified"
+    roadmap_ref: "chapter_04_groups"
+    timestamp: "2025-09-09T22:01:22+05:00"   # Asia/Tashkent
+    done:
+    - "Унитарный стиль QR-экранов: общий компонент InviteQR (Card + подписи + expiry)."
+    - "Экран 'My Friend QR' (/tabs/friends/invite) со стилем, Back в Requests, кнопка 'New QR'."
+    - "Экран 'Group QR' (/tabs/groups/invite?groupId=ID), доступ из экрана группы, только для владельца."
+    - "Сканер инвайтов (/tabs/scan-invite) с фиксом чёрного экрана (useIsFocused), статус-плашками и Back в исходный экран (from)."
+    - "Кнопка 'Scan invite' перенесена на список групп (/tabs/groups), удалена из экрана конкретной группы."
+    - "Парсер ссылок из QR: shared util parseInviteFromScan (поддержка /friends/join и /groups/join)."
+    - "API групп: GroupsApi.createInvite(groupId, ttl) и GroupsApi.joinByToken(token)."
+    - "Маршруты зарегистрированы как скрытые в Tabs: scan-invite, friends/invite, groups/invite."
+    next:
+    - "Макетные экраны чека: сканер чека → выбор участников → распределение товаров."
+    - "Кнопка на Home 'Scan receipt' ведёт на /tabs/scan-receipt (скрытый маршрут)."
+    - "Определить контракт данных между сканером и сплиттером (передача items JSON через params или стор)."
+    evidence:
+    - "src/shared/ui/InviteQR.tsx"
+    - "app/tabs/friends/invite.tsx"
+    - "app/tabs/groups/invite.tsx"
+    - "app/tabs/scan-invite.tsx"
+    - "src/shared/lib/utils/invite.ts"
+    - "src/features/groups/api/groups.api.ts"
+    - "app/tabs/_layout.tsx (скрытые экраны)"
+    decisions:
+    - "Действия по дружбе (Scan/My QR) размещены на Requests; скан в группах — на списке групп."
+    - "QR как картинка генерируется на фронте из выданного URL; токен/TTL — на бэкенде."
+    - "Единый стиль для всех вспомогательных экранов (Card/бордеры/отступы)."
+    open_questions:
+    - "Делаем ли deep link для внешней камеры в MVP (сейчас — только внутр. сканер)?"
+    - "TTL инвайта по умолчанию (сейчас 5 минут) — зафиксировать?"
+    - "Кто может показывать QR группы — владелец или любой участник?"
+    stack:
+    tech_stack: "Expo SDK 53, TypeScript, Expo Router, Tamagui, Zustand, Axios, Expo Camera"
+    backend: "https://splitter-backend-qeig.onrender.com"
+    metrics:
+    screens_updated: 3
+    shared_components: 1
+    bugs_fixed: ["camera-black-screen-on-reopen"]
+
+  - status_id: "2025-09-10-items-split-ui"
+    roadmap_ref: "chapter_04_sessions"
+    timestamp: "2025-09-10T23:40:00+05:00"
+    done:
+    - "Скрыли вкладки Home и Settings из нижнего таббара"
+    - "Убрали нижний таббар, оставили только кастомный заголовок"
+    - "Переработали UX выбора участников: моментальное переключение групп, дефолтный создатель"
+    - "Добавили возможность снять выбранную группу, вернуться в дефолтное состояние"
+    - "Исправили лэйаут: 3 аватара в ряд, новые отступы, убрали лишние Paragraph"
+    - "Закрепили кнопку Next над таббаром"
+    - "Переработали экран Items Split: мок-товары, фиксация нижнего Totals, 3 аватара в ряд"
+    - "Сделали Calculate интерактивным, считает на основе выбранных участников"
+    next:
+    - "Анимации выбора участников и групп"
+    - "Подключение реальных данных товаров из сканера"
+    - "Поддержка ручного редактирования цены и количества"
+    - "Рефакторинг расчёта итогов в Zustand store"
+    evidence:
+    - "app/tabs/_layout.tsx"
+    - "app/tabs/sessions/participants.tsx"
+    - "app/tabs/sessions/items-split.tsx"
+    - "src/features/sessions/model/items-split.store.ts"
+    decisions:
+    - "Каркас Items Split взят из примера пользователя, адаптирован под Tamagui"
+    - "Отдельный AssignSheet отложили для следующей итерации"
+    open_questions:
+    - "Стоит ли добавлять режим редактирования товаров прямо в экран Items Split?"
+    - "Нужен ли bottom sheet для выбора участников или оставить чипы?"
+
+current_chapter: "chapter_04_sessions"
+current_stage: "in_progress"
+next_chapter: "chapter_05_receipt_scanner"
+
+
+
+
+

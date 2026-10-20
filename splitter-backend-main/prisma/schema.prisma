@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int                  @id @default(autoincrement())
+  email               String               @unique
+  password            String
+  username            String
+  uniqueId            String               @unique
+  createdAt           DateTime             @default(now())
+  avatarUrl           String?
+  receivedFriendships Friendship[]         @relation("UserFriendshipReceiver")
+  sentFriendships     Friendship[]         @relation("UserFriendshipRequester")
+  ownedGroups         Group[]              @relation("GroupOwner")
+  groupMemberships    GroupMember[]
+  itemAssignments     ItemAssignment[]
+  sessionsCreated     Session[]            @relation("SessionCreator")
+  sessionParticipates SessionParticipant[]
+  sessionHistoryEntries SessionHistoryEntry[]
+}
+
+model Friendship {
+  id          Int              @id @default(autoincrement())
+  requesterId Int
+  receiverId  Int
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  receiver    User             @relation("UserFriendshipReceiver", fields: [receiverId], references: [id])
+  requester   User             @relation("UserFriendshipRequester", fields: [requesterId], references: [id])
+
+  @@unique([requesterId, receiverId])
+}
+
+model Group {
+  id        Int           @id @default(autoincrement())
+  name      String
+  ownerId   Int
+  createdAt DateTime      @default(now())
+  owner     User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  members   GroupMember[]
+  sessions  Session[]
+}
+
+model GroupMember {
+  groupId  Int
+  userId   Int
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  group    Group     @relation(fields: [groupId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+
+  @@id([groupId, userId])
+}
+
+model Session {
+  id              Int                  @id @default(autoincrement())
+  creatorId       Int
+  groupId         Int?
+  receiptImageUrl String?
+  serviceFee      Decimal              @default(0)
+  total           Decimal              @default(0)
+  status          SessionStatus        @default(ACTIVE)
+  createdAt       DateTime             @default(now())
+  items           ReceiptItem[]
+  creator         User                 @relation("SessionCreator", fields: [creatorId], references: [id])
+  group           Group?               @relation(fields: [groupId], references: [id])
+  participants    SessionParticipant[]
+  historyEntry    SessionHistoryEntry?
+}
+
+model SessionHistoryEntry {
+  id                    Int       @id @default(autoincrement())
+  sessionId             Int       @unique
+  creatorId             Int
+  sessionName           String?
+  payload               Json
+  participantUniqueIds  String[]  @default([])
+  grandTotal            Decimal   @default(0)
+  currency              String    @default("UNKNOWN")
+  finalizedAt           DateTime  @default(now())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  session               Session   @relation(fields: [sessionId], references: [id])
+  creator               User      @relation(fields: [creatorId], references: [id])
+
+  @@index([creatorId])
+  @@index([participantUniqueIds], type: Gin)
+}
+
+model SessionParticipant {
+  sessionId  Int
+  userId     Int
+  amountOwed Decimal @default(0)
+  session    Session @relation(fields: [sessionId], references: [id])
+  user       User    @relation(fields: [userId], references: [id])
+
+  @@id([sessionId, userId])
+}
+
+model ReceiptItem {
+  id          Int              @id @default(autoincrement())
+  sessionId   Int
+  name        String
+  price       Decimal
+  assignments ItemAssignment[]
+  session     Session          @relation(fields: [sessionId], references: [id])
+}
+
+model ItemAssignment {
+  itemId Int
+  userId Int
+  item   ReceiptItem @relation(fields: [itemId], references: [id])
+  user   User        @relation(fields: [userId], references: [id])
+
+  @@id([itemId, userId])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum GroupRole {
+  MEMBER
+  ADMIN
+}
+
+enum SessionStatus {
+  ACTIVE
+  CLOSED
+  CANCELED
+}
