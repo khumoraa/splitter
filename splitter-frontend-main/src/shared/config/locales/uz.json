@@ -452,6 +452,7 @@
     "validation": "Kiritilgan ma'lumotlarning bir qismi noto'g'ri.",
     "server": "Server xatosi. Keyinroq qayta urinib ko'ring.",
     "request": "So'rov bajarilmadi ({{status}})",
-    "unexpected": "So'rovni bajarishda kutilmagan xatolik yuz berdi."
+    "unexpected": "So'rovni bajarishda kutilmagan xatolik yuz berdi.",
+    "offline": "Siz oflaynsiz. Aloqa tiklanmaguncha ba'zi imkoniyatlar ishlamaydi."
   }
 }
