@@ -5,8 +5,9 @@ import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { YStack, XStack, Button, Paragraph, Input, Text, Spinner } from 'tamagui';
-import { ChevronLeft, AlertTriangle, Camera as CameraIcon } from '@tamagui/lucide-icons';
+import { ChevronLeft, AlertTriangle, Camera as CameraIcon, Image as ImageIcon } from '@tamagui/lucide-icons';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
 
 import {
   useReceiptSessionStore,
@@ -79,12 +80,12 @@ export default function ScanReceiptScreen() {
 
   useEffect(() => () => clearCapture(), [clearCapture]);
 
-  const handleParse = useCallback(async () => {
-    if (!cameraRef.current || parsing) return;
+  const handleParse = useCallback(async (picked?: { uri: string; width?: number; height?: number }) => {
+    if ((!picked && !cameraRef.current) || parsing) return;
 
     try {
       setLocalError(null);
-      const picture = await cameraRef.current.takePictureAsync({
+      const picture = picked ?? await cameraRef.current!.takePictureAsync({
         quality: 0.7,
         base64: false,
         skipProcessing: true,
@@ -144,6 +145,22 @@ export default function ScanReceiptScreen() {
       setLocalError(message);
     }
   }, [cameraRef, parsing, sessionName, setSessionNameStore, setCapture, parseReceipt, language, router, t]);
+
+  const pickFromGallery = useCallback(async () => {
+    if (parsing) return;
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 1,
+        allowsMultipleSelection: false,
+      });
+      if (result.canceled || !result.assets?.[0]) return;
+      const asset = result.assets[0];
+      await handleParse({ uri: asset.uri, width: asset.width, height: asset.height });
+    } catch (error) {
+      setLocalError(error instanceof Error ? error.message : 'Could not open the gallery');
+    }
+  }, [parsing, handleParse]);
 
   const useMock = useCallback(() => {
     router.push({
@@ -259,13 +276,24 @@ export default function ScanReceiptScreen() {
               size="$3"
               borderRadius="$3"
               theme="active"
-              onPress={handleParse}
+              onPress={() => handleParse()}
               disabled={disableAction}
               icon={parsing ? undefined : <CameraIcon size={18} color="white" />}
             >
               {parsing ? 'Processing...' : 'Scan receipt'}
             </Button>
           </XStack>
+
+          <Button
+            size="$3"
+            borderRadius="$3"
+            theme="gray"
+            onPress={pickFromGallery}
+            disabled={parsing}
+            icon={<ImageIcon size={18} />}
+          >
+            {t('scan.fromGallery', 'Choose from gallery')}
+          </Button>
 
           <Button size="$2" borderRadius="$3" theme="gray" variant="outlined" onPress={useMock} disabled={parsing}>
             Use mock receipt
