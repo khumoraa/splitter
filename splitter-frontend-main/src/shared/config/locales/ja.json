@@ -291,5 +291,14 @@
     "mockTitle": "デモデータ",
     "mockMessage": "サーバーは撮影した写真ではなくサンプルのレシートを返しました。サーバーで認識が無効になっています。",
     "openSettings": "設定を開く"
+  },
+  "scanInvite": {
+    "title": "招待をスキャン",
+    "allowCamera": "カメラへのアクセスを許可してください",
+    "connecting": "接続中…",
+    "error": "エラー 😕",
+    "defaultName": "ユーザー",
+    "defaultUsername": "@user",
+    "bio": "{{name}} さんと友だちになりました!"
   }
 }

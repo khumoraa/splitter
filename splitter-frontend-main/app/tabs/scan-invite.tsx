@@ -6,6 +6,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { YStack, XStack, Button, Paragraph } from 'tamagui';
 import { ChevronLeft } from '@tamagui/lucide-icons';
+import { useTranslation } from 'react-i18next';
 
 import { parseInviteFromScan } from '@/shared/lib/utils/invite';
 import { FriendsApi } from '@/features/friends/api/friends.api';
@@ -21,6 +22,7 @@ interface UserData {
 }
 
 export default function ScanInviteScreen() {
+  const { t } = useTranslation();
   const [perm, requestPerm] = useCameraPermissions();
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -90,7 +92,7 @@ export default function ScanInviteScreen() {
           avatar: response.data.avatar || response.data.photo,
           name: response.data.name || response.data.fullName,
           username: response.data.username || `@${response.data.login}`,
-          bio: response.data.bio || `${response.data.name} endi sizning do'stingiz!`
+          bio: response.data.bio || t('scanInvite.bio', { name: response.data.name, defaultValue: '{{name}} is now your friend!' })
         });
       }
 
@@ -118,9 +120,9 @@ export default function ScanInviteScreen() {
             icon={<ChevronLeft size={18} color="white" />}
             color="white"
           >
-            Back
+            {t('common.back', 'Back')}
           </Button>
-          <Paragraph fow="700" fos="$6" col="white">Scan invite</Paragraph>
+          <Paragraph fow="700" fos="$6" col="white">{t('scanInvite.title', 'Scan invite')}</Paragraph>
           <YStack w={54} />
         </XStack>
       </View>
@@ -139,7 +141,7 @@ export default function ScanInviteScreen() {
           />
         ) : (
           <YStack f={1} ai="center" jc="center">
-            <Paragraph col="$gray1">Allow camera access</Paragraph>
+            <Paragraph col="$gray1">{t('scanInvite.allowCamera', 'Allow camera access')}</Paragraph>
           </YStack>
         )}
       </View>
@@ -149,7 +151,7 @@ export default function ScanInviteScreen() {
         <View style={S.overlay}>
           <YStack ai="center" gap="$2">
             <ActivityIndicator color="white" />
-            <Paragraph col="white">Connecting…</Paragraph>
+            <Paragraph col="white">{t('scanInvite.connecting', 'Connecting…')}</Paragraph>
           </YStack>
         </View>
       )}
@@ -157,7 +159,7 @@ export default function ScanInviteScreen() {
       {/* Error статус */}
       {status === 'error' && (
         <View style={S.overlay}>
-          <Paragraph col="white">Error 😕</Paragraph>
+          <Paragraph col="white">{t('scanInvite.error', 'Error 😕')}</Paragraph>
         </View>
       )}
 
@@ -203,10 +205,10 @@ export default function ScanInviteScreen() {
             {/* Информация о пользователе */}
             <YStack ai="center" px="$4" pt="$2" gap="$1">
               <Paragraph fos={20} fow="700" col="#1a1a1a" ta="center">
-                {userData?.name || 'User'}
+                {userData?.name || t('scanInvite.defaultName', 'User')}
               </Paragraph>
               <Paragraph fos={14} col="#666" ta="center">
-                {userData?.username || '@user'}
+                {userData?.username || t('scanInvite.defaultUsername', '@user')}
               </Paragraph>
             </YStack>
 

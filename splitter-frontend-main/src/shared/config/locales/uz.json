@@ -291,5 +291,14 @@
     "mockTitle": "Demo ma'lumotlar",
     "mockMessage": "Server sizning rasmingiz o'rniga namunaviy chekni qaytardi. Serverda tanib olish o'chirilgan.",
     "openSettings": "Sozlamalarni ochish"
+  },
+  "scanInvite": {
+    "title": "Taklifni skanerlash",
+    "allowCamera": "Kameraga ruxsat bering",
+    "connecting": "Ulanmoqda…",
+    "error": "Xato 😕",
+    "defaultName": "Foydalanuvchi",
+    "defaultUsername": "@user",
+    "bio": "{{name}} endi sizning do'stingiz!"
   }
 }

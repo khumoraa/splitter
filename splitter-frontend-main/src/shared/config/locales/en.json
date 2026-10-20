@@ -291,5 +291,14 @@
     "mockTitle": "Demo data",
     "mockMessage": "The server returned a sample receipt, not your photo. Recognition is disabled on the server.",
     "openSettings": "Open settings"
+  },
+  "scanInvite": {
+    "title": "Scan invite",
+    "allowCamera": "Allow camera access",
+    "connecting": "Connecting…",
+    "error": "Error 😕",
+    "defaultName": "User",
+    "defaultUsername": "@user",
+    "bio": "{{name}} is now your friend!"
   }
 }
