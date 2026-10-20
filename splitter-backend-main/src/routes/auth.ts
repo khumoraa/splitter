@@ -182,6 +182,7 @@ router.post("/register", async (req, res) => {
         email: user.email,
         username: user.username,
         uniqueId: user.uniqueId,
+        avatarUrl: user.avatarUrl ?? null,
       },
     });
   } catch (err) {
