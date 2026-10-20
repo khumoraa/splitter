@@ -168,8 +168,8 @@ export default function TabLayout() {
 
       {/* Friends stack (hidden) */}
       <Tabs.Screen name="friends/index" options={{ href: null, title: t('friends.title', 'Friends') }} />
-      <Tabs.Screen name="friends/search" options={{ href: null, title: t('friends.search', 'Search') }} />
-      <Tabs.Screen name="friends/requests" options={{ href: null, title: t('friends.requests', 'Requests') }} />
+      <Tabs.Screen name="friends/search" options={{ href: null, title: t('friends.searchTitle', 'Search') }} />
+      <Tabs.Screen name="friends/requests" options={{ href: null, title: t('friends.requestsTitle', 'Requests') }} />
 
       {/* HIDDEN: Groups */}
       <Tabs.Screen name="groups/index"   options={{ href: null, title: groupsTitle }} />

@@ -43,7 +43,8 @@
     "cancel": "Bekor qilish",
     "confirm": "Tasdiqlash",
     "continue": "Davom etish",
-    "back": "Orqaga"
+    "back": "Orqaga",
+    "retry": "Qayta urinish"
   },
   "home": {
     "header": {
@@ -182,13 +183,51 @@
   },
   "friends": {
     "title": "Do'stlar",
-    "requests": "So'rovlar",
     "add": "Do'st qo'shish",
     "empty": "Hali do'stlar yo'q. Qo'shish uchun + ni bosing.",
     "searchPlaceholder": "uniqueId kiriting, masalan USER#1234",
     "send": "So'rov yuborish",
     "remove": "O'chirish",
     "loading": "Yuklanmoqda...",
-    "error": "Yuklab bo'lmadi"
+    "error": "Yuklab bo'lmadi",
+    "searchTitle": "Qidiruv",
+    "requestsTitle": "So'rovlar",
+    "common": {
+      "error": "Xatolik yuz berdi",
+      "unknownUser": "Noma'lum foydalanuvchi"
+    },
+    "invite": {
+      "title": "Mening do'st QR kodim",
+      "description": "Bu QR kodni do'stingizga ko'rsating",
+      "error": "Taklifni olib bo'lmadi",
+      "new": "Yangi QR"
+    },
+    "requests": {
+      "accepted": "{{target}} so'rovi qabul qilindi",
+      "rejected": "{{target}} so'rovi rad etildi",
+      "emptyIncoming": "Kiruvchi so'rovlar yo'q",
+      "emptyOutgoing": "Chiquvchi so'rovlar yo'q",
+      "requestedLabel": "So'rov yuborilgan",
+      "scanInvite": "Taklifni skanerlash",
+      "showMyQr": "QR kodimni ko'rsatish",
+      "tabIncoming": "Kiruvchi",
+      "tabOutgoing": "Chiquvchi"
+    },
+    "search": {
+      "button": "Qidirish",
+      "error": "Qidiruv amalga oshmadi",
+      "hint": "Foydalanuvchini topish uchun uniqueId bo'yicha qidiring",
+      "inviteFailed": "Taklifni yuborib bo'lmadi",
+      "inviteSent": "{{target}} ga taklif yuborildi",
+      "noResults": "Do'stlar topilmadi",
+      "placeholder": "uniqueId kiriting, masalan USER#1234"
+    },
+    "status": {
+      "add": "Qo'shish",
+      "friend": "Do'st",
+      "incoming": "Kiruvchi",
+      "requested": "So'rov yuborilgan",
+      "you": "Siz"
+    }
   }
 }

@@ -43,18 +43,57 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "continue": "Continue",
-    "back": "Back"
+    "back": "Back",
+    "retry": "Retry"
   },
   "friends": {
     "title": "Friends",
-    "requests": "Requests",
     "add": "Add Friend",
     "empty": "No friends yet. Tap + to add.",
     "searchPlaceholder": "Enter uniqueId, e.g. USER#1234",
     "send": "Send request",
     "remove": "Remove",
     "loading": "Loading...",
-    "error": "Failed to load"
+    "error": "Failed to load",
+    "searchTitle": "Search",
+    "requestsTitle": "Requests",
+    "common": {
+      "error": "Something went wrong",
+      "unknownUser": "Unknown user"
+    },
+    "invite": {
+      "title": "My Friend QR",
+      "description": "Show this QR to your friend",
+      "error": "Failed to get invite",
+      "new": "New QR"
+    },
+    "requests": {
+      "accepted": "Accepted request from {{target}}",
+      "rejected": "Rejected request from {{target}}",
+      "emptyIncoming": "No incoming requests",
+      "emptyOutgoing": "No outgoing requests",
+      "requestedLabel": "Requested",
+      "scanInvite": "Scan invite",
+      "showMyQr": "Show my QR",
+      "tabIncoming": "Incoming",
+      "tabOutgoing": "Outgoing"
+    },
+    "search": {
+      "button": "Search",
+      "error": "Search failed",
+      "hint": "Search by uniqueId to find someone",
+      "inviteFailed": "Could not send invite",
+      "inviteSent": "Invite sent to {{target}}",
+      "noResults": "No friends found",
+      "placeholder": "Enter uniqueId, e.g. USER#1234"
+    },
+    "status": {
+      "add": "Add",
+      "friend": "Friend",
+      "incoming": "Incoming",
+      "requested": "Requested",
+      "you": "You"
+    }
   },
   "home": {
     "header": {

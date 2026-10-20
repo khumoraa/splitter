@@ -43,18 +43,57 @@
     "cancel": "キャンセル",
     "confirm": "確認",
     "continue": "続ける",
-    "back": "戻る"
+    "back": "戻る",
+    "retry": "再試行"
   },
   "friends": {
     "title": "友だち",
-    "requests": "リクエスト",
     "add": "友だちを追加",
     "empty": "まだ友だちがいません。+ をタップして追加しましょう。",
     "searchPlaceholder": "ID を入力してください (例: USER#1234)",
     "send": "リクエストを送信",
     "remove": "削除",
     "loading": "読み込み中...",
-    "error": "読み込みに失敗しました"
+    "error": "読み込みに失敗しました",
+    "searchTitle": "検索",
+    "requestsTitle": "リクエスト",
+    "common": {
+      "error": "問題が発生しました",
+      "unknownUser": "不明なユーザー"
+    },
+    "invite": {
+      "title": "フレンド QR",
+      "description": "この QR を友だちに見せてください",
+      "error": "招待を取得できませんでした",
+      "new": "新しい QR"
+    },
+    "requests": {
+      "accepted": "{{target}} のリクエストを承認しました",
+      "rejected": "{{target}} のリクエストを拒否しました",
+      "emptyIncoming": "受信したリクエストはありません",
+      "emptyOutgoing": "送信したリクエストはありません",
+      "requestedLabel": "リクエスト済み",
+      "scanInvite": "招待をスキャン",
+      "showMyQr": "自分の QR を表示",
+      "tabIncoming": "受信",
+      "tabOutgoing": "送信"
+    },
+    "search": {
+      "button": "検索",
+      "error": "検索に失敗しました",
+      "hint": "ID で検索してユーザーを探しましょう",
+      "inviteFailed": "招待を送信できませんでした",
+      "inviteSent": "{{target}} に招待を送信しました",
+      "noResults": "友だちが見つかりません",
+      "placeholder": "ID を入力してください (例: USER#1234)"
+    },
+    "status": {
+      "add": "追加",
+      "friend": "友だち",
+      "incoming": "受信",
+      "requested": "リクエスト済み",
+      "you": "あなた"
+    }
   },
   "home": {
     "header": {
