@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, isCancel } from 'axios';
 import { getToken } from '@/shared/lib/utils/token-storage';
 import { emitUnauthorized } from '@/shared/api/auth-events';
 import { ApiError } from '@/shared/api/api-error';
@@ -62,7 +62,7 @@ apiClient.interceptors.response.use(
     }
 
     // An aborted request is not a network failure: keep it distinguishable (see isCancelled)
-    if (axios.isCancel(error)) {
+    if (isCancel(error)) {
       throw new ApiError('Request cancelled', 'cancelled');
     }
 
