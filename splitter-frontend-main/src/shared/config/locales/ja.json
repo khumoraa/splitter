@@ -229,5 +229,47 @@
         "uz": "ウズベク語"
       }
     }
+  },
+  "groups": {
+    "title": "グループ",
+    "empty": "まだグループがありません。+ をタップして作成しましょう。",
+    "common": {
+      "untitled": "グループ"
+    },
+    "actions": {
+      "scanInvite": "招待をスキャン"
+    },
+    "list": {
+      "members_one": "{{count}} 人",
+      "members_other": "{{count}} 人",
+      "members_zero": "メンバーはまだいません"
+    },
+    "create": {
+      "title": "グループを作成",
+      "action": "作成",
+      "back": "グループに戻る",
+      "namePlaceholder": "グループ名",
+      "searchPlaceholder": "友だちを検索…",
+      "emptyState": "グループを作成するとメンバーを追加できます。",
+      "manageMembers": "メンバーの追加と削除",
+      "noFriends": "表示する友だちがいません",
+      "addMember": "メンバーを追加",
+      "removeMember": "メンバーを削除",
+      "notice": {
+        "success": "グループを作成しました",
+        "error": "グループを作成できませんでした",
+        "memberAdded": "メンバーを追加しました",
+        "memberRemoved": "メンバーを削除しました",
+        "addFailed": "メンバーを追加できませんでした",
+        "removeFailed": "メンバーを削除できませんでした"
+      }
+    },
+    "invite": {
+      "title": "グループ QR",
+      "description": "このグループに招待",
+      "error": "招待を取得できませんでした",
+      "invalid": "無効なグループです",
+      "new": "新しい QR"
+    }
   }
 }

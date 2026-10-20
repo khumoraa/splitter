@@ -229,5 +229,47 @@
       "requested": "So'rov yuborilgan",
       "you": "Siz"
     }
+  },
+  "groups": {
+    "title": "Guruhlar",
+    "empty": "Hali guruhlar yo'q. Yaratish uchun + ni bosing.",
+    "common": {
+      "untitled": "Guruh"
+    },
+    "actions": {
+      "scanInvite": "Taklifni skanerlash"
+    },
+    "list": {
+      "members_one": "{{count}} ta a'zo",
+      "members_other": "{{count}} ta a'zo",
+      "members_zero": "Hali a'zolar yo'q"
+    },
+    "create": {
+      "title": "Guruh yaratish",
+      "action": "Yaratish",
+      "back": "Guruhlarga qaytish",
+      "namePlaceholder": "Guruh nomi",
+      "searchPlaceholder": "Do'stlarni qidirish…",
+      "emptyState": "A'zo qo'shish uchun avval guruh yarating.",
+      "manageMembers": "A'zolarni qo'shish yoki o'chirish",
+      "noFriends": "Ko'rsatish uchun do'stlar yo'q",
+      "addMember": "A'zo qo'shish",
+      "removeMember": "A'zoni o'chirish",
+      "notice": {
+        "success": "Guruh yaratildi",
+        "error": "Guruh yaratib bo'lmadi",
+        "memberAdded": "A'zo qo'shildi",
+        "memberRemoved": "A'zo o'chirildi",
+        "addFailed": "A'zo qo'shib bo'lmadi",
+        "removeFailed": "A'zoni o'chirib bo'lmadi"
+      }
+    },
+    "invite": {
+      "title": "Guruh QR kodi",
+      "description": "Shu guruhga taklif qilish",
+      "error": "Taklifni olib bo'lmadi",
+      "invalid": "Guruh noto'g'ri",
+      "new": "Yangi QR"
+    }
   }
 }

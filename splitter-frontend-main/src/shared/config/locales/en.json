@@ -229,5 +229,47 @@
         "uz": "Uzbek"
       }
     }
+  },
+  "groups": {
+    "title": "Groups",
+    "empty": "No groups yet. Tap + to create.",
+    "common": {
+      "untitled": "Group"
+    },
+    "actions": {
+      "scanInvite": "Scan invite"
+    },
+    "list": {
+      "members_one": "{{count}} member",
+      "members_other": "{{count}} members",
+      "members_zero": "No members yet"
+    },
+    "create": {
+      "title": "Create group",
+      "action": "Create",
+      "back": "Back to Groups",
+      "namePlaceholder": "Group name",
+      "searchPlaceholder": "Search friends…",
+      "emptyState": "Create a group to add members.",
+      "manageMembers": "Add or remove members",
+      "noFriends": "No friends to display",
+      "addMember": "Add member",
+      "removeMember": "Remove member",
+      "notice": {
+        "success": "Group created",
+        "error": "Failed to create group",
+        "memberAdded": "Member added",
+        "memberRemoved": "Member removed",
+        "addFailed": "Failed to add member",
+        "removeFailed": "Failed to remove member"
+      }
+    },
+    "invite": {
+      "title": "Group QR",
+      "description": "Invite to this group",
+      "error": "Failed to get invite",
+      "invalid": "Invalid group",
+      "new": "New QR"
+    }
   }
 }
