@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
@@ -34,6 +35,7 @@ export default function ScanReceiptScreen() {
   const [perm, requestPerm] = useCameraPermissions();
   const isFocused = useIsFocused();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const cameraRef = useRef<CameraView | null>(null);
 
@@ -120,7 +122,7 @@ export default function ScanReceiptScreen() {
       setSessionNameStore(preparedName);
       setCapture(capture);
 
-      await parseReceipt({
+      const parsed = await parseReceipt({
         sessionName: preparedName,
         language,
         image: {
@@ -129,12 +131,19 @@ export default function ScanReceiptScreen() {
         },
       });
 
+      if (parsed.source === 'mock') {
+        Alert.alert(
+          t('scan.mockTitle', 'Demo data'),
+          t('scan.mockMessage', 'The server returned a sample receipt, not your photo. Recognition is disabled on the server.'),
+        );
+      }
+
       router.push('/tabs/sessions/participants');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Something went wrong while sending the receipt';
       setLocalError(message);
     }
-  }, [cameraRef, parsing, sessionName, setSessionNameStore, setCapture, parseReceipt, language, router]);
+  }, [cameraRef, parsing, sessionName, setSessionNameStore, setCapture, parseReceipt, language, router, t]);
 
   const useMock = useCallback(() => {
     router.push({

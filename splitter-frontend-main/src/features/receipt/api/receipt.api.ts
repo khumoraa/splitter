@@ -34,6 +34,8 @@ export interface ParseReceiptResponse {
   language: string;
   items: ParsedReceiptItem[];
   summary?: ReceiptSummary;
+  /** 'mock' = server returned demo data (OCR disabled), not a real recognition */
+  source?: 'gemini' | 'mock';
 }
 
 export type ReceiptParticipant = {
