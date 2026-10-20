@@ -165,7 +165,8 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
         name: g.name,
         ownerId: g.ownerId,
         createdAt: g.createdAt,
-        counts: { members: g._count.members, sessions: g._count.sessions },
+        // the owner is always a member; memberEntries already excludes the owner's own row
+        counts: { members: memberEntries.length + 1, sessions: g._count.sessions },
         members: [ownerEntry, ...memberEntries],
       };
     });
