@@ -221,7 +221,20 @@ function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
-/** Fallback deterministic mock when API key missing or parse fails */
+/** Error carrying an HTTP status so the route can answer with a meaningful code */
+export class ReceiptParseError extends Error {
+  statusCode: number;
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.name = "ReceiptParseError";
+    this.statusCode = statusCode;
+  }
+}
+
+/** Mock receipts are served only when explicitly enabled (dev/demo): ALLOW_MOCK_OCR=1 */
+const ALLOW_MOCK_OCR = process.env.ALLOW_MOCK_OCR === "1";
+
+/** Deterministic mock, used only when ALLOW_MOCK_OCR=1 */
 function mockParse(): ParseResult {
   const items: ParsedReceiptItem[] = [
     {
@@ -260,8 +273,12 @@ export async function parseReceipt(
 ): Promise<ParseResult> {
   if (!GEMINI_API_KEY) {
     if (DEBUG_PARSE)
-      console.warn("[parseReceipt] Using mock: GEMINI_API_KEY not set");
-    return mockParse();
+      console.warn("[parseReceipt] GEMINI_API_KEY not set");
+    if (ALLOW_MOCK_OCR) return mockParse();
+    throw new ReceiptParseError(
+      "Receipt recognition is not configured on the server (GEMINI_API_KEY missing)",
+      503
+    );
   }
 
   if (DEBUG_PARSE && !/^AIza[0-9A-Za-z_-]{10,}$/.test(GEMINI_API_KEY)) {
@@ -373,11 +390,13 @@ export async function parseReceipt(
       continue;
     }
   }
-  if (DEBUG_PARSE)
-    console.error(
-      "[parseReceipt] All model attempts failed, returning mock. Last error:",
-      lastError
+  console.error("[parseReceipt] All model attempts failed. Last error:", lastError);
+  if (!ALLOW_MOCK_OCR) {
+    throw new ReceiptParseError(
+      "Could not recognize the receipt. Please try again with a clearer photo.",
+      502
     );
+  }
   const fallback = mockParse();
   if (DEBUG_PARSE) fallback.modelsTried = modelsTried;
   return fallback;

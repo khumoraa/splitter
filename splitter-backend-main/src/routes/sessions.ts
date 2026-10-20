@@ -3,7 +3,7 @@ import type { Response } from "express";
 import { prisma } from "../config/prisma.js";
 import type { Prisma } from "@prisma/client";
 import { authenticateToken, type AuthRequest } from "../middleware/auth.js";
-import { parseReceipt } from "../services/receiptParser.js";
+import { parseReceipt, ReceiptParseError } from "../services/receiptParser.js";
 
 const router = Router();
 
@@ -101,20 +101,20 @@ router.post(
           .json({ error: "image { mimeType, data } required" });
       }
 
-      // Create session (name field exists in schema but older DB may lack column; ignore until migration applied)
+      const parseResult = await parseReceipt({
+        language,
+        sessionName,
+        mimeType: image.mimeType,
+        imageBase64: image.data,
+      });
+
+      // Create the session only after successful recognition, so failed scans leave no orphan sessions
       const session = await prisma.session.create({
         data: {
           creatorId: req.user.id,
           status: "ACTIVE",
         },
         select: { id: true },
-      });
-
-      const parseResult = await parseReceipt({
-        language,
-        sessionName,
-        mimeType: image.mimeType,
-        imageBase64: image.data,
       });
 
       return res.json({
@@ -137,6 +137,9 @@ router.post(
           : {}),
       });
     } catch (err) {
+      if (err instanceof ReceiptParseError) {
+        return res.status(err.statusCode).json({ error: err.message });
+      }
       console.error("POST /sessions/scan error", err);
       return res.status(500).json({ error: "Server error" });
     }
