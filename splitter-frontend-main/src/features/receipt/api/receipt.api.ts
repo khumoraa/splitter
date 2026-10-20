@@ -1,4 +1,4 @@
-﻿import { apiClient } from '@/features/auth/api';
+import { apiClient } from '@/features/auth/api';
 
 export type ReceiptImagePayload = {
   mimeType: string;

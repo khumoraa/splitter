@@ -7,6 +7,11 @@ import { getToken, removeToken } from '../utils/token-storage';
 import type { LanguageCode } from '@/shared/config/languages';
 import { DEFAULT_LANGUAGE } from '@/shared/config/languages';
 
+// Provider component for initialization
+import { ReactNode, useEffect } from 'react';
+import { useRouter } from 'expo-router';
+import { onUnauthorized } from '@/shared/api/auth-events';
+
 export interface User {
   id: number;
   email: string;
@@ -118,11 +123,6 @@ export const useAppStore = create<AppStore>()(
     }
   )
 );
-
-// Provider component for initialization
-import { ReactNode, useEffect } from 'react';
-import { useRouter } from 'expo-router';
-import { onUnauthorized } from '@/shared/api/auth-events';
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const initializeAuth = useAppStore((s) => s.initializeAuth);

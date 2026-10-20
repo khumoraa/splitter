@@ -2,12 +2,11 @@
 
 import React, { useCallback, useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
-import { Pressable } from 'react-native';
+import { Pressable , AppState } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { Home, Settings, Bell, ChevronLeft } from '@tamagui/lucide-icons';
 import { useTranslation } from 'react-i18next';
-import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { useAppStore } from '@/shared/lib/stores/app-store';

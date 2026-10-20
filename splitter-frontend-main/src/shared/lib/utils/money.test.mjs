@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { toMinor, fromMinor, splitMinor } from "./money.ts";
+import { toMinor, fromMinor, splitMinor , formatAmount, currencyFractionDigits } from "./money.ts";
+
 
 const sum = (a) => a.reduce((x, y) => x + y, 0);
 
@@ -52,8 +53,6 @@ test("splitMinor validates input", () => {
   assert.throws(() => splitMinor(10, 0));
   assert.throws(() => splitMinor(10, 1.5));
 });
-
-import { formatAmount, currencyFractionDigits } from "./money.ts";
 
 test("formatAmount keeps cents for decimal currencies and drops them for zero-decimal ones", () => {
   assert.equal(formatAmount(10.5, "USD"), "10.50");

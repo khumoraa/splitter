@@ -119,19 +119,19 @@ const safeStringify = (obj: any) => {
 
 const logReq = (msg: string, extra?: any) => {
   if (!DEBUG_HISTORY) return;
-  // eslint-disable-next-line no-console
+   
   console.log(`HISTORY ⟶ ${msg}`, extra ? `\n${safeStringify(extra)}` : '');
 };
 
 const logRes = (msg: string, data?: any) => {
   if (!DEBUG_HISTORY) return;
-  // eslint-disable-next-line no-console
+   
   console.log(`HISTORY ⟵ ${msg}`, data ? `\n${safeStringify(data)}` : '');
 };
 
 const logErr = (msg: string, error: any) => {
   if (!DEBUG_HISTORY) return;
-  // eslint-disable-next-line no-console
+   
   console.log(`HISTORY ✖ ${msg}`, `\n${safeStringify(error)}`);
 };
 /** ========================= */

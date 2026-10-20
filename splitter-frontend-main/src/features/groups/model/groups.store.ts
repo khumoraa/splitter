@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import { GroupsApi, Group, GroupDetails } from '../api/groups.api';
 
 type State = {

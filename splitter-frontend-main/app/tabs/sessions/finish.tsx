@@ -20,7 +20,7 @@ type ItemSummary = {
   allocations: ParticipantAmount[];
 };
 
-const pickFirstNumber = (...values: Array<number | null | undefined>) => {
+const pickFirstNumber = (...values: (number | null | undefined)[]) => {
   for (const value of values) {
     if (typeof value === 'number' && Number.isFinite(value)) {
       return value;
@@ -143,7 +143,7 @@ export default function FinishScreen() {
       return value[index] as T | undefined;
     };
 
-    const totalsEntries = Object.entries(totals ?? {}).reduce<Array<[string, number]>>(
+    const totalsEntries = Object.entries(totals ?? {}).reduce<[string, number][]>(
       (acc, [rawId, value]) => {
         const id = normalizeId(rawId);
         if (!id) return acc;
@@ -156,7 +156,7 @@ export default function FinishScreen() {
     const totalsMap = new Map<string, number>(totalsEntries);
 
     const normalizedParticipantTotals = (totalsByParticipantList as unknown[]).reduce<
-      Array<{ uniqueId: string; username: string; amountOwed: number }>
+      { uniqueId: string; username: string; amountOwed: number }[]
     >((acc, rawEntry) => {
       const raw = rawEntry as RawParticipantTotal;
       if (!raw) return acc;
