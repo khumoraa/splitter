@@ -1,6 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import { getToken } from '@/shared/lib/utils/token-storage';
 import { emitUnauthorized } from '@/shared/api/auth-events';
+import { ApiError } from '@/shared/api/api-error';
+import i18n from '@/shared/config/i18n';
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const apiClient = axios.create({
@@ -65,25 +67,26 @@ apiClient.interceptors.response.use(
       const serverMsg: string | undefined =
         typeof data === 'string' ? data : data?.message || data?.error;
 
+      // Server-provided messages (validation details, OCR errors) are kept; fallbacks are translated.
       switch (status) {
         case 401:
           emitUnauthorized();
-          throw new Error(serverMsg || 'Authorization failed');
+          throw new ApiError(i18n.t('errors.unauthorized'), 'http', status);
         case 422:
-          throw new Error(serverMsg || 'Validation error');
-        case 500:
-          throw new Error(serverMsg || 'Server error. Please try again later.');
+          throw new ApiError(serverMsg || i18n.t('errors.validation'), 'http', status);
         default:
-          throw new Error(serverMsg || `Request failed (${status})`);
+          if (status >= 500) {
+            throw new ApiError(serverMsg || i18n.t('errors.server'), 'http', status);
+          }
+          throw new ApiError(serverMsg || i18n.t('errors.request', { status }), 'http', status);
       }
+    } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+      throw new ApiError(i18n.t('errors.timeout'), 'timeout');
     } else if (error.request) {
-      if (String(error.message).toLowerCase().includes('network')) {
-        throw new Error('Network error. Please check your connection.');
-      }
-      throw new Error('No response received. Possible CORS issue.');
+      throw new ApiError(i18n.t('errors.network'), 'network');
     }
 
-    throw new Error('Unexpected error while performing the request.');
+    throw new ApiError(i18n.t('errors.unexpected'), 'unknown');
   }
 );
 export interface LoginRequest {

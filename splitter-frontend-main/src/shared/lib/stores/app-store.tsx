@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCurrentUser } from '@/features/auth/api';
+import { isUnauthorized } from '@/shared/api/api-error';
 import { getToken, removeToken } from '../utils/token-storage';
 import type { LanguageCode } from '@/shared/config/languages';
 import { DEFAULT_LANGUAGE } from '@/shared/config/languages';
@@ -84,7 +85,7 @@ export const useAppStore = create<AppStore>()(
             console.error('Current user fetch error:', error);
             set({ user: null });
 
-            if (error instanceof Error && /authorization/i.test(error.message)) {
+            if (isUnauthorized(error)) {
               await removeToken();
               set({ token: null, user: null });
             }
