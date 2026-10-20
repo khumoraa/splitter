@@ -133,3 +133,14 @@ P2: 4-значный `uniqueId`, нет rate-limit; 400 вместо 401; миг
 `GEMINI_API_KEY`; R2-ключи (если нужны аватары); проверка на телефоне в Expo Go; Git (CLT или Homebrew) и решение по репозиторию; продуктовые решения (налог/чаевые, гости, «кто кому должен», языки).
 
 Жду вашего подтверждения; дальнейших правок не делаю.
+
+## 9. Ветка fix/stage-2: шаги 5–6 (по коммиту на исправление)
+
+| Коммит | Что | Проверено |
+|---|---|---|
+| `fix(ocr): no silent mock receipts…` | Mock только при `ALLOW_MOCK_OCR=1`; нет ключа → 503, все модели упали → 502; сессия создаётся после успешного распознавания | Запуском: без ключа 503, реальный ключ + фото «AAAA» → 502, с флагом → 200 `source:"mock"`; `tsc` бэкенда чист |
+| `fix(scan): tell the user when the server returned a mock receipt` | Alert «Demo data», если `source === 'mock'` | `tsc` фронта, бандл. На устройстве ❓ |
+| `feat(scan): choose a receipt photo from the gallery` | Кнопка выбора фото, то же ужатие 1280 px / JPEG 0.45 | `tsc`, `expo export`. На устройстве ❓ |
+| `fix(scan): explain denied camera permission…` | Текст + «Open settings»/«Allow camera» | `tsc`. На устройстве ❓ |
+
+Замечания: в `backend/.env` появился `GEMINI_API_KEY` (добавлен не мной) — реальные запросы к Gemini проходят до ответа; распознавание настоящего чека не проверено ❓. Новые строки используют `t('scan.*', 'default')`; ключей в locale-файлах пока нет (шаг 10).
