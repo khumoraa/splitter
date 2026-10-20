@@ -271,5 +271,25 @@
       "invalid": "Guruh noto'g'ri",
       "new": "Yangi QR"
     }
+  },
+  "scan": {
+    "title": "Chekni skanerlash",
+    "uploading": "Chek yuklanmoqda...",
+    "processing": "Ishlanmoqda...",
+    "sessionName": "Sessiya nomi",
+    "sessionNamePlaceholder": "masalan: Oktyabrdagi kafe",
+    "language": "Til",
+    "lastPhotoStored": "Oxirgi rasm saqlangan; qayta suratga olsangiz ustiga yoziladi.",
+    "useMock": "Test chekidan foydalanish",
+    "errorCapture": "Chek rasmini olib bo'lmadi. Qayta urinib ko'ring.",
+    "errorPrepare": "Rasmni yuklashga tayyorlab bo'lmadi.",
+    "errorSend": "Chekni yuborishda xatolik yuz berdi",
+    "errorGallery": "Galereyani ochib bo'lmadi",
+    "allowCamera": "Kameraga ruxsat berish",
+    "cameraDenied": "Cheklarni skanerlash uchun kameraga ruxsat bering yoki galereyadan rasm tanlang.",
+    "fromGallery": "Galereyadan tanlash",
+    "mockTitle": "Demo ma'lumotlar",
+    "mockMessage": "Server sizning rasmingiz o'rniga namunaviy chekni qaytardi. Serverda tanib olish o'chirilgan.",
+    "openSettings": "Sozlamalarni ochish"
   }
 }

@@ -271,5 +271,25 @@
       "invalid": "Invalid group",
       "new": "New QR"
     }
+  },
+  "scan": {
+    "title": "Scan receipt",
+    "uploading": "Uploading receipt...",
+    "processing": "Processing...",
+    "sessionName": "Session name",
+    "sessionNamePlaceholder": "e.g. Cafe on October",
+    "language": "Language",
+    "lastPhotoStored": "Last photo stored; capturing again will overwrite it.",
+    "useMock": "Use mock receipt",
+    "errorCapture": "Could not capture the receipt photo. Please try again.",
+    "errorPrepare": "Failed to prepare the receipt photo for upload.",
+    "errorSend": "Something went wrong while sending the receipt",
+    "errorGallery": "Could not open the gallery",
+    "allowCamera": "Allow camera",
+    "cameraDenied": "Allow camera access to scan receipts, or choose a photo from the gallery.",
+    "fromGallery": "Choose from gallery",
+    "mockTitle": "Demo data",
+    "mockMessage": "The server returned a sample receipt, not your photo. Recognition is disabled on the server.",
+    "openSettings": "Open settings"
   }
 }

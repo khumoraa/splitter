@@ -92,7 +92,7 @@ export default function ScanReceiptScreen() {
       });
 
       if (!picture?.uri) {
-        throw new Error('Could not capture the receipt photo. Please try again.');
+        throw new Error(t('scan.errorCapture', 'Could not capture the receipt photo. Please try again.'));
       }
 
       const targetWidth = picture.width ? Math.min(picture.width, 1280) : undefined;
@@ -103,7 +103,7 @@ export default function ScanReceiptScreen() {
       );
 
       if (!manipResult?.base64) {
-        throw new Error('Failed to prepare the receipt photo for upload.');
+        throw new Error(t('scan.errorPrepare', 'Failed to prepare the receipt photo for upload.'));
       }
 
       const base64SizeKb = (manipResult.base64.length * 3) / 4 / 1024;
@@ -141,7 +141,7 @@ export default function ScanReceiptScreen() {
 
       router.push('/tabs/sessions/participants');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Something went wrong while sending the receipt';
+      const message = error instanceof Error ? error.message : t('scan.errorSend', 'Something went wrong while sending the receipt');
       setLocalError(message);
     }
   }, [cameraRef, parsing, sessionName, setSessionNameStore, setCapture, parseReceipt, language, router, t]);
@@ -158,9 +158,9 @@ export default function ScanReceiptScreen() {
       const asset = result.assets[0];
       await handleParse({ uri: asset.uri, width: asset.width, height: asset.height });
     } catch (error) {
-      setLocalError(error instanceof Error ? error.message : 'Could not open the gallery');
+      setLocalError(error instanceof Error ? error.message : t('scan.errorGallery', 'Could not open the gallery'));
     }
-  }, [parsing, handleParse]);
+  }, [parsing, handleParse, t]);
 
   const useMock = useCallback(() => {
     router.push({
@@ -193,9 +193,9 @@ export default function ScanReceiptScreen() {
             icon={<ChevronLeft size={18} color="white" />}
             color="white"
           >
-            Back
+            {t('common.back', 'Back')}
           </Button>
-          <Paragraph fow="700" fos="$6" col="white">Scan receipt</Paragraph>
+          <Paragraph fow="700" fos="$6" col="white">{t('scan.title', 'Scan receipt')}</Paragraph>
           <YStack w={54} />
         </XStack>
       </View>
@@ -233,7 +233,7 @@ export default function ScanReceiptScreen() {
         {parsing && (
           <View style={S.overlay}>
             <Spinner size="large" color="white" />
-            <Paragraph mt="$2" col="white">Uploading receipt...</Paragraph>
+            <Paragraph mt="$2" col="white">{t('scan.uploading', 'Uploading receipt...')}</Paragraph>
           </View>
         )}
       </View>
@@ -242,12 +242,12 @@ export default function ScanReceiptScreen() {
         <YStack gap="$3">
           <YStack gap={8}>
             <Paragraph color="$gray1" fontSize={12}>
-              Session name
+              {t('scan.sessionName', 'Session name')}
             </Paragraph>
             <Input
               value={sessionName}
               onChangeText={handleSessionNameChange}
-              placeholder="e.g. Cafe on October"
+              placeholder={t('scan.sessionNamePlaceholder', 'e.g. Cafe on October')}
               height={41}
               borderRadius={10}
               px={16}
@@ -259,14 +259,14 @@ export default function ScanReceiptScreen() {
           </YStack>
 
           <Paragraph color="$gray1" fontSize={12}>
-            language: <Text fontWeight="700" color="white">{language}</Text>
+            {t('scan.language', 'Language')}: <Text fontWeight="700" color="white">{language}</Text>
           </Paragraph>
 
           {storedCapture?.uri && (
             <XStack ai="center" gap="$2">
               <Image source={{ uri: storedCapture.uri }} style={S.preview} resizeMode="cover" />
               <Paragraph color="$gray1" fontSize={12}>
-                Last photo stored; capturing again will overwrite it.
+                {t('scan.lastPhotoStored', 'Last photo stored; capturing again will overwrite it.')}
               </Paragraph>
             </XStack>
           )}
@@ -287,7 +287,7 @@ export default function ScanReceiptScreen() {
               disabled={parsing}
               opacity={parsing ? 0.6 : 1}
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button
               size="$3"
@@ -297,7 +297,7 @@ export default function ScanReceiptScreen() {
               disabled={disableAction}
               icon={parsing ? undefined : <CameraIcon size={18} color="white" />}
             >
-              {parsing ? 'Processing...' : 'Scan receipt'}
+              {parsing ? t('scan.processing', 'Processing...') : t('scan.title', 'Scan receipt')}
             </Button>
           </XStack>
 
@@ -313,7 +313,7 @@ export default function ScanReceiptScreen() {
           </Button>
 
           <Button size="$2" borderRadius="$3" theme="gray" variant="outlined" onPress={useMock} disabled={parsing}>
-            Use mock receipt
+            {t('scan.useMock', 'Use mock receipt')}
           </Button>
         </YStack>
       </View>

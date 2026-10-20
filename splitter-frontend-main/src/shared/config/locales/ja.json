@@ -271,5 +271,25 @@
       "invalid": "無効なグループです",
       "new": "新しい QR"
     }
+  },
+  "scan": {
+    "title": "レシートをスキャン",
+    "uploading": "レシートをアップロード中...",
+    "processing": "処理中...",
+    "sessionName": "セッション名",
+    "sessionNamePlaceholder": "例: 10月のカフェ",
+    "language": "言語",
+    "lastPhotoStored": "前回の写真を保存済みです。再撮影すると上書きされます。",
+    "useMock": "テスト用レシートを使う",
+    "errorCapture": "レシートを撮影できませんでした。もう一度お試しください。",
+    "errorPrepare": "アップロード用に写真を準備できませんでした。",
+    "errorSend": "レシートの送信中に問題が発生しました",
+    "errorGallery": "ギャラリーを開けませんでした",
+    "allowCamera": "カメラを許可",
+    "cameraDenied": "レシートをスキャンするにはカメラへのアクセスを許可するか、ギャラリーから写真を選んでください。",
+    "fromGallery": "ギャラリーから選ぶ",
+    "mockTitle": "デモデータ",
+    "mockMessage": "サーバーは撮影した写真ではなくサンプルのレシートを返しました。サーバーで認識が無効になっています。",
+    "openSettings": "設定を開く"
   }
 }
