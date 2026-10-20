@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Pressable } from 'react-native';
+import { Alert, Pressable } from 'react-native';
 import { YStack, XStack, Text, Button, Circle, ScrollView, Spinner } from 'tamagui';
-import { Users as UsersIcon, Check, Plus, Minus, Package as PackageIcon, Pencil } from '@tamagui/lucide-icons';
+import { Users as UsersIcon, Check, Plus, Minus, Package as PackageIcon, Pencil, Trash2 } from '@tamagui/lucide-icons';
 import { ItemEditModal, type ItemFormValues } from '@/features/receipt/ui/ItemEditModal';
 
 import { useAppStore } from '@/shared/lib/stores/app-store';
@@ -401,6 +401,24 @@ export default function ItemsSplitScreen() {
       setAddingItem(false);
     },
     [commitItems]
+  );
+
+  const deleteItem = useCallback(
+    (item: Item) => {
+      if (items.length <= 1) {
+        Alert.alert('Cannot delete', 'A receipt needs at least one item. Edit this one instead.');
+        return;
+      }
+      Alert.alert('Delete item', `Remove "${item.name}" from the receipt?`, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => commitItems((prev) => prev.filter((it) => it.id !== item.id)),
+        },
+      ]);
+    },
+    [items.length, commitItems]
   );
 
   // --- derived ---
@@ -932,6 +950,13 @@ export default function ItemsSplitScreen() {
                           accessibilityLabel="Edit item"
                         >
                           <Pencil size={16} color="$gray10" />
+                        </Pressable>
+                        <Pressable
+                          onPress={() => deleteItem(it)}
+                          hitSlop={10}
+                          accessibilityLabel="Delete item"
+                        >
+                          <Trash2 size={16} color="#E74C3C" />
                         </Pressable>
                       </XStack>
                       {summaryText && (
