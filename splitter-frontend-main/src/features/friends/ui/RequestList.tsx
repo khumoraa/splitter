@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   YStack, XStack, Paragraph, Separator, Card, Button, Spinner
 } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { useFriendsStore } from '../model/friends.store';
 import { FriendsApi } from '../api/friends.api';
 import { useAppStore } from '@/shared/lib/stores/app-store';
@@ -11,6 +12,7 @@ import { useAppStore } from '@/shared/lib/stores/app-store';
 type Props = { type: 'incoming' | 'outgoing' };
 
 export function RequestList({ type }: Props) {
+  const { t } = useTranslation();
   const { requestsRaw, fetchAll, loading, error } = useFriendsStore();
   const meUniqueId = useAppStore((s) => s.user?.uniqueId);
 
@@ -41,26 +43,26 @@ export function RequestList({ type }: Props) {
         setNotice(okMsg);
       } catch (e: any) {
         setNoticeKind('error');
-        setNotice(e?.message || 'Something went wrong');
+        setNotice(e?.message || t('friends.common.error', 'Something went wrong'));
       } finally {
         setBusyId(null);
         fetchAll();
       }
     },
-    [fetchAll]
+    [fetchAll, t]
   );
 
   const accept = (requesterId: number, label?: string) =>
-    wrap(() => FriendsApi.accept(meUniqueId!, requesterId), requesterId, `Accepted ${label ?? ''}`.trim());
+    wrap(() => FriendsApi.accept(meUniqueId!, requesterId), requesterId, t('friends.requests.accepted', { target: label ?? '', defaultValue: 'Accepted {{target}}' }).trim());
 
   const reject = (requesterId: number, label?: string) =>
-    wrap(() => FriendsApi.reject(meUniqueId!, requesterId), requesterId, `Rejected ${label ?? ''}`.trim());
+    wrap(() => FriendsApi.reject(meUniqueId!, requesterId), requesterId, t('friends.requests.rejected', { target: label ?? '', defaultValue: 'Rejected {{target}}' }).trim());
 
   if (loading) {
     return (
       <YStack gap="$3" ai="center" py="$4">
         <Spinner />
-        <Paragraph col="$gray10">Loading requests…</Paragraph>
+        <Paragraph col="$gray10">{t('friends.requests.loading', 'Loading requests…')}</Paragraph>
       </YStack>
     );
   }
@@ -80,7 +82,7 @@ export function RequestList({ type }: Props) {
       {arr.length === 0 ? (
         <YStack gap="$2" ai="center" py="$4">
           <Paragraph col="$gray10">
-            {type === 'incoming' ? 'No incoming requests' : 'No outgoing requests'}
+            {type === 'incoming' ? t('friends.requests.emptyIncoming', 'No incoming requests') : t('friends.requests.emptyOutgoing', 'No outgoing requests')}
           </Paragraph>
           <Separator />
         </YStack>
@@ -107,7 +109,7 @@ export function RequestList({ type }: Props) {
                       onPress={() => idNum != null && accept(idNum, title)}
                       disabled={isBusy || idNum == null}
                     >
-                      {isBusy ? '...' : 'Accept'}
+                      {isBusy ? '...' : t('friends.requests.accept', 'Accept')}
                     </Button>
                     <Button
                       size="$2"
@@ -115,12 +117,12 @@ export function RequestList({ type }: Props) {
                       onPress={() => idNum != null && reject(idNum, title)}
                       disabled={isBusy || idNum == null}
                     >
-                      {isBusy ? '...' : 'Reject'}
+                      {isBusy ? '...' : t('friends.requests.reject', 'Reject')}
                     </Button>
                   </XStack>
                 ) : (
                   // Outgoing: no actions for now (spec doesn’t have cancel)
-                  <Paragraph size="$2" col="$gray10">Requested</Paragraph>
+                  <Paragraph size="$2" col="$gray10">{t('friends.status.requested', 'Requested')}</Paragraph>
                 )}
               </XStack>
             </Card>

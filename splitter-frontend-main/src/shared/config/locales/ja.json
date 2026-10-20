@@ -76,7 +76,10 @@
       "scanInvite": "招待をスキャン",
       "showMyQr": "自分の QR を表示",
       "tabIncoming": "受信",
-      "tabOutgoing": "送信"
+      "tabOutgoing": "送信",
+      "loading": "リクエストを読み込み中…",
+      "accept": "承認",
+      "reject": "拒否"
     },
     "search": {
       "button": "検索",

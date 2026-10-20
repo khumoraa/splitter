@@ -247,7 +247,10 @@
       "scanInvite": "Taklifni skanerlash",
       "showMyQr": "QR kodimni ko'rsatish",
       "tabIncoming": "Kiruvchi",
-      "tabOutgoing": "Chiquvchi"
+      "tabOutgoing": "Chiquvchi",
+      "loading": "So'rovlar yuklanmoqda…",
+      "accept": "Qabul qilish",
+      "reject": "Rad etish"
     },
     "search": {
       "button": "Qidirish",

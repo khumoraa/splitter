@@ -76,7 +76,10 @@
       "scanInvite": "Scan invite",
       "showMyQr": "Show my QR",
       "tabIncoming": "Incoming",
-      "tabOutgoing": "Outgoing"
+      "tabOutgoing": "Outgoing",
+      "loading": "Loading requests…",
+      "accept": "Accept",
+      "reject": "Reject"
     },
     "search": {
       "button": "Search",
