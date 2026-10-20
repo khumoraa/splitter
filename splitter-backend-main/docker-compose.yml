@@ -29,14 +29,14 @@ services:
     env_file:
       - .env
     environment:
-      PORT: "8080"
+      PORT: "3001"
       DATABASE_URL: "postgresql://admin:***REMOVED***@postgres:5432/mydb?schema=public"
       NODE_ENV: "production"
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "3001:3001"
 
 volumes:
   postgres_data:
