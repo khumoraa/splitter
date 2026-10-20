@@ -389,5 +389,14 @@
     "errorName": "名前を入力してください",
     "errorPrice": "有効な価格を入力してください",
     "errorQuantity": "数量は1以上の整数にしてください"
+  },
+  "history": {
+    "title": "最近の会計",
+    "subtitle": "ホーム",
+    "loading": "読み込み中...",
+    "empty": "履歴はまだありません",
+    "defaultName": "会計",
+    "participantsCount_one": "{{count}} 人",
+    "participantsCount_other": "{{count}} 人"
   }
 }

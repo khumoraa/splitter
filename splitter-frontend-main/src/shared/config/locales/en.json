@@ -389,5 +389,14 @@
     "errorName": "Enter a name",
     "errorPrice": "Enter a valid price",
     "errorQuantity": "Quantity must be a whole number, 1 or more"
+  },
+  "history": {
+    "title": "Recent bills",
+    "subtitle": "Home",
+    "loading": "Loading...",
+    "empty": "No history yet",
+    "defaultName": "Bill",
+    "participantsCount_one": "{{count}} participant",
+    "participantsCount_other": "{{count}} participants"
   }
 }

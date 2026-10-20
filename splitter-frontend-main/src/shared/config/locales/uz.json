@@ -389,5 +389,14 @@
     "errorName": "Nomni kiriting",
     "errorPrice": "To'g'ri narx kiriting",
     "errorQuantity": "Son 1 yoki undan katta butun son bo'lishi kerak"
+  },
+  "history": {
+    "title": "Oxirgi hisoblar",
+    "subtitle": "Bosh sahifa",
+    "loading": "Yuklanmoqda...",
+    "empty": "Hali tarix mavjud emas",
+    "defaultName": "Hisob",
+    "participantsCount_one": "{{count}} ishtirokchi",
+    "participantsCount_other": "{{count}} ishtirokchi"
   }
 }
