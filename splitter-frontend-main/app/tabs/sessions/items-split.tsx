@@ -4,7 +4,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable } from 'react-native';
 import { YStack, XStack, Text, Button, Circle, ScrollView, Spinner } from 'tamagui';
-import { Users as UsersIcon, Check, Plus, Minus, Package as PackageIcon } from '@tamagui/lucide-icons';
+import { Users as UsersIcon, Check, Plus, Minus, Package as PackageIcon, Pencil } from '@tamagui/lucide-icons';
+import { ItemEditModal, type ItemFormValues } from '@/features/receipt/ui/ItemEditModal';
 
 import { useAppStore } from '@/shared/lib/stores/app-store';
 import { useReceiptSessionStore } from '@/features/receipt/model/receipt-session.store';
@@ -266,6 +267,8 @@ export default function ItemsSplitScreen() {
   } | null;
   
   const [editing, setEditing] = useState<Editing>(null);
+  // item whose name/price/quantity is being edited (separate from the "who pays" modal above)
+  const [formItemId, setFormItemId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
@@ -352,6 +355,31 @@ export default function ItemsSplitScreen() {
       }
     },
     [setStoreItems]
+  );
+
+  const saveItemForm = useCallback(
+    (itemId: string, values: ItemFormValues) => {
+      commitItems((prev) =>
+        prev.map((it) => {
+          if (it.id !== itemId) return it;
+          const quantityChanged = values.quantity !== it.quantity;
+          const mode = values.quantity > 1 ? ensureMode(it) : 'equal';
+          return {
+            ...it,
+            name: values.name,
+            price: values.price,
+            quantity: values.quantity,
+            totalPrice: Math.round(values.price * values.quantity * 100) / 100,
+            splitMode: mode,
+            // unit counts no longer add up after a quantity change: ask to assign again
+            perPersonCount: quantityChanged ? {} : it.perPersonCount ?? {},
+            assignedTo: quantityChanged && mode === 'count' ? [] : it.assignedTo,
+          };
+        })
+      );
+      setFormItemId(null);
+    },
+    [commitItems]
   );
 
   // --- derived ---
@@ -872,10 +900,19 @@ export default function ItemsSplitScreen() {
                 >
                   <XStack w="100%" ai="center" jc="space-between" px={16} py="$3" gap="$3">
                     <YStack f={1} pr={12} gap="$1">
-                      <Text fontSize={16} fontWeight="700" numberOfLines={1}>
-                        {it.name}
-                        {it.quantity > 1 ? ` (${it.quantity}x)` : ''}
-                      </Text>
+                      <XStack ai="center" gap="$2">
+                        <Text fontSize={16} fontWeight="700" numberOfLines={1} flexShrink={1}>
+                          {it.name}
+                          {it.quantity > 1 ? ` (${it.quantity}x)` : ''}
+                        </Text>
+                        <Pressable
+                          onPress={() => setFormItemId(it.id)}
+                          hitSlop={10}
+                          accessibilityLabel="Edit item"
+                        >
+                          <Pencil size={16} color="$gray10" />
+                        </Pressable>
+                      </XStack>
                       {summaryText && (
                         <XStack ai="center" gap="$1">
                           {showUnitIcon && <PackageIcon size={14} color="$gray10" />}
@@ -980,6 +1017,21 @@ export default function ItemsSplitScreen() {
           </YStack>
         )}
       </YStack>
+
+      {/* Edit item (name / price / quantity) */}
+      {formItemId && (() => {
+        const target = items.find((x) => x.id === formItemId);
+        if (!target) return null;
+        return (
+          <ItemEditModal
+            initial={{ name: target.name, price: target.price, quantity: target.quantity }}
+            currency={storeCurrency || 'UZS'}
+            topInset={insets.top}
+            onSave={(values) => saveItemForm(target.id, values)}
+            onClose={() => setFormItemId(null)}
+          />
+        );
+      })()}
 
       {/* Assign Modal */}
       {editing && (
