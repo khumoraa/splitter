@@ -111,7 +111,10 @@ export const ReceiptApi = {
       // console.log('[API] POST /sessions/scan');
       // console.log('[API] Request data:', JSON.stringify(payload, null, 2));
 
-      const { data } = await apiClient.post<ParseReceiptResponse>('/sessions/scan', payload);
+      const { data } = await apiClient.post<ParseReceiptResponse>('/sessions/scan', payload, {
+        // OCR may try several models on the server; the default 60 s is too short for it
+        timeout: 120000,
+      });
 
       console.log('[API] Response:', JSON.stringify(data, null, 2));
       return data;
