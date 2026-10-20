@@ -397,6 +397,11 @@
     "empty": "Hali tarix mavjud emas",
     "defaultName": "Hisob",
     "participantsCount_one": "{{count}} ishtirokchi",
-    "participantsCount_other": "{{count}} ishtirokchi"
+    "participantsCount_other": "{{count}} ishtirokchi",
+    "notFound": "Tarix topilmadi",
+    "goBack": "Orqaga qaytish",
+    "back": "< Ortga",
+    "defaultItem": "Tovar",
+    "noItems": "Hech qanday element biriktirilmagan"
   }
 }

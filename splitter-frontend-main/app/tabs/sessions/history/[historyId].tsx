@@ -12,22 +12,28 @@ import type {
   SessionHistoryTotalsByParticipant,
 } from '@/features/sessions/api/history.api';
 import { formatAmount } from '@/shared/lib/utils/money';
+import { useTranslation } from 'react-i18next';
 
 const DEFAULT_CURRENCY = 'UZS';
 const fmtCurrency = (value: number, currency: string) => `${currency} ${formatAmount(value, currency)}`;
 const BULLET = '\u2022';
 const DETAIL_LIMIT = 50;
 
-const formatSessionDate = (value?: string) => {
+const formatSessionDate = (value?: string, locale: string = 'en') => {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString('uz-UZ', {
+  const options: Intl.DateTimeFormatOptions = {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-  });
+  };
+  try {
+    return date.toLocaleString(locale, options);
+  } catch {
+    return date.toLocaleString(undefined, options);
+  }
 };
 
 type ParticipantView = {
@@ -41,7 +47,7 @@ type ParticipantView = {
   }[];
 };
 
-const buildParticipantsView = (bill?: SessionHistoryEntry): ParticipantView[] => {
+const buildParticipantsView = (bill: SessionHistoryEntry | undefined, defaultItemName: string): ParticipantView[] => {
   if (!bill) return [];
 
   const totalsByParticipant = new Map<string, SessionHistoryTotalsByParticipant>();
@@ -68,7 +74,7 @@ const buildParticipantsView = (bill?: SessionHistoryEntry): ParticipantView[] =>
       const itemMeta = itemsById.get(allocation.itemId);
       return {
         id: `${allocation.itemId}-${p.uniqueId}-${index}`,
-        title: itemMeta?.name || 'Tovar',
+        title: itemMeta?.name || defaultItemName,
         price: allocation.shareAmount,
       };
     });
@@ -88,6 +94,7 @@ const buildParticipantsView = (bill?: SessionHistoryEntry): ParticipantView[] =>
 export default function HistoryDetailsScreen() {
   const { historyId } = useLocalSearchParams<{ historyId: string }>();
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const sessions = useSessionsHistoryStore(state => state.sessions);
   const loading = useSessionsHistoryStore(state => state.loading);
   const initialized = useSessionsHistoryStore(state => state.initialized);
@@ -110,7 +117,10 @@ export default function HistoryDetailsScreen() {
     }
   }, [initialized, loading, currentLimit, fetchHistory, bill]);
 
-  const participants = useMemo(() => buildParticipantsView(bill), [bill]);
+  const participants = useMemo(
+    () => buildParticipantsView(bill, t('history.defaultItem', 'Item')),
+    [bill, t]
+  );
   const currency =
     bill?.currency ||
     bill?.totals?.currency ||
@@ -120,7 +130,7 @@ export default function HistoryDetailsScreen() {
   if (!bill && loading) {
     return (
       <YStack f={1} bg="$background" ai="center" jc="center">
-        <Text fontSize={16}>Yuklanmoqda...</Text>
+        <Text fontSize={16}>{t('history.loading', 'Loading...')}</Text>
       </YStack>
     );
   }
@@ -128,13 +138,13 @@ export default function HistoryDetailsScreen() {
   if (!bill) {
     return (
       <YStack f={1} bg="$background" ai="center" jc="center" gap="$3">
-        <Text fontSize={16} fontWeight="600">History not found</Text>
+        <Text fontSize={16} fontWeight="600">{t('history.notFound', 'History not found')}</Text>
         {error && (
           <Text fontSize={14} color="$red10">
             {error}
           </Text>
         )}
-        <Button onPress={() => router.back()}>Go back</Button>
+        <Button onPress={() => router.back()}>{t('history.goBack', 'Go back')}</Button>
       </YStack>
     );
   }
@@ -146,12 +156,12 @@ export default function HistoryDetailsScreen() {
         contentContainerStyle={{ alignItems: 'center', paddingBottom: 32, gap: 16 }}
       >
         <YStack w={358} gap="$3">
-          <Text fontSize={24} fontWeight="700">{bill.sessionName || 'Hisob'}</Text>
+          <Text fontSize={24} fontWeight="700">{bill.sessionName || t('history.defaultName', 'Bill')}</Text>
           <Button unstyled alignSelf="flex-start" onPress={() => router.back()}>
-            <Text color="#2ECC71">{'< Ortga'}</Text>
+            <Text color="#2ECC71">{t('history.back', '< Back')}</Text>
           </Button>
           <Text fontSize={14} color="$gray10">
-            {`${formatSessionDate(bill.finalizedAt || bill.createdAt)} ${BULLET} ${(bill.participants ?? []).length} ishtirokchi`}
+            {`${formatSessionDate(bill.finalizedAt || bill.createdAt, i18n.language)} ${BULLET} ${t('history.participantsCount', { count: (bill.participants ?? []).length, defaultValue: '{{count}} participants' })}`}
           </Text>
           <Text fontSize={16} fontWeight="700" color="#2ECC71">
             {fmtCurrency(bill.grandTotal ?? 0, currency)}
@@ -192,13 +202,13 @@ export default function HistoryDetailsScreen() {
                   <XStack key={item.id} jc="space-between" ai="center">
                     <Text fontSize={14}>{item.title}</Text>
                     <Text fontSize={14} fontWeight="600" color="#2ECC71">
-                      {item.price.toLocaleString()}
+                      {formatAmount(item.price, currency)}
                     </Text>
                   </XStack>
                 ))
               ) : (
                 <Text fontSize={12} color="$gray9">
-                  Hech qanday element biriktirilmagan
+                  {t('history.noItems', 'No items assigned')}
                 </Text>
               )}
             </YStack>

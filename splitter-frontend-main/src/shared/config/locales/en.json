@@ -397,6 +397,11 @@
     "empty": "No history yet",
     "defaultName": "Bill",
     "participantsCount_one": "{{count}} participant",
-    "participantsCount_other": "{{count}} participants"
+    "participantsCount_other": "{{count}} participants",
+    "notFound": "History not found",
+    "goBack": "Go back",
+    "back": "< Back",
+    "defaultItem": "Item",
+    "noItems": "No items assigned"
   }
 }

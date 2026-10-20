@@ -397,6 +397,11 @@
     "empty": "履歴はまだありません",
     "defaultName": "会計",
     "participantsCount_one": "{{count}} 人",
-    "participantsCount_other": "{{count}} 人"
+    "participantsCount_other": "{{count}} 人",
+    "notFound": "履歴が見つかりません",
+    "goBack": "戻る",
+    "back": "< 戻る",
+    "defaultItem": "項目",
+    "noItems": "割り当てられた項目はありません"
   }
 }
