@@ -33,7 +33,16 @@
     "noAccount": "アカウントをお持ちでないですか？",
     "haveAccount": "すでにアカウントをお持ちですか？",
     "loginError": "ログイン中にエラーが発生しました",
-    "registerError": "登録中にエラーが発生しました"
+    "registerError": "登録中にエラーが発生しました",
+    "errors": {
+      "usernameShort": "ユーザー名は2文字以上にしてください",
+      "emailInvalid": "有効なメールアドレスを入力してください",
+      "passwordLength": "パスワードは8文字以上にしてください",
+      "passwordUpper": "パスワードには大文字を含めてください",
+      "passwordLower": "パスワードには小文字を含めてください",
+      "passwordDigit": "パスワードには数字を含めてください",
+      "passwordSpecial": "パスワードには記号を含めてください"
+    }
   },
   "common": {
     "welcome": "ようこそ",

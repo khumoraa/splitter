@@ -33,7 +33,16 @@
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
     "loginError": "An error occurred during login",
-    "registerError": "An error occurred during registration"
+    "registerError": "An error occurred during registration",
+    "errors": {
+      "usernameShort": "Username must be at least 2 characters",
+      "emailInvalid": "Please enter a valid email",
+      "passwordLength": "Password must be at least 8 characters",
+      "passwordUpper": "Password must include an uppercase letter",
+      "passwordLower": "Password must include a lowercase letter",
+      "passwordDigit": "Password must include a number",
+      "passwordSpecial": "Password must include a special character"
+    }
   },
   "common": {
     "welcome": "Welcome",

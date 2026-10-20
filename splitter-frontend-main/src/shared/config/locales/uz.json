@@ -33,7 +33,16 @@
     "noAccount": "Hisobingiz yo'qmi?",
     "haveAccount": "Hisobingiz bormi?",
     "loginError": "Kirishda xatolik yuz berdi",
-    "registerError": "Ro'yxatdan o'tishda xatolik yuz berdi"
+    "registerError": "Ro'yxatdan o'tishda xatolik yuz berdi",
+    "errors": {
+      "usernameShort": "Foydalanuvchi nomi kamida 2 ta belgidan iborat bo'lishi kerak",
+      "emailInvalid": "To'g'ri email kiriting",
+      "passwordLength": "Parol kamida 8 ta belgidan iborat bo'lishi kerak",
+      "passwordUpper": "Parolda bosh harf bo'lishi kerak",
+      "passwordLower": "Parolda kichik harf bo'lishi kerak",
+      "passwordDigit": "Parolda raqam bo'lishi kerak",
+      "passwordSpecial": "Parolda maxsus belgi bo'lishi kerak"
+    }
   },
   "common": {
     "welcome": "Xush kelibsiz",

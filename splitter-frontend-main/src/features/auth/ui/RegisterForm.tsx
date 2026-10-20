@@ -14,18 +14,25 @@ import PasswordInput from '@/shared/ui/PasswordInput';
 import { register as registerUser, RegisterRequest, getCurrentUser } from '../api';
 import { saveToken } from '@/shared/lib/utils/token-storage';
 import { useAppStore } from '@/shared/lib/stores/app-store';
+import { passwordIssue } from '@/shared/lib/utils/password';
 import { User, Mail, Lock } from '@tamagui/lucide-icons';
 
+// Messages are i18n keys: they are translated where the error is rendered (see tr() below)
 const schema = z.object({
-  username: z.string().min(2, 'Username must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  username: z.string().min(2, 'auth.errors.usernameShort'),
+  email: z.string().email('auth.errors.emailInvalid'),
+  // same policy as the server, so a weak password is rejected before the request
+  password: z.string().superRefine((value, ctx) => {
+    const key = passwordIssue(value);
+    if (key) ctx.addIssue({ code: 'custom', message: key });
+  }),
 });
 
 type FormData = z.infer<typeof schema>;
 
 export default function RegisterForm() {
   const { t } = useTranslation();
+  const tr = (key?: string) => (key ? t(key) : undefined);
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { username: '', email: '', password: '' },
@@ -98,7 +105,7 @@ export default function RegisterForm() {
                       placeholder={t('auth.usernamePlaceholder', 'Enter your username')}
                       value={value}
                       onChangeText={onChange}
-                      error={errors.username?.message}
+                      error={tr(errors.username?.message)}
                       required
                     />
                   </YStack>
@@ -131,7 +138,7 @@ export default function RegisterForm() {
                       onChangeText={onChange}
                       keyboardType="email-address"
                       autoCapitalize="none"
-                      error={errors.email?.message}
+                      error={tr(errors.email?.message)}
                       required
                     />
                   </YStack>
@@ -162,7 +169,7 @@ export default function RegisterForm() {
                       placeholder={t('auth.passwordPlaceholder', 'Enter your password')}
                       value={value}
                       onChangeText={onChange}
-                      error={errors.password?.message}
+                      error={tr(errors.password?.message)}
                       required
                     />
                   </YStack>
