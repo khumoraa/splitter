@@ -221,3 +221,20 @@ P2: 4-значный `uniqueId`, нет rate-limit; 400 вместо 401; миг
 Итог проверок после шага: `npm test` 16/16, `tsc` без ошибок, `expo export` собирается.
 
 Остаётся: полноценного офлайн-режима нет (данные не кэшируются, `user` не сохраняется между запусками, при старте без сети профиль будет пустым до появления интернета); pull-to-refresh есть только на истории; оффлайн-баннер не блокирует кнопки.
+
+## 15. Шаг 12: уборка (ветка fix/stage-2)
+
+| Коммит | Что | Проверено |
+|---|---|---|
+| `chore(deps): remove unused react-native-make, @gorhom/portal, react-native-portalize` | не импортируются (портал приложения — `@tamagui/portal`) | `tsc`, `expo-doctor` 18/18, бандл |
+| `chore(deps): keep typescript only in devDependencies` | дубль убран | `tsc` |
+| `chore(deps): declare @react-navigation/native` + `fix(deps): use the SDK 54 range ^7.1.8` | пакет импортируется напрямую, а не был объявлен. **Первый коммит из пары сломал `expo-doctor`** (npm взял ^7.5.1), второй исправил (7.1.18, 18/18) | `expo-doctor` 18/18 |
+| `chore(router): drop root Stack screen 'scan-invite'` | экран живёт в `tabs/` и там зарегистрирован; убран предупреждающий «No route named» | `tsc`, grep навигации |
+| `chore(scan): show the mock receipt button only in development builds` | в Expo Go (`__DEV__`) кнопка остаётся | `tsc` |
+| `chore(logs)` ×2 | убран отладочный лог из `items-split`, логи тел запросов/ответов чеков закрыты `__DEV__`. **Первый коммит заявлял больше, чем сделал** (BSD sed не сработал), второй довёл дело | `tsc`, grep |
+| `chore(backend): remove unused routes/health.ts` | `/health` определён в `server.ts` | `tsc`, curl |
+| `chore(app.json): camera and photo-library permission plugins` | `expo-camera`, `expo-image-picker` с текстами; без микрофона | Запуском: `expo prebuild` во временной копии — Android: `CAMERA` есть, `RECORD_AUDIO` удалён; iOS Info.plist: `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`. Первая версия с `cameraPermission:false` у image-picker убирала `CAMERA` — поймано этой проверкой и исправлено до коммита |
+| `chore(docker): Node 22 LTS image…` | `node:22-bookworm-slim`, OpenSSL, `prisma migrate deploy` перед стартом (prisma CLI перенесён в dependencies), порт 3001 в compose, `engines >=22`, `@types/node ^22` | Запуском: `tsc`, `npm run build`, `node dist/server.js` (`/health` ok, `/debug` 404 в production), `prisma migrate status` ok. **Образ Docker не собирался** (на машине нет Docker) ❓ |
+| `chore(lint): ESLint…` + `apply safe eslint --fix` | `eslint.config.js`, `npm run lint`; 0 ошибок, 55 → 37 предупреждений | `npx eslint .` |
+
+Сознательно НЕ делалось: удаление служебных документов в корне фронтенда (`SYNC-PROTOCOL.md`, `EMERGENCY_SYNC.yaml`, `STATUS.yaml`, `ROADMAP.md`, `RULES.md`, `ARCHITECTURE.md`, `DESCRIPTION.md`) — это не мёртвый код, решение за вами; правка 12 предупреждений `react-hooks/exhaustive-deps` и 9 неиспользуемых переменных (меняет поведение, нужен ручной разбор); ESLint для бэкенда (там строгий `tsc`); `usesCleartextTraffic: true` оставлен для работы по HTTP в LAN, в production нужен HTTPS и его отключение; тексты разрешений только на английском.
