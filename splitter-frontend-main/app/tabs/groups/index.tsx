@@ -1,3 +1,4 @@
+import { ErrorRetry } from '@/shared/ui/ErrorRetry';
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -171,7 +172,7 @@ export default function GroupsListScreen() {
         </Button>
       </XStack>
 
-      {error && <Paragraph col="$red10">{error}</Paragraph>}
+      {error && <ErrorRetry message={error} onRetry={() => fetchGroups()} disabled={loading} />}
 
       {hasNoGroups ? (
         <Paragraph col="$gray10">{t('groups.empty', 'No groups yet. Tap + to create.')}</Paragraph>
