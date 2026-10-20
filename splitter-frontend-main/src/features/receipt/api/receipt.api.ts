@@ -116,7 +116,7 @@ export const ReceiptApi = {
         timeout: 120000,
       });
 
-      console.log('[API] Response:', JSON.stringify(data, null, 2));
+      if (__DEV__) console.log('[API] Response:', JSON.stringify(data, null, 2));
       return data;
     } catch (error) {
       console.error('[API] Error (parse):', error);
@@ -126,12 +126,12 @@ export const ReceiptApi = {
 
   async finalize(payload: FinalizeReceiptRequest): Promise<FinalizeReceiptResponse> {
     try {
-      console.log('[API] POST /sessions/finalize');
-      console.log('[API] Request data:', JSON.stringify(payload, null, 2));
+      if (__DEV__) console.log('[API] POST /sessions/finalize');
+      if (__DEV__) console.log('[API] Request data:', JSON.stringify(payload, null, 2));
 
       const { data } = await apiClient.post<FinalizeReceiptResponse>('/sessions/finalize', payload);
 
-      console.log('[API] Response:', JSON.stringify(data, null, 2));
+      if (__DEV__) console.log('[API] Response:', JSON.stringify(data, null, 2));
       return data;
     } catch (error) {
       console.error('[API] Error (finalize):', error);
