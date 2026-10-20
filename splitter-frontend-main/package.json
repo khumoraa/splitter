@@ -7,7 +7,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "node --test src/shared/lib/utils/money.test.mjs src/shared/config/locales.test.mjs"
+    "test": "node --test src/shared/lib/utils/money.test.mjs src/shared/config/locales.test.mjs src/shared/lib/utils/settlement.test.mjs"
   },
   "dependencies": {
     "@gorhom/portal": "^1.0.14",

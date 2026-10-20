@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",  // или "node16"
     "paths": {
       "@/*": ["./src/*"]  // Используйте полный путь без baseUrl
