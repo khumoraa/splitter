@@ -61,6 +61,11 @@ apiClient.interceptors.response.use(
       });
     }
 
+    // An aborted request is not a network failure: keep it distinguishable (see isCancelled)
+    if (axios.isCancel(error)) {
+      throw new ApiError('Request cancelled', 'cancelled');
+    }
+
     if (error.response) {
       const status = error.response.status;
       const data = error.response.data as any;

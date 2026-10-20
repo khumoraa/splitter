@@ -1,4 +1,5 @@
 import { apiClient } from '@/features/auth/api';
+import { isCancelled } from '@/shared/api/api-error';
 
 /** Totals: по товарам */
 export type SessionHistoryTotalsByItem = {
@@ -193,7 +194,7 @@ export const SessionsHistoryApi = {
         responseData: error?.response?.data,
       });
 
-      if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+      if (error.name === 'AbortError' || error.code === 'ERR_CANCELED' || isCancelled(error)) {
         throw new Error('Request cancelled');
       }
       throw error;
