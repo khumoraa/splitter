@@ -12,7 +12,7 @@ import { useReceiptSessionStore } from '@/features/receipt/model/receipt-session
 import type { FinishPayload, ReceiptSplitItem } from '@/features/receipt/model/receipt-session.store';
 import { ReceiptApi } from '@/features/receipt/api/receipt.api';
 import type { FinalizeReceiptItemPayload, FinalizeTotalsByItem, FinalizeTotalsByParticipant, ReceiptAllocation } from '@/features/receipt/api/receipt.api';
-import { formatAmount } from '@/shared/lib/utils/money';
+import { formatAmount, fromMinor, splitMinor, toMinor } from '@/shared/lib/utils/money';
 
 // ===== Types =====
 type Participant = { uniqueId: string; username: string };
@@ -137,83 +137,64 @@ const computeItemTotal = (item: Item) =>
   typeof item.totalPrice === 'number' ? item.totalPrice : item.price * item.quantity;
 
 const buildLocalFinalization = (items: Item[], participants: Participant[]) => {
+  // Same cent-exact algorithm as the server (POST /sessions/finalize), so a local fallback never disagrees with it.
   const totalsByItem: FinalizeTotalsByItem[] = [];
   const allocations: ReceiptAllocation[] = [];
+  const participantMinor: Record<string, number> = {};
+  for (const participant of participants) participantMinor[participant.uniqueId] = 0;
 
-  const participantTotals = participants.reduce<Record<string, number>>((acc, participant) => {
-    acc[participant.uniqueId] = 0;
-    return acc;
-  }, {});
+  const addShare = (uid: string, minor: number) => {
+    participantMinor[uid] = (participantMinor[uid] ?? 0) + minor;
+  };
 
-  for (const item of items) {
-    const total = computeItemTotal(item);
-    totalsByItem.push({ itemId: item.id, name: item.name, total });
-
+  items.forEach((item, itemIndex) => {
     const mode = ensureMode(item);
+    let itemMinor = 0;
 
     if (mode === 'count') {
-      const perPersonCount = item.perPersonCount ?? {};
-      for (const [uid, rawCount] of Object.entries(perPersonCount)) {
+      for (const [uid, rawCount] of Object.entries(item.perPersonCount ?? {})) {
         const count = Number(rawCount);
         if (!uid || Number.isNaN(count) || count <= 0) continue;
-
-        const shareAmount = count * item.price;
-        if (!(uid in participantTotals)) {
-          participantTotals[uid] = 0;
-        }
-        participantTotals[uid] = (participantTotals[uid] ?? 0) + shareAmount;
-
-        allocations.push({
-          itemId: item.id,
-          participantId: uid,
-          shareAmount,
-          shareUnits: count,
+        const shareMinor = toMinor(count * item.price);
+        itemMinor += shareMinor;
+        addShare(uid, shareMinor);
+        allocations.push({ itemId: item.id, participantId: uid, shareAmount: fromMinor(shareMinor), shareUnits: count });
+      }
+    } else {
+      const assigned = Array.from(new Set((item.assignedTo ?? []).filter(Boolean)));
+      if (assigned.length === 0) {
+        console.warn(`Item ${item.id} (${item.name}) has equal split mode but no assigned participants`);
+      } else {
+        const shares = splitMinor(toMinor(computeItemTotal(item)), assigned.length, itemIndex);
+        assigned.forEach((uid, idx) => {
+          const shareMinor = shares[idx]!;
+          itemMinor += shareMinor;
+          addShare(uid, shareMinor);
+          allocations.push({
+            itemId: item.id,
+            participantId: uid,
+            shareAmount: fromMinor(shareMinor),
+            shareRatio: 1 / assigned.length,
+          });
         });
       }
-
-      continue;
     }
 
-    const assigned = (item.assignedTo ?? []).filter(Boolean);
-    const shareCount = assigned.length;
-      if (shareCount === 0) {
-      console.warn(`Item ${item.id} (${item.name}) has equal split mode but no assigned participants`);
-    continue;
-    } 
+    totalsByItem.push({ itemId: item.id, name: item.name, total: fromMinor(itemMinor) });
+  });
 
-    const shareAmount = total / shareCount;
-    const shareRatio = 1 / shareCount;
-
-    assigned.forEach((uid) => {
-      if (!(uid in participantTotals)) {
-        participantTotals[uid] = 0;
-      }
-      participantTotals[uid] = (participantTotals[uid] ?? 0) + shareAmount;
-
-      allocations.push({
-        itemId: item.id,
-        participantId: uid,
-        shareAmount,
-        shareRatio,
-      });
-    });
-  }
+  const totalsMap: Record<string, number> = {};
+  for (const [uid, minor] of Object.entries(participantMinor)) totalsMap[uid] = fromMinor(minor);
 
   const totalsByParticipant: FinalizeTotalsByParticipant[] = participants.map((participant) => ({
     uniqueId: participant.uniqueId,
     username: participant.username,
-    amountOwed: participantTotals[participant.uniqueId] ?? 0,
+    amountOwed: totalsMap[participant.uniqueId] ?? 0,
   }));
 
-  const grandTotal = totalsByItem.reduce((acc, entry) => acc + entry.total, 0);
+  const grandTotal = fromMinor(totalsByItem.reduce((acc, entry) => acc + toMinor(entry.total), 0));
 
-  return {
-    totalsMap: participantTotals,
-    totalsByParticipant,
-    totalsByItem,
-    allocations,
-    grandTotal,
-  };
+  return { totalsMap, totalsByParticipant, totalsByItem, allocations, grandTotal };
 };
 // ===== Helpers =====
 const parseParticipantsParam = (raw?: string): Participant[] => {
