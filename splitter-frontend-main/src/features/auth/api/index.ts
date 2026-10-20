@@ -201,10 +201,8 @@ export interface UpdateAvatarPayload {
  * Updates the current user's avatar URL.
  */
 export async function updateAvatar(payload: UpdateAvatarPayload): Promise<User> {
-  const response = await apiClient.patch<User | null>('/users/me/avatar', payload);
-  if (response.data) {
-    return response.data;
-  }
+  // The server answers { success, avatarUrl }, not a User: reload the full profile.
+  await apiClient.patch('/users/me/avatar', payload);
   return getCurrentUser();
 }
 
@@ -258,9 +256,8 @@ export async function changePassword(payload: ChangePasswordPayload): Promise<vo
  * Resets the current user's avatar to default (null in DB).
  */
 export async function resetAvatar(): Promise<User> {
-  const response = await apiClient.delete<User | null>('/users/me/avatar');
-  if (response.data) {
-    return response.data;
-  }
+  // The server answers { success, avatarUrl: <placeholder> }, not a User: reload the full profile
+  // (its avatarUrl is null after a reset).
+  await apiClient.delete('/users/me/avatar');
   return getCurrentUser();
 }
