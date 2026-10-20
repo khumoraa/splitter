@@ -305,6 +305,23 @@
       "error": "招待を取得できませんでした",
       "invalid": "無効なグループです",
       "new": "新しい QR"
+    },
+    "details": {
+      "deleteTitle": "グループを削除",
+      "deleteMessage": "このグループを削除しますか?この操作は元に戻せません。",
+      "delete": "削除",
+      "notFound": "グループがありません",
+      "rename": "名前を変更",
+      "deleteGroup": "グループを削除",
+      "confirmRename": "名前の変更を確定",
+      "cancelRename": "名前の変更をキャンセル",
+      "showQr": "グループ QR を表示",
+      "members": "メンバー",
+      "noMembers": "メンバーはまだいません",
+      "remove": "削除",
+      "addFromFriends": "友だちから追加",
+      "noFriendsToAdd": "追加できる友だちがいません",
+      "add": "追加"
     }
   },
   "scan": {

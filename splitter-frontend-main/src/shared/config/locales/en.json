@@ -305,6 +305,23 @@
       "error": "Failed to get invite",
       "invalid": "Invalid group",
       "new": "New QR"
+    },
+    "details": {
+      "deleteTitle": "Delete group",
+      "deleteMessage": "Are you sure you want to delete this group? This action cannot be undone.",
+      "delete": "Delete",
+      "notFound": "No group",
+      "rename": "Rename",
+      "deleteGroup": "Delete group",
+      "confirmRename": "Confirm rename",
+      "cancelRename": "Cancel rename",
+      "showQr": "Show group QR",
+      "members": "Members",
+      "noMembers": "No members yet",
+      "remove": "Remove",
+      "addFromFriends": "Add from friends",
+      "noFriendsToAdd": "No friends to add",
+      "add": "Add"
     }
   },
   "scan": {

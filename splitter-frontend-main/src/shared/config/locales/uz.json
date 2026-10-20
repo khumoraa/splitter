@@ -305,6 +305,23 @@
       "error": "Taklifni olib bo'lmadi",
       "invalid": "Guruh noto'g'ri",
       "new": "Yangi QR"
+    },
+    "details": {
+      "deleteTitle": "Guruhni o'chirish",
+      "deleteMessage": "Bu guruhni o'chirishni xohlaysizmi? Bu amalni bekor qilib bo'lmaydi.",
+      "delete": "O'chirish",
+      "notFound": "Guruh topilmadi",
+      "rename": "Nomini o'zgartirish",
+      "deleteGroup": "Guruhni o'chirish",
+      "confirmRename": "Nom o'zgarishini tasdiqlash",
+      "cancelRename": "Nom o'zgarishini bekor qilish",
+      "showQr": "Guruh QR kodini ko'rsatish",
+      "members": "A'zolar",
+      "noMembers": "Hali a'zolar yo'q",
+      "remove": "O'chirish",
+      "addFromFriends": "Do'stlardan qo'shish",
+      "noFriendsToAdd": "Qo'shish uchun do'stlar yo'q",
+      "add": "Qo'shish"
     }
   },
   "scan": {

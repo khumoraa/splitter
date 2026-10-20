@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Crown, Pencil, Trash2, Check, X as IconX, ChevronLeft, QrCode } from '@tamagui/lucide-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useGroupsStore } from '@/features/groups/model/groups.store';
 import { useFriendsStore } from '@/features/friends/model/friends.store';
 import UserAvatar from '@/shared/ui/UserAvatar';
@@ -29,6 +30,7 @@ export default function GroupDetailsScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const gid = Number(groupId);
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { current, loading, error, openGroup, renameGroup, deleteGroup, addMember, removeMember } = useGroupsStore();
   const { friends, fetchAll: fetchFriends } = useFriendsStore();
@@ -84,12 +86,12 @@ export default function GroupDetailsScreen() {
 
   function onDeleteAsk() {
     Alert.alert(
-      'Delete group',
-      'Are you sure you want to delete this group? This action cannot be undone.',
+      t('groups.details.deleteTitle', 'Delete group'),
+      t('groups.details.deleteMessage', 'Are you sure you want to delete this group? This action cannot be undone.'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('groups.details.delete', 'Delete'),
           style: 'destructive',
           onPress: async () => {
             if (!gid) return;
@@ -124,7 +126,7 @@ export default function GroupDetailsScreen() {
 
   if (loading && !current) return <YStack f={1} ai="center" jc="center"><Spinner /></YStack>;
   if (error) return <YStack f={1} p="$4"><Paragraph col="$red10">{error}</Paragraph></YStack>;
-  if (!current) return <YStack f={1} p="$4"><Paragraph>No group</Paragraph></YStack>;
+  if (!current) return <YStack f={1} p="$4"><Paragraph>{t('groups.details.notFound', 'No group')}</Paragraph></YStack>;
 
   return (
     <YStack f={1} p="$4" gap="$3" bg="$background">
@@ -143,7 +145,7 @@ export default function GroupDetailsScreen() {
           pressStyle={{ opacity: 0.6 }}
           icon={<ChevronLeft size={18} color="$gray12" />}
         >
-          Back to Groups
+          {t('groups.create.back', 'Back to Groups')}
         </Button>
       </XStack>
 
@@ -180,7 +182,7 @@ export default function GroupDetailsScreen() {
               chromeless
               circular
               size="$2"
-              aria-label="Rename"
+              aria-label={t('groups.details.rename', 'Rename')}
               icon={<Pencil size={18} color="$gray12" />}
               onPress={() => setEditing(true)}
             />
@@ -188,7 +190,7 @@ export default function GroupDetailsScreen() {
               chromeless
               circular
               size="$2"
-              aria-label="Delete group"
+              aria-label={t('groups.details.deleteGroup', 'Delete group')}
               icon={<Trash2 size={18} color="$red10" />}
               onPress={onDeleteAsk}
               disabled={busyHdr === 'delete'}
@@ -202,7 +204,7 @@ export default function GroupDetailsScreen() {
               chromeless
               circular
               size="$2"
-              aria-label="Confirm rename"
+              aria-label={t('groups.details.confirmRename', 'Confirm rename')}
               icon={<Check size={18} color="$green10" />}
               onPress={onRenameConfirm}
               disabled={busyHdr === 'rename'}
@@ -211,7 +213,7 @@ export default function GroupDetailsScreen() {
               chromeless
               circular
               size="$2"
-              aria-label="Cancel rename"
+              aria-label={t('groups.details.cancelRename', 'Cancel rename')}
               icon={<IconX size={18} color="$gray11" />}
               onPress={() => { setNewName(title); setEditing(false); }}
             />
@@ -230,7 +232,7 @@ export default function GroupDetailsScreen() {
               borderRadius="$3"
               icon={<QrCode size={18} />}
             >
-              Show group QR
+              {t('groups.details.showQr', 'Show group QR')}
             </Button>
           </XStack>
           <Separator />
@@ -238,9 +240,9 @@ export default function GroupDetailsScreen() {
       )}
 
       {/* MEMBERS */}
-      <Paragraph fow="700" fos="$6">Members</Paragraph>
+      <Paragraph fow="700" fos="$6">{t('groups.details.members', 'Members')}</Paragraph>
       {members.length === 0 ? (
-        <Paragraph col="$gray10">No members yet</Paragraph>
+        <Paragraph col="$gray10">{t('groups.details.noMembers', 'No members yet')}</Paragraph>
       ) : (
         <YStack borderWidth={1} borderColor="$gray5" borderRadius={8} overflow="hidden">
           {members.map((m, idx) => {
@@ -267,7 +269,7 @@ export default function GroupDetailsScreen() {
                     {isOwnerMember && <Crown size={18} color="$yellow10" />}
                     {canManage && !isOwnerMember && (
                       <Button size="$2" theme="red" onPress={() => uid && onRemove(uid)} disabled={!uid || busy}>
-                        {busy ? '...' : 'Remove'}
+                        {busy ? '...' : t('groups.details.remove', 'Remove')}
                       </Button>
                     )}
                   </XStack>
@@ -282,11 +284,11 @@ export default function GroupDetailsScreen() {
       <Separator />
 
       {/* ADD FROM FRIENDS */}
-      <Paragraph fow="700" fos="$6">Add from friends</Paragraph>
+      <Paragraph fow="700" fos="$6">{t('groups.details.addFromFriends', 'Add from friends')}</Paragraph>
       <Input
         value={filter}
         onChangeText={setFilter}
-        placeholder="Search friends…"
+        placeholder={t('groups.create.searchPlaceholder', 'Search friends…')}
         h={41}
         px={16}
         borderRadius={10}
@@ -300,7 +302,7 @@ export default function GroupDetailsScreen() {
       />
 
       {(candidates ?? []).length === 0 ? (
-        <Paragraph col="$gray10" mt="$2">No friends to add</Paragraph>
+        <Paragraph col="$gray10" mt="$2">{t('groups.details.noFriendsToAdd', 'No friends to add')}</Paragraph>
       ) : (
         <YStack borderWidth={1} borderColor="$gray5" borderRadius={8} overflow="hidden" mt="$2">
           {candidates.map((u, idx) => {
@@ -322,7 +324,7 @@ export default function GroupDetailsScreen() {
 
                   {canManage && (
                     <Button size="$2" onPress={() => uid && onAdd(uid)} disabled={!uid || busy}>
-                      {busy ? '...' : 'Add'}
+                      {busy ? '...' : t('groups.details.add', 'Add')}
                     </Button>
                   )}
                 </XStack>
