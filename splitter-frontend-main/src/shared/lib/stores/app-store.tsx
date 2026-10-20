@@ -20,6 +20,8 @@ interface AppStore {
   token: string | null;
   user: User | null;
   isLoading: boolean;
+  /** true once the stored token has been read (so screens don't flash Welcome before autologin) */
+  authReady: boolean;
   
   // App settings
   theme: 'light' | 'dark';
@@ -42,6 +44,7 @@ export const useAppStore = create<AppStore>()(
       token: null,
       user: null,
       isLoading: false,
+      authReady: false,
       theme: 'light',
       language: DEFAULT_LANGUAGE,
 
@@ -72,11 +75,12 @@ export const useAppStore = create<AppStore>()(
         try {
           const token = await getToken();
           if (!token) {
-            set({ token: null, user: null });
+            set({ token: null, user: null, authReady: true });
             return;
           }
 
-          set({ token });
+          // token is known: navigate right away, the profile loads in the background
+          set({ token, authReady: true });
 
           try {
             const currentUser = await getCurrentUser(token);
@@ -94,7 +98,7 @@ export const useAppStore = create<AppStore>()(
           console.error('Auth initialization error:', error);
           set({ token: null, user: null });
         } finally {
-          set({ isLoading: false });
+          set({ isLoading: false, authReady: true });
         }
       },
 

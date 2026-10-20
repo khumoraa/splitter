@@ -1,7 +1,7 @@
 // app/index.tsx - улучшенная Welcome страница
 import React from 'react';
 import { Redirect, Link } from 'expo-router';
-import { YStack, XStack, Text, Circle } from 'tamagui';
+import { YStack, XStack, Text, Circle, Spinner } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/shared/lib/stores/app-store';
 import { LANGUAGE_OPTIONS, type LanguageCode } from '@/shared/config/languages';
@@ -16,9 +16,24 @@ const languages = LANGUAGE_OPTIONS.map((option) => ({
 
 export default function Welcome() {
   const token = useAppStore((state) => state.token);
+  const authReady = useAppStore((state) => state.authReady);
   const { t } = useTranslation();
   const currentLanguage = useAppStore((state) => state.language);
   const setLanguage = useAppStore((state) => state.setLanguage);
+
+  // Wait until the stored token is read, otherwise Welcome flashes before autologin
+  if (!authReady) {
+    return (
+      <ScreenContainer>
+        <YStack flex={1} ai="center" jc="center" gap="$4">
+          <Circle size={96} backgroundColor="#2ECC71" ai="center" jc="center">
+            <ScanLine size={40} color="#FFFFFF" />
+          </Circle>
+          <Spinner size="small" color="#2ECC71" />
+        </YStack>
+      </ScreenContainer>
+    );
+  }
 
   // Если уже залогинен — сразу в табы
   if (token) return <Redirect href="/tabs" />;
