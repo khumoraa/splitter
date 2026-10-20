@@ -11,9 +11,10 @@ import type {
   SessionHistoryParticipantLight,
   SessionHistoryTotalsByParticipant,
 } from '@/features/sessions/api/history.api';
+import { formatAmount } from '@/shared/lib/utils/money';
 
 const DEFAULT_CURRENCY = 'UZS';
-const fmtCurrency = (value: number, currency: string) => `${currency} ${value.toLocaleString()}`;
+const fmtCurrency = (value: number, currency: string) => `${currency} ${formatAmount(value, currency)}`;
 const BULLET = '\u2022';
 const DETAIL_LIMIT = 50;
 

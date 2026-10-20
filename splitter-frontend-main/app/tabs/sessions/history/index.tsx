@@ -6,6 +6,7 @@ import { YStack, XStack, Text, ScrollView, View } from 'tamagui';
 import UserAvatar from '@/shared/ui/UserAvatar';
 import { useSessionsHistoryStore } from '@/features/sessions/model/history.store';
 import type { SessionHistoryEntry, SessionHistoryParticipantLight } from '@/features/sessions/api/history.api';
+import { formatAmount } from '@/shared/lib/utils/money';
 
 const BULLET = '\u2022';
 const HISTORY_LIMIT = 50;
@@ -175,7 +176,7 @@ export default function SessionsHistoryScreen() {
           const summary = `${formatSessionDate(dateForSummary)} ${BULLET} ${participants.length} ishtirokchi`;
           const totalAmount = bill.grandTotal ?? 0;
           const currency = bill.currency || bill.totals?.currency || bill.payload?.totals?.currency || DEFAULT_CURRENCY;
-          const amountLabel = `${currency} ${totalAmount.toLocaleString()}`;
+          const amountLabel = `${currency} ${formatAmount(totalAmount, currency)}`;
           return (
             <HistoryCard
               key={bill.sessionId}

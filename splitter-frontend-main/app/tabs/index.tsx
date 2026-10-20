@@ -10,6 +10,7 @@ import { ScreenContainer } from '@/shared/ui/ScreenContainer';
 import UserAvatar from '@/shared/ui/UserAvatar';
 import type { SessionHistoryEntry } from '@/features/sessions/api/history.api';
 import { useSessionsHistoryStore } from '@/features/sessions/model/history.store';
+import { formatAmount } from '@/shared/lib/utils/money';
 
 const HOME_HISTORY_LIMIT = 10;
 const DEFAULT_CURRENCY = 'UZS';
@@ -273,10 +274,7 @@ export default function HomePage() {
             const summary = `${formatSessionDate(dateForSummary, i18n.language)} • ${participantsLabel}`;
             const totalAmount = bill.grandTotal ?? 0;
             const currency = bill.currency || bill.payload?.totals?.currency || DEFAULT_CURRENCY;
-            const amountLabel = `${totalAmount.toLocaleString(i18n.language ?? 'en', {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            })} ${currency}`;
+            const amountLabel = `${formatAmount(totalAmount, currency)} ${currency}`;
 
             return (
               <BillCard

@@ -12,6 +12,7 @@ import { useReceiptSessionStore } from '@/features/receipt/model/receipt-session
 import type { FinishPayload, ReceiptSplitItem } from '@/features/receipt/model/receipt-session.store';
 import { ReceiptApi } from '@/features/receipt/api/receipt.api';
 import type { FinalizeReceiptItemPayload, FinalizeTotalsByItem, FinalizeTotalsByParticipant, ReceiptAllocation } from '@/features/receipt/api/receipt.api';
+import { formatAmount } from '@/shared/lib/utils/money';
 
 // ===== Types =====
 type Participant = { uniqueId: string; username: string };
@@ -248,7 +249,7 @@ export default function ItemsSplitScreen() {
 
   const fmtCurrency = useCallback((n: number) => {
     const currency = storeCurrency || 'UZS';
-    return `${currency} ${Math.round(n).toLocaleString('en-US')}`;
+    return `${currency} ${formatAmount(n, currency)}`;
   }, [storeCurrency]);
 
   const getCurrencyParts = useCallback((n: number) => {

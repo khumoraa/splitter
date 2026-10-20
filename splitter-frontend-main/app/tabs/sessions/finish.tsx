@@ -5,6 +5,7 @@ import { Check } from '@tamagui/lucide-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { FinalizeTotalsByItem, FinalizeTotalsByParticipant, ReceiptAllocation } from '@/features/receipt/api/receipt.api';
 import { useReceiptSessionStore, type FinishPayload } from '@/features/receipt/model/receipt-session.store';
+import { formatAmount } from '@/shared/lib/utils/money';
 
 type Participant = { uniqueId: string; username: string };
 
@@ -24,7 +25,7 @@ const pickFirstNumber = (...values: Array<number | null | undefined>) => {
   }
   return 0;
 };
-const fmtCurrency = (n: number, currency: string) => `${currency} ${Math.round(n).toLocaleString('en-US')}`;
+const fmtCurrency = (n: number, currency: string) => `${currency} ${formatAmount(n, currency)}`;
 
 const getCurrencyParts = (n: number, currency: string) => {
   const formatted = fmtCurrency(n, currency);
