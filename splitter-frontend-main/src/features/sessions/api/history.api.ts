@@ -56,6 +56,7 @@ export interface SessionHistoryEntryRaw {
   currency?: string;
   participantUniqueIds: string[];
   isCreator: boolean;
+  payer?: { uniqueId: string; username: string } | null;
   payload: SessionHistoryPayload;
 }
 
@@ -82,6 +83,7 @@ export interface SessionHistoryEntry {
   participants?: SessionHistoryParticipantLight[];
 
   isCreator: boolean;
+  payer?: { uniqueId: string; username: string } | null;
   payload: SessionHistoryPayload;
 }
 

@@ -66,6 +66,7 @@ const normalizeEntry = (raw: SessionHistoryEntryRaw): SessionHistoryEntry => {
     allocations: p?.allocations ?? [],
     participants,
     isCreator: raw.isCreator,
+    payer: raw.payer ?? null,
     payload: p!,
   };
 };

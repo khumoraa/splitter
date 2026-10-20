@@ -42,6 +42,7 @@ export interface ReceiptSessionMeta {
 
 export type FinishPayload = {
   sessionId?: number;
+  payer?: { uniqueId: string; username: string } | null;
   sessionName?: string;
   receiptId?: string;
   participants?: ReceiptParticipant[];
@@ -200,6 +201,7 @@ export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => 
         lastFinishPayload: {
           sessionId: response.sessionId,
           sessionName: response.sessionName,
+          payer: response.payer ?? null,
           participants,
           totalsByParticipant: response.totals?.byParticipant,
           totalsByItem: response.totals?.byItem,

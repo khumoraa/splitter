@@ -86,6 +86,8 @@ export interface ReceiptAllocation {
 
 export interface FinalizeReceiptResponse {
   sessionId: number;
+  /** the session creator, who paid the bill */
+  payer?: { uniqueId: string; username: string } | null;
   sessionName: string;
   status: string;
   createdAt: string;

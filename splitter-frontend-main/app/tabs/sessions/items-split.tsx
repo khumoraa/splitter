@@ -724,6 +724,8 @@ export default function ItemsSplitScreen() {
   sessionId: result.sessionId,
   sessionName: result.sessionName,
   receiptId: sessionReceiptId ?? (isMockSession ? 'mock-001' : undefined),
+  // the session creator paid; finalize is creator-only, so falling back to the current user is exact
+  payer: result.payer ?? (me?.uniqueId ? { uniqueId: me.uniqueId, username: me.username } : null),
   participants,
   totalsByParticipant: effectiveByParticipant,
   totalsByItem,
