@@ -459,7 +459,6 @@
     "network": "No connection to the server. Check your internet and try again.",
     "timeout": "The server took too long to respond. Please try again.",
     "unauthorized": "Your session has expired. Please sign in again.",
-    "validation": "Some of the entered data is invalid.",
     "server": "Server error. Please try again later.",
     "request": "Request failed ({{status}})",
     "unexpected": "Unexpected error while performing the request.",

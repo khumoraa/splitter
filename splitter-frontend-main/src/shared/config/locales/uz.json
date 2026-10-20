@@ -459,7 +459,6 @@
     "network": "Serverga ulanib bo'lmadi. Internetni tekshirib, qayta urinib ko'ring.",
     "timeout": "Server juda uzoq javob berdi. Qayta urinib ko'ring.",
     "unauthorized": "Sessiya muddati tugadi. Qaytadan kiring.",
-    "validation": "Kiritilgan ma'lumotlarning bir qismi noto'g'ri.",
     "server": "Server xatosi. Keyinroq qayta urinib ko'ring.",
     "request": "So'rov bajarilmadi ({{status}})",
     "unexpected": "So'rovni bajarishda kutilmagan xatolik yuz berdi.",

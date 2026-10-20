@@ -72,8 +72,6 @@ apiClient.interceptors.response.use(
         case 401:
           emitUnauthorized();
           throw new ApiError(i18n.t('errors.unauthorized'), 'http', status);
-        case 422:
-          throw new ApiError(serverMsg || i18n.t('errors.validation'), 'http', status);
         default:
           if (status >= 500) {
             throw new ApiError(serverMsg || i18n.t('errors.server'), 'http', status);
@@ -154,27 +152,6 @@ export async function getCurrentUser(token?: string): Promise<User> {
   return data;
 }
 
-/**
- * POST /auth/logout (если у бэка нет — можно удалять этот метод)
- * Параметр token не обязателен — интерсептор и так подставит.
- */
-export async function logout(token?: string): Promise<void> {
-  await apiClient.post(
-    '/auth/logout',
-    {},
-    {
-      headers: token
-        ? (h => {
-            if (typeof (h as any).set === 'function') {
-              (h as any).set('Authorization', `Bearer ${token}`);
-              return h;
-            }
-            return { ...(h || {}), Authorization: `Bearer ${token}` };
-          })((apiClient.defaults.headers.common as any) ?? {})
-        : undefined,
-    }
-  );
-}
 /**
  * POST /uploads/avatar
  * Uploads a new avatar file and returns the CDN URL.
