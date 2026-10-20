@@ -1,10 +1,12 @@
 // src/shared/ui/Fab.tsx
 import { Button } from 'tamagui';
 import { Plus } from '@tamagui/lucide-icons';
+import { useTranslation } from 'react-i18next';
 
 type Props = { onPress: () => void };
 
 export default function Fab({ onPress }: Props) {
+  const { t } = useTranslation();
   return (
     <Button
       onPress={onPress}
@@ -22,7 +24,7 @@ export default function Fab({ onPress }: Props) {
       shadowOpacity={0.2}
       shadowRadius={4}
       shadowOffset={{ width: 0, height: 2 }}
-      aria-label="Add Friend"
+      aria-label={t('friends.add', 'Add Friend')}
     />
   );
 }

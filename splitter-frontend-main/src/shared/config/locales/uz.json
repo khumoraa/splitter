@@ -68,7 +68,8 @@
       "participants": "{{count}} ishtirokchi",
       "participants_one": "{{count}} ishtirokchi",
       "participants_other": "{{count}} ishtirokchi",
-      "amount": "{{currency}} {{amount}}"
+      "amount": "{{currency}} {{amount}}",
+      "refresh": "Oxirgi hisoblarni yangilash"
     },
     "features": {
       "title": "Nimalar qilishingiz mumkin"

@@ -117,7 +117,8 @@
       "participants": "{{count}} 人",
       "participants_one": "{{count}} 人",
       "participants_other": "{{count}} 人",
-      "amount": "{{currency}} {{amount}}"
+      "amount": "{{currency}} {{amount}}",
+      "refresh": "最近の会計を更新"
     },
     "features": {
       "title": "できること"

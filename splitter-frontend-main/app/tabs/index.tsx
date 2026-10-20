@@ -233,7 +233,7 @@ export default function HomePage() {
             <Pressable
               onPress={onManualRefresh}
               disabled={loading}
-              accessibilityLabel="Refresh recent bills"
+              accessibilityLabel={t('home.recent.refresh', 'Refresh recent bills')}
             >
               <XStack ai="center" opacity={loading ? 0.6 : 1}>
                 <RefreshCw size={18} />

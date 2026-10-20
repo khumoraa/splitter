@@ -117,7 +117,8 @@
       "participants": "{{count}} participants",
       "participants_one": "{{count}} participant",
       "participants_other": "{{count}} participants",
-      "amount": "{{currency}} {{amount}}"
+      "amount": "{{currency}} {{amount}}",
+      "refresh": "Refresh recent bills"
     },
     "features": {
       "title": "What you can do"
