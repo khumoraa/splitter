@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -209,7 +209,24 @@ export default function ScanReceiptScreen() {
           />
         ) : (
           <YStack f={1} ai="center" jc="center">
-            {!perm ? <ActivityIndicator color="white" /> : <Paragraph col="$gray1">Allow camera access</Paragraph>}
+            {!perm ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <YStack ai="center" gap="$3" px="$4">
+                <Paragraph col="$gray1" ta="center">
+                  {t('scan.cameraDenied', 'Allow camera access to scan receipts, or choose a photo from the gallery.')}
+                </Paragraph>
+                {perm.canAskAgain ? (
+                  <Button size="$3" onPress={() => requestPerm()}>
+                    {t('scan.allowCamera', 'Allow camera')}
+                  </Button>
+                ) : (
+                  <Button size="$3" onPress={() => Linking.openSettings()}>
+                    {t('scan.openSettings', 'Open settings')}
+                  </Button>
+                )}
+              </YStack>
+            )}
           </YStack>
         )}
 
