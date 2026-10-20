@@ -10,7 +10,6 @@
     "test": "node --test src/shared/lib/utils/money.test.mjs src/shared/config/locales.test.mjs src/shared/lib/utils/settlement.test.mjs src/shared/api/api-error.test.mjs"
   },
   "dependencies": {
-    "@gorhom/portal": "^1.0.14",
     "@hookform/resolvers": "^5.2.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "11.4.1",
@@ -46,7 +45,6 @@
     "react-i18next": "^15.6.1",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "^2.28.0",
-    "react-native-portalize": "^1.0.7",
     "react-native-qrcode-svg": "^6.3.15",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
@@ -73,7 +71,6 @@
     "@types/yargs": "^17.0.33",
     "@types/yargs-parser": "^21.0.3",
     "babel-preset-expo": "~54.0.10",
-    "react-native-make": "^1.0.1",
     "typescript": "~5.9.2"
   },
   "overrides": {
