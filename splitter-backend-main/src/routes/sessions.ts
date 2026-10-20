@@ -448,6 +448,11 @@ router.post(
       if (session.creatorId !== req.user.id) {
         return res.status(403).json({ error: "Forbidden" });
       }
+      // The session creator paid the bill: everyone else owes their share to them.
+      const payer = await prisma.user.findUnique({
+        where: { id: session.creatorId },
+        select: { uniqueId: true, username: true },
+      });
 
       interface ParticipantInfo {
         uniqueId: string;
@@ -648,6 +653,7 @@ router.post(
         createdAt: createdAtIso,
         finalizedAt: finalizedAtIso,
         currency,
+        payer,
         totals: {
           currency,
           grandTotal,
@@ -758,6 +764,7 @@ router.get(
       const entries = await prisma.sessionHistoryEntry.findMany({
         where: whereFilter,
         orderBy: { finalizedAt: "desc" },
+        include: { creator: { select: { uniqueId: true, username: true } } },
         ...(fetchAll ? {} : { take: limit }),
       });
 
@@ -769,6 +776,8 @@ router.get(
         currency: entry.currency,
         participantUniqueIds: entry.participantUniqueIds,
         isCreator: entry.creatorId === requesterId,
+        // the creator paid the bill (see /sessions/finalize)
+        payer: entry.creator,
         payload: entry.payload,
       }));
 
