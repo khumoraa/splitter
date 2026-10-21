@@ -2,7 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import axios, { isCancel } from "axios";
-import { ApiError, isApiError, isUnauthorized, isOffline, isCancelled } from "./api-error.ts";
+import { ApiError, isApiError, isUnauthorized, isOffline, isCancelled, logLevelForStatus } from "./api-error.ts";
+
+test("expected 4xx outcomes log as warnings, server and network failures as errors", () => {
+  for (const s of [400, 401, 403, 404, 409, 422]) assert.equal(logLevelForStatus(s), "warn", String(s));
+  for (const s of [500, 502, 503]) assert.equal(logLevelForStatus(s), "error", String(s));
+  assert.equal(logLevelForStatus(undefined), "error"); // no response: network / timeout
+  assert.equal(logLevelForStatus(399), "error");
+});
 
 test("ApiError carries kind and status; helpers branch on them, not on text", () => {
   const unauth = new ApiError("Sitzung abgelaufen", "http", 401);

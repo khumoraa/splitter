@@ -1,7 +1,7 @@
 import axios, { AxiosError, isCancel } from 'axios';
 import { getToken } from '@/shared/lib/utils/token-storage';
 import { emitUnauthorized } from '@/shared/api/auth-events';
-import { ApiError } from '@/shared/api/api-error';
+import { ApiError, logLevelForStatus } from '@/shared/api/api-error';
 import i18n from '@/shared/config/i18n';
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -51,19 +51,22 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error: AxiosError<any>) => {
+    // An aborted request is not a network failure: keep it distinguishable (see isCancelled)
+    if (isCancel(error)) {
+      throw new ApiError('Request cancelled', 'cancelled');
+    }
+
     if (__DEV__) {
-      console.error('[API] Error details:', {
+      // 4xx (e.g. 401 invalid token) is an expected outcome handled below: warn, so the dev red screen
+      // does not pop up. 5xx / no response stay console.error.
+      const level = logLevelForStatus(error.response?.status);
+      console[level]('[API] Error details:', {
         message: error.message,
         code: (error as any).code,
         response: error.response?.data,
         status: error.response?.status,
         headers: error.response?.headers,
       });
-    }
-
-    // An aborted request is not a network failure: keep it distinguishable (see isCancelled)
-    if (isCancel(error)) {
-      throw new ApiError('Request cancelled', 'cancelled');
     }
 
     if (error.response) {

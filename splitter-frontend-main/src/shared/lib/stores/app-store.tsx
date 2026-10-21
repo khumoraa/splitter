@@ -92,7 +92,13 @@ export const useAppStore = create<AppStore>()(
             const currentUser = await getCurrentUser(token);
             set({ user: currentUser });
           } catch (error) {
-            console.error('Current user fetch error:', error);
+            // An invalid/expired token (401) is an expected case handled just below: warn, not error
+            // (console.error opens the red error overlay in dev builds). Real failures stay errors.
+            if (isUnauthorized(error)) {
+              console.warn('Current user fetch: token is no longer valid, signing out');
+            } else {
+              console.error('Current user fetch error:', error);
+            }
             set({ user: null });
 
             if (isUnauthorized(error)) {
