@@ -1,6 +1,7 @@
 #!/bin/bash
 # Splitter: start everything for Expo Go on a phone.
-# Expo runs offline (EXPO_OFFLINE=1, no Expo login needed). Do not pass --offline together with --lan: the CLI rejects it.
+# Expo must be signed in (Expo Go on iOS needs a signed manifest): the script checks `npx expo whoami` first.
+# Do NOT use EXPO_OFFLINE=1 / --offline: offline mode cannot sign the manifest, so Expo Go on iOS refuses to load it.
 #   ./start-all.sh            PostgreSQL + backend (background) + Expo (foreground, QR visible)
 #   ./start-all.sh --no-expo  everything except Expo (for checks)
 # Stop with ./stop-all.sh (PostgreSQL is left running).
@@ -26,6 +27,15 @@ listener() { lsof -nP -iTCP:"$1" -sTCP:LISTEN -t 2>/dev/null | head -1; }
 belongs_to() { lsof -a -p "$1" -d cwd -Fn 2>/dev/null | grep -q "/$2"; }
 
 command -v node >/dev/null || die "node not found in ~/.local/node/bin"
+
+if [ "$NO_EXPO" = 0 ]; then
+  say "Expo account"
+  WHO_OUT="$(cd "$FRONTEND_DIR" && npx expo whoami 2>&1)"; WHO_RC=$?
+  if [ "$WHO_RC" -ne 0 ] || printf '%s' "$WHO_OUT" | grep -qi "not logged in"; then
+    die "Expo CLI is not signed in. Run:  cd splitter-frontend-main && npx expo login   (then start this script again)"
+  fi
+  echo "signed in (checked with npx expo whoami)"
+fi
 
 say "PostgreSQL"
 [ -x "$PGBIN/pg_ctl" ] || die "pg_ctl not found at $PGBIN"
@@ -83,9 +93,9 @@ echo "  2. Expo Go: scan the QR below or type  exp://$IP:$METRO_PORT"
 echo
 
 if [ "$NO_EXPO" = 1 ]; then
-  echo "--no-expo: not starting Expo. Start it with:  cd splitter-frontend-main && EXPO_OFFLINE=1 REACT_NATIVE_PACKAGER_HOSTNAME=$IP npx expo start --lan -c"
+  echo "--no-expo: not starting Expo. Start it with:  cd splitter-frontend-main && REACT_NATIVE_PACKAGER_HOSTNAME=$IP npx expo start --lan -c"
   exit 0
 fi
 
 cd "$FRONTEND_DIR" || die "frontend folder not found"
-EXPO_OFFLINE=1 REACT_NATIVE_PACKAGER_HOSTNAME="$IP" exec npx expo start --lan -c
+REACT_NATIVE_PACKAGER_HOSTNAME="$IP" exec npx expo start --lan -c
