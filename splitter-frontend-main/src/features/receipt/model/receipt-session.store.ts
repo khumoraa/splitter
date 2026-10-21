@@ -12,6 +12,7 @@ import type {
   ReceiptAllocation,
 } from '@/features/receipt/api/receipt.api';
 import { ReceiptApi } from '@/features/receipt/api/receipt.api';
+import { useAppStore } from '@/shared/lib/stores/app-store';
 
 export type CapturedReceiptImage = {
   uri?: string;
@@ -142,7 +143,8 @@ export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => 
       }));
 
       // ✅ Извлекаем валюту из ответа API
-      const detectedCurrency = response.summary?.currency || 'UZS';
+      // currency stated on the receipt, otherwise the one chosen in Settings → Bills
+      const detectedCurrency = response.summary?.currency || useAppStore.getState().defaultCurrency;
 
       set({
         parsing: false,
@@ -226,5 +228,5 @@ export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => 
     }
   },
 
-  reset: () => set({ ...INITIAL_STATE }),
+  reset: () => set({ ...INITIAL_STATE, currency: useAppStore.getState().defaultCurrency }),
 }));
