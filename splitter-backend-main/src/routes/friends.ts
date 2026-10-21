@@ -1,224 +1,179 @@
 import { Router } from "express";
 import type { Response } from "express";
-import { prisma } from "../config/prisma.js";
 import jwt from "jsonwebtoken";
+import { prisma } from "../config/prisma.js";
 import { authenticateToken, type AuthRequest } from "../middleware/auth.js";
+import { rateLimit } from "../middleware/rateLimit.js";
+import { PUBLIC_USER_SELECT } from "../config/userSelect.js";
+import { fail, serverError } from "../utils/apiError.js";
+import { clampPaging, parseSearchQuery } from "../utils/searchQuery.js";
+import { decideFriendRequest, type Row } from "../utils/friendship.js";
+import { searchUsers } from "../services/userSearch.js";
 
 const router = Router();
+
+const getFriendInviteSecret = () => process.env.FRIEND_INVITE_SECRET || process.env.JWT_SECRET || "";
+const withAvatar = <T extends { avatarUrl: string | null }>(u: T) => ({ ...u, avatarUrl: u.avatarUrl ?? null });
+const toRow = (r: { id: number; requesterId: number; receiverId: number; status: string; updatedAt: Date }): Row => ({
+  id: r.id, requesterId: r.requesterId, receiverId: r.receiverId, status: r.status as Row["status"], updatedAt: r.updatedAt.getTime(),
+});
+
+/** Resolve the other person from `{uniqueId}` or `{requesterId}` (accept / reject keep their old body). */
+async function resolveOther(body: any): Promise<number | null> {
+  if (typeof body?.requesterId === "number") return body.requesterId;
+  if (typeof body?.uniqueId === "string" && body.uniqueId.trim()) {
+    const u = await prisma.user.findUnique({ where: { uniqueId: body.uniqueId.trim() }, select: { id: true } });
+    return u?.id ?? null;
+  }
+  return null;
+}
+
+const searchIpLimit = rateLimit({ windowMs: 60_000, max: Number(process.env.SEARCH_IP_LIMIT) || 60, name: "search-ip" });
+const searchUserLimit = rateLimit({ windowMs: 60_000, max: Number(process.env.SEARCH_USER_LIMIT) || 30, name: "search-user" });
+const requestLimit = rateLimit({ windowMs: 60 * 60_000, max: Number(process.env.FRIEND_REQUEST_LIMIT) || 20, name: "friend-request" });
 
 /**
  * @swagger
  * tags:
  *   name: Friends
- *   description: Friends and friend request management
+ *   description: Friends, requests, search and invite links
  */
 
-/** Helper to select public fields */
-const userPublicSelect = {
-  id: true,
-  email: true,
-  username: true,
-  uniqueId: true,
-  avatarUrl: true,
-} as const;
+/**
+ * @swagger
+ * /friends/search:
+ *   get:
+ *     summary: Search users by username or ID
+ *     description: |
+ *       `q` is a username (exact, then prefix, then substring; case-insensitive) or an ID (`#1234`, `1234`, `name#1234`).
+ *       Min 2 characters; `limit` <= 20; `offset + limit` <= 100. Rate limit 30/min per user and 60/min per IP.
+ *       Optional `groupId` adds `groupStatus` (none | member | invited) for inviting to that group.
+ *       Never returns email. Result: `{ results: [{id, username, uniqueId, avatarUrl, relation, groupStatus?}], nextOffset }`.
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get("/search", searchIpLimit, authenticateToken, searchUserLimit, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return fail(res, "UNAUTHORIZED");
+    const parsed = parseSearchQuery(req.query.q);
+    if (parsed.kind === "invalid") return fail(res, "VALIDATION", { field: "q" });
+    if (parsed.kind === "empty" || parsed.kind === "short") return res.json({ results: [], nextOffset: null, tooShort: parsed.kind === "short" });
+    const { limit, offset } = clampPaging(req.query.limit, req.query.offset);
 
-/** Helper: choose secret for friend invites */
-function getFriendInviteSecret() {
-  return process.env.FRIEND_INVITE_SECRET || process.env.JWT_SECRET || "";
-}
+    let groupId: number | undefined;
+    if (req.query.groupId !== undefined) {
+      groupId = Number(req.query.groupId);
+      if (!Number.isInteger(groupId)) return fail(res, "VALIDATION", { field: "groupId" });
+      const g = await prisma.group.findUnique({
+        where: { id: groupId },
+        select: { ownerId: true, members: { where: { userId: req.user.id }, select: { userId: true } } },
+      });
+      if (!g) return fail(res, "NOT_FOUND");
+      if (g.ownerId !== req.user.id && g.members.length === 0) return fail(res, "FORBIDDEN");
+    }
+    return res.json({ ...(await searchUsers({ me: req.user.id, parsed, limit, offset, ...(groupId !== undefined ? { groupId } : {}) })), tooShort: false });
+  } catch (err) {
+    console.error("GET /friends/search error:", err);
+    return serverError(res);
+  }
+});
 
 /**
  * @swagger
  * /friends/invite:
  *   post:
- *     summary: Create a short-lived friend invite token (auth required)
+ *     summary: Create a friend invite link (JWT, 1-60 min, reusable until it expires)
  *     tags: [Friends]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               expiresInSeconds:
- *                 type: integer
- *                 description: TTL in seconds (default 900 = 15 minutes)
- *     responses:
- *       200:
- *         description: Invite created
  */
-router.post(
-  "/invite",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-      const secret = getFriendInviteSecret();
-      if (!secret)
-        return res.status(500).json({ error: "Invite secret missing" });
-
-      const nowSec = Math.floor(Date.now() / 1000);
-      const ttl = Math.max(
-        60,
-        Math.min(3600, Number(req.body?.expiresInSeconds) || 900)
-      );
-      const exp = nowSec + ttl;
-      const payload = {
-        typ: "friend_invite" as const,
-        inviterId: req.user.id,
-        iat: nowSec,
-        exp,
-      };
-      const token = jwt.sign(payload, secret);
-
-      const baseUrl =
-        process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get("host")}`;
-      const url = `${baseUrl}/friends/join?token=${encodeURIComponent(token)}`;
-      console.log("/friends invite created:", { inviterId: req.user.id, exp });
-      return res.json({
-        token,
-        url,
-        expiresAt: new Date(exp * 1000).toISOString(),
-      });
-    } catch (err) {
-      console.error("POST /friends/invite error:", err);
-      return res.status(500).json({ error: "Server error" });
-    }
+router.post("/invite", authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return fail(res, "UNAUTHORIZED");
+    const secret = getFriendInviteSecret();
+    if (!secret) return serverError(res);
+    const nowSec = Math.floor(Date.now() / 1000);
+    const ttl = Math.max(60, Math.min(3600, Number(req.body?.expiresInSeconds) || 900));
+    const exp = nowSec + ttl;
+    const token = jwt.sign({ typ: "friend_invite" as const, inviterId: req.user.id, iat: nowSec, exp }, secret);
+    const baseUrl = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get("host")}`;
+    return res.json({ token, url: `${baseUrl}/friends/join?token=${encodeURIComponent(token)}`, expiresAt: new Date(exp * 1000).toISOString() });
+  } catch (err) {
+    console.error("POST /friends/invite error:", err);
+    return serverError(res);
   }
-);
+});
 
 /**
  * @swagger
  * /friends/join:
  *   post:
- *     summary: Accept friend invite via token (auth required)
+ *     summary: Become friends by using an invite token (errors TOKEN_EXPIRED, TOKEN_INVALID, REQUEST_NOT_ALLOWED)
  *     tags: [Friends]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [token]
- *             properties:
- *               token:
- *                 type: string
- *     responses:
- *       200:
- *         description: Friendship created/accepted or already exists
  */
-router.post(
-  "/join",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
+router.post("/join", authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return fail(res, "UNAUTHORIZED");
+    const token = typeof req.body?.token === "string" ? req.body.token.trim() : "";
+    if (!token) return fail(res, "VALIDATION", { field: "token" });
+    const secret = getFriendInviteSecret();
+    if (!secret) return serverError(res);
+
+    let decoded: any;
     try {
-      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-      const token =
-        typeof req.body?.token === "string" ? req.body.token.trim() : "";
-      if (!token) return res.status(400).json({ error: "token is required" });
-
-      const secret = getFriendInviteSecret();
-      if (!secret)
-        return res.status(500).json({ error: "Invite secret missing" });
-
-      let decoded: any;
-      try {
-        decoded = jwt.verify(token, secret);
-      } catch (e) {
-        console.warn("/friends join invalid token:", e);
-        return res.status(400).json({ error: "Invalid or expired token" });
-      }
-
-      if (!decoded || decoded.typ !== "friend_invite" || !decoded.inviterId)
-        return res.status(400).json({ error: "Invalid token payload" });
-
-      const inviterId = Number(decoded.inviterId);
-      const me = req.user.id;
-      if (!Number.isFinite(inviterId))
-        return res.status(400).json({ error: "Invalid token claims" });
-      if (inviterId === me) return res.json({ success: true, action: "self" });
-
-      const existing = await prisma.friendship.findFirst({
-        where: {
-          OR: [
-            { requesterId: inviterId, receiverId: me },
-            { requesterId: me, receiverId: inviterId },
-          ],
-        },
-      });
-
-      if (existing) {
-        if (existing.status === "ACCEPTED") {
-          return res.json({ success: true, action: "existing" });
-        }
-        const updated = await prisma.friendship.update({
-          where: { id: existing.id },
-          data: { status: "ACCEPTED" },
-        });
-        console.log("/friends join accepted:", { id: updated.id });
-        return res.json({ success: true, action: "accepted" });
-      }
-
-      const created = await prisma.friendship.create({
-        data: { requesterId: inviterId, receiverId: me, status: "ACCEPTED" },
-      });
-      console.log("/friends join created:", { id: created.id });
-      return res.json({ success: true, action: "created" });
-    } catch (err) {
-      console.error("POST /friends/join error:", err);
-      return res.status(500).json({ error: "Server error" });
+      decoded = jwt.verify(token, secret);
+    } catch (e) {
+      return fail(res, e instanceof jwt.TokenExpiredError ? "TOKEN_EXPIRED" : "TOKEN_INVALID");
     }
+    if (!decoded || decoded.typ !== "friend_invite" || !Number.isInteger(decoded.inviterId)) return fail(res, "TOKEN_INVALID");
+
+    const inviterId = Number(decoded.inviterId);
+    const me = req.user.id;
+    if (inviterId === me) return res.json({ success: true, action: "self" });
+    const inviter = await prisma.user.findUnique({ where: { id: inviterId }, select: { id: true } });
+    if (!inviter) return fail(res, "TOKEN_INVALID");
+
+    const existing = await prisma.friendship.findFirst({
+      where: { OR: [{ requesterId: inviterId, receiverId: me }, { requesterId: me, receiverId: inviterId }] },
+    });
+    if (existing) {
+      if (existing.status === "ACCEPTED") return res.json({ success: true, action: "existing" });
+      if (existing.status === "BLOCKED") return fail(res, "REQUEST_NOT_ALLOWED");
+      await prisma.friendship.update({ where: { id: existing.id }, data: { status: "ACCEPTED" } });
+      return res.json({ success: true, action: "accepted" });
+    }
+    await prisma.friendship.create({ data: { requesterId: inviterId, receiverId: me, status: "ACCEPTED" } });
+    return res.json({ success: true, action: "created" });
+  } catch (err) {
+    console.error("POST /friends/join error:", err);
+    return serverError(res);
   }
-);
+});
 
 /**
  * @swagger
  * /friends:
  *   get:
- *     summary: List current user's friends
+ *     summary: List friends (public fields only, no email)
  *     tags: [Friends]
  *     security:
  *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Список друзей
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/UserPublic'
  */
 router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+    if (!req.user) return fail(res, "UNAUTHORIZED");
     const userId = req.user.id;
-    console.log("GET /friends for:", userId);
-
     const [asRequester, asReceiver] = await Promise.all([
-      prisma.friendship.findMany({
-        where: { requesterId: userId, status: "ACCEPTED" },
-        include: { receiver: { select: userPublicSelect } },
-      }),
-      prisma.friendship.findMany({
-        where: { receiverId: userId, status: "ACCEPTED" },
-        include: { requester: { select: userPublicSelect } },
-      }),
+      prisma.friendship.findMany({ where: { requesterId: userId, status: "ACCEPTED" }, include: { receiver: { select: PUBLIC_USER_SELECT } } }),
+      prisma.friendship.findMany({ where: { receiverId: userId, status: "ACCEPTED" }, include: { requester: { select: PUBLIC_USER_SELECT } } }),
     ]);
-
-    const friends = [
-      ...asRequester.map((f) => f.receiver),
-      ...asReceiver.map((f) => f.requester),
-    ].map((u) => ({ ...u, avatarUrl: u.avatarUrl ?? null }));
-    console.log("GET /friends count:", friends.length);
-    return res.json(friends);
+    return res.json([...asRequester.map((f) => f.receiver), ...asReceiver.map((f) => f.requester)].map(withAvatar));
   } catch (err) {
-    console.error("/friends error:", err);
-    return res.status(500).json({ error: "Server error" });
+    console.error("GET /friends error:", err);
+    return serverError(res);
   }
 });
 
@@ -226,401 +181,160 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
  * @swagger
  * /friends/requests:
  *   get:
- *     summary: Show incoming and outgoing friend requests
+ *     summary: Incoming and outgoing pending requests
  *     tags: [Friends]
  *     security:
  *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Запросы в друзья
  */
-router.get(
-  "/requests",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-      const userId = req.user.id;
-
-      const [incoming, outgoing] = await Promise.all([
-        prisma.friendship.findMany({
-          where: { receiverId: userId, status: "PENDING" },
-          include: { requester: { select: userPublicSelect } },
-          orderBy: { createdAt: "desc" },
-        }),
-        prisma.friendship.findMany({
-          where: { requesterId: userId, status: "PENDING" },
-          include: { receiver: { select: userPublicSelect } },
-          orderBy: { createdAt: "desc" },
-        }),
-      ]);
-      console.log("GET /friends/requests counts:", {
-        incoming: incoming.length,
-        outgoing: outgoing.length,
-      });
-
-      const payload = {
-        incoming: incoming.map((r) => ({ id: r.id, from: r.requester })),
-        outgoing: outgoing.map((r) => ({ id: r.id, to: r.receiver })),
-      };
-      console.log("GET /friends/requests response sizes:", {
-        incoming: payload.incoming.length,
-        outgoing: payload.outgoing.length,
-      });
-      return res.json(payload);
-    } catch (err) {
-      console.error("/friends/requests error:", err);
-      return res.status(500).json({ error: "Server error" });
-    }
+router.get("/requests", authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return fail(res, "UNAUTHORIZED");
+    const userId = req.user.id;
+    const [incoming, outgoing] = await Promise.all([
+      prisma.friendship.findMany({ where: { receiverId: userId, status: "PENDING" }, include: { requester: { select: PUBLIC_USER_SELECT } }, orderBy: { createdAt: "desc" } }),
+      prisma.friendship.findMany({ where: { requesterId: userId, status: "PENDING" }, include: { receiver: { select: PUBLIC_USER_SELECT } }, orderBy: { createdAt: "desc" } }),
+    ]);
+    return res.json({
+      incoming: incoming.map((r) => ({ id: r.id, createdAt: r.createdAt, from: withAvatar(r.requester) })),
+      outgoing: outgoing.map((r) => ({ id: r.id, createdAt: r.createdAt, to: withAvatar(r.receiver) })),
+    });
+  } catch (err) {
+    console.error("GET /friends/requests error:", err);
+    return serverError(res);
   }
-);
-
-/**
- * @swagger
- * /friends/search:
- *   get:
- *     summary: Search user by uniqueId
- *     tags: [Friends]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: q
- *         schema:
- *           type: string
- *         required: true
- *         description: uniqueId пользователя (например, #1234)
- *     responses:
- *       200:
- *         description: Результат поиска
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/UserPublic'
- */
-router.get(
-  "/search",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      const q = String(req.query.q || "").trim();
-      console.log("GET /friends/search q:", q);
-      if (!q) {
-        console.log("GET /friends/search empty query");
-        return res.json([]);
-      }
-      const user = await prisma.user.findUnique({
-        where: { uniqueId: q },
-        select: userPublicSelect,
-      });
-      const result = user
-        ? [{ ...user, avatarUrl: user.avatarUrl ?? null }]
-        : [];
-      console.log("GET /friends/search result count:", result.length);
-      return res.json(result);
-    } catch (err) {
-      console.error("/friends/search error:", err);
-      return res.status(500).json({ error: "Server error" });
-    }
-  }
-);
+});
 
 /**
  * @swagger
  * /friends/request:
  *   post:
  *     summary: Send a friend request by uniqueId
+ *     description: Errors CANNOT_ADD_SELF, ALREADY_FRIENDS, REQUEST_EXISTS, REQUEST_COOLDOWN (after a refusal, 7 days), REQUEST_NOT_ALLOWED. 20 per hour per user. A matching incoming request is accepted instead.
  *     tags: [Friends]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [uniqueId]
- *             properties:
- *               uniqueId:
- *                 type: string
- *                 example: #1234
- *     responses:
- *       200:
- *         description: Запрос отправлен или подтвержден
  */
-router.post(
-  "/request",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-      const me = req.user.id;
-      // Correctly parse unique ID as a string to avoid JSON errors.
-      // Body is parsed by express.json() in server.ts, we strictly require a string here.
-      const { uniqueId } = req.body ?? {};
-      console.log("POST /friends/request body:", { uniqueId });
-      if (typeof uniqueId !== "string" || !uniqueId.trim()) {
-        return res.status(400).json({ error: "uniqueId is required" });
-      }
+router.post("/request", authenticateToken, requestLimit, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return fail(res, "UNAUTHORIZED");
+    const me = req.user.id;
+    const uniqueId = req.body?.uniqueId;
+    if (typeof uniqueId !== "string" || !uniqueId.trim()) return fail(res, "VALIDATION", { field: "uniqueId" });
+    const target = await prisma.user.findUnique({ where: { uniqueId: uniqueId.trim() }, select: { id: true } });
+    if (!target) return fail(res, "NOT_FOUND");
+    if (target.id === me) return fail(res, "CANNOT_ADD_SELF");
 
-      const target = await prisma.user.findUnique({
-        where: { uniqueId: uniqueId.trim() },
-        select: { id: true, uniqueId: true, username: true },
-      });
-      if (!target) return res.status(404).json({ error: "User not found" });
-      if (target.id === me)
-        return res.status(400).json({ error: "You cannot add yourself" });
-
-      // Если есть встречный pending запрос от target -> меняем его на ACCEPTED
-      const reciprocal = await prisma.friendship.findUnique({
-        where: {
-          requesterId_receiverId: { requesterId: target.id, receiverId: me },
-        },
-      });
-      if (reciprocal && reciprocal.status === "PENDING") {
-        const accepted = await prisma.friendship.update({
-          where: { id: reciprocal.id },
-          data: { status: "ACCEPTED" },
-        });
-        console.log("/friends/request auto-accepted:", { id: accepted.id });
-        return res.json({ success: true, action: "accepted", id: accepted.id });
-      }
-
-      // Проверяем, не друзья ли уже
-      const existing = await prisma.friendship.findFirst({
-        where: {
-          OR: [
-            { requesterId: me, receiverId: target.id },
-            { requesterId: target.id, receiverId: me },
-          ],
-        },
-      });
-      if (existing) {
-        if (existing.status === "ACCEPTED")
-          return res.status(409).json({ error: "Already friends" });
-        if (existing.requesterId === me && existing.status === "PENDING")
-          return res.status(409).json({ error: "Request already sent" });
-        if (existing.receiverId === me && existing.status === "PENDING")
-          return res.status(409).json({ error: "Awaiting your response" });
-      }
-
-      const created = await prisma.friendship.create({
-        data: { requesterId: me, receiverId: target.id },
-      });
-      console.log("/friends/request created:", { id: created.id });
-      return res.json({ success: true, action: "requested", id: created.id });
-    } catch (err) {
-      console.error("/friends/request error:", err);
-      return res.status(500).json({ error: "Server error" });
+    const rows = await prisma.friendship.findMany({
+      where: { OR: [{ requesterId: me, receiverId: target.id }, { requesterId: target.id, receiverId: me }] },
+      select: { id: true, requesterId: true, receiverId: true, status: true, updatedAt: true },
+    });
+    const d = decideFriendRequest(rows.map(toRow), me, Date.now());
+    if (d.action === "error") return fail(res, d.code, d.retryAt ? { retryAt: new Date(d.retryAt).toISOString() } : {});
+    if (d.action === "accept") {
+      await prisma.friendship.update({ where: { id: d.rowId }, data: { status: "ACCEPTED" } });
+      return res.json({ success: true, action: "accepted", id: d.rowId });
     }
+    if (d.action === "reset") {
+      await prisma.friendship.update({ where: { id: d.rowId }, data: { status: "PENDING" } });
+      return res.json({ success: true, action: "requested", id: d.rowId });
+    }
+    try {
+      const created = await prisma.$transaction(async (tx) => {
+        if (d.action === "replace") await tx.friendship.delete({ where: { id: d.rowId } });
+        return tx.friendship.create({ data: { requesterId: me, receiverId: target.id } });
+      });
+      return res.json({ success: true, action: "requested", id: created.id });
+    } catch (e: any) {
+      if (e?.code === "P2002") return fail(res, "REQUEST_EXISTS"); // two taps at once
+      throw e;
+    }
+  } catch (err) {
+    console.error("POST /friends/request error:", err);
+    return serverError(res);
   }
-);
+});
+
+const respond = (status: "ACCEPTED" | "REJECTED") => async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return fail(res, "UNAUTHORIZED");
+    const me = req.user.id;
+    const otherId = await resolveOther(req.body);
+    if (!otherId) return fail(res, "VALIDATION", { field: "uniqueId" });
+    const fr = await prisma.friendship.findUnique({ where: { requesterId_receiverId: { requesterId: otherId, receiverId: me } } });
+    if (!fr || fr.status !== "PENDING") return fail(res, "NOT_FOUND");
+    const updated = await prisma.friendship.update({ where: { id: fr.id }, data: { status } });
+    return res.json({ success: true, id: updated.id });
+  } catch (err) {
+    console.error(`PATCH /friends/${status === "ACCEPTED" ? "accept" : "reject"} error:`, err);
+    return serverError(res);
+  }
+};
 
 /**
  * @swagger
  * /friends/accept:
  *   patch:
- *     summary: Accept a friend request
+ *     summary: Accept an incoming request ({uniqueId} or {requesterId})
  *     tags: [Friends]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             oneOf:
- *               - required: [uniqueId]
- *               - required: [requesterId]
- *             properties:
- *               uniqueId:
- *                 type: string
- *               requesterId:
- *                 type: integer
- *     responses:
- *       200:
- *         description: Запрос принят
+ * /friends/reject:
+ *   patch:
+ *     summary: Reject an incoming request; the sender can try again after 7 days
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
  */
-router.patch(
-  "/accept",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-      const me = req.user.id;
-      // Correctly parse unique ID as a string to avoid JSON errors.
-      // Body is parsed by express.json() in server.ts, we strictly require a string here.
-      const { uniqueId, requesterId } = req.body ?? {};
-      console.log("PATCH /friends/accept body:", { uniqueId, requesterId });
-
-      let otherId: number | null = null;
-      if (typeof requesterId === "number") {
-        otherId = requesterId;
-      } else if (typeof uniqueId === "string") {
-        const u = await prisma.user.findUnique({
-          where: { uniqueId: uniqueId.trim() },
-          select: { id: true },
-        });
-        otherId = u?.id ?? null;
-      }
-      if (!otherId)
-        return res
-          .status(400)
-          .json({ error: "Provide uniqueId or requesterId" });
-
-      const fr = await prisma.friendship.findUnique({
-        where: {
-          requesterId_receiverId: { requesterId: otherId, receiverId: me },
-        },
-      });
-      if (!fr || fr.status !== "PENDING") {
-        return res.status(404).json({ error: "Request not found" });
-      }
-      const updated = await prisma.friendship.update({
-        where: { id: fr.id },
-        data: { status: "ACCEPTED" },
-      });
-      console.log("/friends/accept updated:", { id: updated.id });
-      return res.json({ success: true, id: updated.id });
-    } catch (err) {
-      console.error("/friends/accept error:", err);
-      return res.status(500).json({ error: "Server error" });
-    }
-  }
-);
+router.patch("/accept", authenticateToken, respond("ACCEPTED"));
+router.patch("/reject", authenticateToken, respond("REJECTED"));
 
 /**
  * @swagger
- * /friends/reject:
- *   patch:
- *     summary: Reject a friend request
+ * /friends/requests/{uniqueId}:
+ *   delete:
+ *     summary: Cancel my pending request to that user (only PENDING; a refusal cannot be undone this way)
  *     tags: [Friends]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             oneOf:
- *               - required: [uniqueId]
- *               - required: [requesterId]
- *             properties:
- *               uniqueId:
- *                 type: string
- *               requesterId:
- *                 type: integer
- *     responses:
- *       200:
- *         description: Запрос отклонен
  */
-router.patch(
-  "/reject",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-      const me = req.user.id;
-      // Correctly parse unique ID as a string to avoid JSON errors.
-      // Body is parsed by express.json() in server.ts, we strictly require a string here.
-      const { uniqueId, requesterId } = req.body ?? {};
-      console.log("PATCH /friends/reject body:", { uniqueId, requesterId });
-
-      let otherId: number | null = null;
-      if (typeof requesterId === "number") {
-        otherId = requesterId;
-      } else if (typeof uniqueId === "string") {
-        const u = await prisma.user.findUnique({
-          where: { uniqueId: uniqueId.trim() },
-          select: { id: true },
-        });
-        otherId = u?.id ?? null;
-      }
-      if (!otherId)
-        return res
-          .status(400)
-          .json({ error: "Provide uniqueId or requesterId" });
-
-      const fr = await prisma.friendship.findUnique({
-        where: {
-          requesterId_receiverId: { requesterId: otherId, receiverId: me },
-        },
-      });
-      if (!fr || fr.status !== "PENDING") {
-        return res.status(404).json({ error: "Request not found" });
-      }
-      const updated = await prisma.friendship.update({
-        where: { id: fr.id },
-        data: { status: "REJECTED" },
-      });
-      console.log("/friends/reject updated:", { id: updated.id });
-      return res.json({ success: true, id: updated.id });
-    } catch (err) {
-      console.error("/friends/reject error:", err);
-      return res.status(500).json({ error: "Server error" });
-    }
+router.delete("/requests/:uniqueId", authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return fail(res, "UNAUTHORIZED");
+    const target = await prisma.user.findUnique({ where: { uniqueId: String(req.params.uniqueId || "").trim() }, select: { id: true } });
+    if (!target) return fail(res, "NOT_FOUND");
+    const r = await prisma.friendship.deleteMany({ where: { requesterId: req.user.id, receiverId: target.id, status: "PENDING" } });
+    return res.json({ success: true, removed: r.count > 0 });
+  } catch (err) {
+    console.error("DELETE /friends/requests/:uniqueId error:", err);
+    return serverError(res);
   }
-);
+});
 
 /**
  * @swagger
  * /friends/{uniqueId}:
  *   delete:
- *     summary: Remove friend (or cancel/clear requests)
+ *     summary: Remove a friend (only accepted friendships)
  *     tags: [Friends]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: uniqueId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Связь удалена (если была)
  */
-router.delete(
-  "/:uniqueId",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-      const me = req.user.id;
-      const uniqueId = String(req.params.uniqueId || "").trim();
-      if (!uniqueId) return res.status(400).json({ error: "Invalid uniqueId" });
-
-      console.log("DELETE /friends by uniqueId:", { me, uniqueId });
-
-      const other = await prisma.user.findUnique({
-        where: { uniqueId },
-        select: { id: true },
-      });
-      if (!other) return res.json({ success: true, removed: false });
-
-      const fr = await prisma.friendship.findFirst({
-        where: {
-          OR: [
-            { requesterId: me, receiverId: other.id },
-            { requesterId: other.id, receiverId: me },
-          ],
-        },
-      });
-
-      if (!fr) return res.json({ success: true, removed: false });
-
-      await prisma.friendship.delete({ where: { id: fr.id } });
-      console.log("DELETE /friends removed:", { linkId: fr.id });
-      return res.json({ success: true, removed: true });
-    } catch (err) {
-      console.error("DELETE /friends/:uniqueId error:", err);
-      return res.status(500).json({ error: "Server error" });
-    }
+router.delete("/:uniqueId", authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return fail(res, "UNAUTHORIZED");
+    const me = req.user.id;
+    const uniqueId = String(req.params.uniqueId || "").trim();
+    if (!uniqueId) return fail(res, "VALIDATION", { field: "uniqueId" });
+    const other = await prisma.user.findUnique({ where: { uniqueId }, select: { id: true } });
+    if (!other) return res.json({ success: true, removed: false });
+    const r = await prisma.friendship.deleteMany({
+      where: { status: "ACCEPTED", OR: [{ requesterId: me, receiverId: other.id }, { requesterId: other.id, receiverId: me }] },
+    });
+    return res.json({ success: true, removed: r.count > 0 });
+  } catch (err) {
+    console.error("DELETE /friends/:uniqueId error:", err);
+    return serverError(res);
   }
-);
+});
 
 export default router;

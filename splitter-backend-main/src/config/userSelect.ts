@@ -6,3 +6,11 @@ export const PROFILE_SELECT = {
   uniqueId: true,
   avatarUrl: true,
 } as const;
+
+/** What other people may see about a user: no email, ever. */
+export const PUBLIC_USER_SELECT = {
+  id: true,
+  username: true,
+  uniqueId: true,
+  avatarUrl: true,
+} as const;

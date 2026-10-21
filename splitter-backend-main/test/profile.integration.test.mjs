@@ -215,7 +215,7 @@ describe("no placeholder avatars anywhere", () => {
     const list = await api("GET", "/friends", { token: a.token });
     assert.equal(list.data[0].avatarUrl, null);
     const search = await api("GET", `/friends/search?q=${encodeURIComponent(b.user.uniqueId)}`, { token: a.token });
-    assert.equal(search.data[0].avatarUrl, null);
+    assert.equal(search.data.results[0].avatarUrl, null);
     const pub = await api("GET", `/users/${b.user.id}`, { token: a.token });
     assert.equal(pub.data.avatarUrl, null);
     assert.equal(pub.data.email, undefined, "other people's email must not be exposed");

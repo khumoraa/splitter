@@ -13,7 +13,7 @@ export function rateLimit(opts: { windowMs: number; max: number; name: string })
     const r = limiter.hit(key);
     if (!r.allowed) {
       res.setHeader("Retry-After", String(Math.ceil(r.retryAfterMs / 1000)));
-      return res.status(429).json({ error: "Too many requests. Please try again later.", retryAfterSeconds: Math.ceil(r.retryAfterMs / 1000) });
+      return res.status(429).json({ error: "Too many requests. Please try again later.", code: "RATE_LIMITED", retryAfterSeconds: Math.ceil(r.retryAfterMs / 1000) });
     }
     next();
   };

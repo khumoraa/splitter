@@ -5,7 +5,7 @@ import { anonymizePayload, replaceUniqueId } from "../utils/anonymize.js";
 import { releaseAvatar } from "../storage/releaseAvatar.js";
 
 export const DELETED_USER_LABEL = "Deleted user";
-const TOMBSTONE_EMAIL = "deleted-user@splitter.invalid";
+export const TOMBSTONE_EMAIL = "deleted-user@splitter.invalid";
 
 export type DeleteAccountResult =
   | { ok: true }
