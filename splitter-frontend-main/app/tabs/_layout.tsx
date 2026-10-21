@@ -144,7 +144,7 @@ export default function TabLayout() {
           href: null,
           title: homeTitle,
           tabBarLabel: homeLabel,
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
@@ -153,7 +153,7 @@ export default function TabLayout() {
           href: null,
           title: settingsTitle,
           tabBarLabel: settingsTitle,
-          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Settings size={size} color={color as string} />,
         }}
       />
 

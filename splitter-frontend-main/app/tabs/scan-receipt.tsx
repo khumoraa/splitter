@@ -332,7 +332,7 @@ const S = StyleSheet.create({
   cameraWrap: { flex: 1, backgroundColor: '#000' },
   camera: { flex: 1 },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
