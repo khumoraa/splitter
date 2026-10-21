@@ -10,7 +10,7 @@ import {
   Text,
 } from 'tamagui';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import { Plus, Check, X as IconX, Crown } from '@tamagui/lucide-icons';
 import { useTranslation } from 'react-i18next';
 

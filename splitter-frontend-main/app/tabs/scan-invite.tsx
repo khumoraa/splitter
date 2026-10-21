@@ -1,7 +1,7 @@
 // app/tabs/scan-invite.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View, Image, Animated, Modal } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router/react-navigation';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { YStack, XStack, Button, Paragraph } from 'tamagui';

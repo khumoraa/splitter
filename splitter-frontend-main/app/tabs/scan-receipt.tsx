@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from 'expo-router/react-navigation';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { YStack, XStack, Button, Paragraph, Input, Text, Spinner } from 'tamagui';
@@ -85,11 +85,11 @@ export default function ScanReceiptScreen() {
 
     try {
       setLocalError(null);
-      const picture = picked ?? await cameraRef.current!.takePictureAsync({
+      const picture = picked ?? (await cameraRef.current!.takePictureAsync({
         quality: 0.7,
         base64: false,
         skipProcessing: true,
-      });
+      }));
 
       if (!picture?.uri) {
         throw new Error(t('scan.errorCapture', 'Could not capture the receipt photo. Please try again.'));

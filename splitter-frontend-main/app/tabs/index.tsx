@@ -2,7 +2,7 @@ import { ErrorRetry } from '@/shared/ui/ErrorRetry';
 import React, { useEffect, useMemo, useRef, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import { YStack, XStack, Text, View, Circle } from 'tamagui';
 import { ScanLine, Users, UserPlus, RefreshCw } from '@tamagui/lucide-icons';
 import { useTranslation } from 'react-i18next';
