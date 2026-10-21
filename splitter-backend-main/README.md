@@ -159,3 +159,17 @@ npx prisma migrate dev   # Create/apply migrations in dev
 ## License
 
 MIT
+
+## Profile, avatars and account endpoints
+
+| Method and path | What it does |
+|---|---|
+| `POST /uploads/avatar` | multipart field `file`; JPEG/PNG/WebP up to `AVATAR_MAX_BYTES` (5 MB), checked by content; 10 per 10 min; returns `{ success, avatarUrl, key, user }`. 413 too large, 415 wrong type, 400 malformed, 429 too many |
+| `DELETE /users/me/avatar` | `{ success, avatarUrl: null, user }`, the file is deleted |
+| `PATCH /user/username` | `{ username }`, 2-32 chars: letters/digits/space `. _ ' -` |
+| `PATCH /user/email` | `{ email, currentPassword }` (409 `EMAIL_IN_USE`) |
+| `PATCH /user/password` | `{ currentPassword, newPassword }` |
+| `GET /users/me/export` | my profile, friends, groups, bills as JSON |
+| `DELETE /users/me` | `{ password }`: deletes the account (see `src/services/accountDeletion.ts`) |
+
+Error answers carry a stable `code` (`WRONG_PASSWORD`, `EMAIL_IN_USE`, `USERNAME_CHARS`, ...). `avatarUrl` is a URL or `null`, never a placeholder. Without R2 settings, avatars are stored in `UPLOADS_DIR` (default `./uploads`, git-ignored) and served at `/media/avatars/<uuid>.<ext>`; set `PUBLIC_BASE_URL` in production. Tests: `npm test` (unit), `npm run test:db` once, then `npm run test:integration` (starts a real server against the `splitter_test` database).
