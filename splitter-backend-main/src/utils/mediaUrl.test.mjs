@@ -14,7 +14,7 @@ test("only exact /media/avatars/<uuid>.<jpg|png|webp> paths count as local avata
 
 test("resolvePublicBaseUrl: env wins, LAN hosts are accepted, forged hosts are not", () => {
   assert.equal(resolvePublicBaseUrl("https://api.example.com/", "http", "10.0.0.5:3001"), "https://api.example.com");
-  assert.equal(resolvePublicBaseUrl(undefined, "http", "10.200.88.238:3001"), "http://10.200.88.238:3001");
+  assert.equal(resolvePublicBaseUrl(undefined, "http", "192.168.1.50:3001"), "http://192.168.1.50:3001");
   assert.equal(resolvePublicBaseUrl("", "http", "localhost:3001"), "http://localhost:3001");
   assert.equal(resolvePublicBaseUrl(undefined, "http", "macbook.local:3001"), "http://macbook.local:3001");
   assert.equal(resolvePublicBaseUrl(undefined, "http", "evil.com"), null);

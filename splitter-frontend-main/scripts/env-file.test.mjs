@@ -29,9 +29,9 @@ test("pickLanIp prefers physical private IPv4 and skips loopback/public/IPv6", (
   const ifs = {
     lo0: [{ family: "IPv4", address: "127.0.0.1", internal: true }],
     utun3: [{ family: "IPv4", address: "100.64.0.2", internal: false }],
-    en0: [{ family: "IPv6", address: "fe80::1", internal: false }, { family: "IPv4", address: "10.20.2.24", internal: false }],
+    en0: [{ family: "IPv6", address: "fe80::1", internal: false }, { family: "IPv4", address: "10.0.0.42", internal: false }],
     awdl0: [{ family: "IPv4", address: "192.168.9.9", internal: false }],
   };
-  assert.equal(pickLanIp(ifs), "10.20.2.24");
+  assert.equal(pickLanIp(ifs), "10.0.0.42");
   assert.equal(pickLanIp({ lo0: ifs.lo0 }), undefined);
 });
