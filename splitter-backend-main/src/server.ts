@@ -13,10 +13,8 @@ import sessionsRoutes from "./routes/sessions.js";
 import usersRoutes from "./routes/users.js";
 import uploadsRoutes from "./routes/uploads.js";
 import { logAuthAttempts } from "./middleware/logAuth.js";
-import debugRoutes from "./routes/debug.js";
 import { AVATAR_DIR } from "./storage/avatarStorage.js";
 import { absoluteMediaUrls } from "./middleware/mediaUrls.js";
-import { authenticateToken } from "./middleware/auth.js";
 
 // Load .env
 dotenv.config();
@@ -117,9 +115,6 @@ app.use("/groups", groupsRoutes);
 app.use("/sessions", sessionsRoutes);
 app.use("/users", usersRoutes);
 app.use("/uploads", uploadsRoutes);
-if (process.env.NODE_ENV !== "production") {
-  app.use("/debug", authenticateToken, debugRoutes);
-}
 
 // Health check
 app.get("/health", (req, res) => {
