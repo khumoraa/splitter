@@ -292,3 +292,51 @@ cd /Users/vazira/Desktop/коворк/splitter-frontend-main && export PATH=$HOM
 ```
 
 На телефоне: та же сеть, что у Mac; в браузере телефона открыть `http://<IP Mac>:3001/health` (должно быть `{"status":"ok"}`), затем QR в Expo Go.
+
+## 10. Обновление фронтенда до Expo SDK 57 (ветка upgrade/sdk-57)
+
+Причина: Expo Go на iPhone — SDK 57.0.0, а iOS не даёт поставить старую версию Expo Go. Бэкенд не менялся (`tsc` бэкенда по-прежнему чистый).
+
+### Что изменилось в SDK 55–57 и касается проекта (по официальным changelog/upgrade guide)
+| Изменение | Касается нас? | Что сделано |
+|---|---|---|
+| SDK 55: Legacy Architecture удалена, `newArchEnabled`/`edgeToEdgeEnabled` убраны из `app.json` | Ключей в `app.json` не было | Ничего; `prebuild` включает new arch и edge‑to‑edge сам (проверено) |
+| SDK 56: `expo-router` больше не зависит от react-navigation; импорты `@react-navigation/*` в коде запрещены | **Да**: `useFocusEffect`, `useIsFocused` в 6 файлах | Официальный codemod → `expo-router/react-navigation`; пакет `@react-navigation/native` удалён из зависимостей |
+| SDK 56: `expo/fetch` — глобальный `fetch` | Только `fetch(asset.uri)` в ветке web профиля; axios на RN использует XHR | Не требуется |
+| SDK 56: `expo` не тянет `@expo/vector-icons` | Не используется (grep) | Не требуется |
+| SDK 56: Hermes v1 по умолчанию; RN 0.85→0.86, React 19.2 | Да (сборка) | Принято; экспорт iOS/Android собирается |
+| SDK 56: TypeScript 6.0.3 в шаблонах | `i18next 25`/`react-i18next 15` объявляют peer `typescript ^5` → `npm install` падает с ERESOLVE | TypeScript оставлен `~5.9.2` через `expo.install.exclude` (`expo-doctor` это принимает) |
+| SDK 55: `expo-clipboard` убрано свойство `content` у слушателей | Не используем слушатели | Не требуется |
+| SDK 55/56: `expo-status-bar`/`expo-navigation-bar` — большинство пропсов no-op (edge‑to‑edge обязателен) | Пропсов этих модулей в коде нет | Не требуется |
+| `expo-camera`, `expo-image-picker`, `expo-secure-store`, `expo-localization`, `expo-image-manipulator` | В официальных заметках 55–57 для них breaking changes не указаны | Используемые API (`CameraView`, `useCameraPermissions`, `launchImageLibraryAsync({mediaTypes:['images']})`, `manipulateAsync`, `getLocales`) компилируются без ошибок |
+| `reanimated 4.5` / `worklets 0.10` | Да | `babel-preset-expo` сам подключает worklets‑плагин, поэтому ручную строку `react-native-reanimated/plugin` убрали (иначе плагин применялся бы дважды) |
+| Metro: файловая система по требованию, нативный watcher | Нет | Ничего |
+| Node: нужен ^20.19.4 / ^22.13 / ^24.3 | У нас 24.22 | ✅ |
+
+### Версии (до → после)
+`expo` ~54.0.37 → 57.0.30 · `react-native` 0.81.5 → 0.86.3 · `react` 19.1.0 → 19.2.3 · `expo-router` ~6.0.24 → ~57.0.28 · `expo-camera` ~17.0.10 → ~57.0.6 · `expo-image-picker` ~17.0.11 → ~57.0.20 · `expo-secure-store` ~15.0.8 → ~57.0.4 · `expo-localization` ~17.0.9 → ~57.0.2 · `react-native-reanimated` ~4.1.1 → 4.5.1 · `react-native-worklets` ^0.5.0 → 0.10.1 · `react-native-screens` ~4.16 → ~4.26 · `react-native-svg` 15.12.1 → 15.15.4 · `react-native-gesture-handler` ^2.28 → ~2.32 · `react-native-safe-area-context` ~5.6 → ~5.7 · `react-native-web` 0.21.1 → ^0.21.2 · `@react-native-community/netinfo` 11.4.1 → 12.0.1 · `babel-preset-expo` ~54 → ~57 · `eslint-config-expo` ~10 → ~57.0.2. Без изменений: `axios`, `zod`, `zustand`, `tamagui`, `react-hook-form`, `@tanstack/react-query`, `react-i18next 15`, `i18next` (в рамках ^25), `typescript 5.9.3`.
+
+### Что ломалось и как исправлено (коммиты)
+| Проблема | Исправление | Коммит |
+|---|---|---|
+| `npm install` падал `EOVERRIDE`: точный `overrides.react-native-web 0.21.1` конфликтовал с диапазоном Expo `^0.21.2` | override теперь ссылается на прямую зависимость (`"$react-native-web"`), чтобы `@tamagui/static` не приносил вторую копию 0.20.0 (иначе `expo-doctor` ругался на дубликат) | `c2bc706` |
+| `ERESOLVE` на TypeScript 6 / i18next | TypeScript остаётся 5.9 (см. выше); версию i18next не менял | `c2bc706` |
+| `@react-navigation/native` больше не нужен | codemod + удаление зависимости | `4fcb834` |
+| 3 ошибки `tsc`: `StyleSheet.absoluteFillObject` удалён; `tabBarIcon.color` теперь `ColorValue` | `StyleSheet.absoluteFill`; приведение `color as string` | `f7d7db6` |
+| ESLint: 50 новых **ошибок** от React‑Compiler‑правил `react-hooks/{set-state-in-effect,refs,static-components,preserve-manual-memoization}` (eslint-config-expo 57) в 12 файлах | Правила понижены до `warn` в `eslint.config.js` (исправление — рефакторинг, не часть обновления). Итог: 0 ошибок, **87 предупреждений** (было 37; +50 от этих правил) | `997ecdb` |
+| Двойное применение worklets‑плагина | убрана ручная строка в `babel.config.js` | `40b6235` |
+| `start-all.sh`: `CommandError: Specify at most one of: --offline, --host, --tunnel, --lan, --localhost` (воспроизведено) | офлайн задаётся `EXPO_OFFLINE=1`, флаг `--offline` убран | `e11a997` |
+
+`app.json` менять не пришлось: ключей `newArchEnabled`/`edgeToEdgeEnabled` в нём не было; `prebuild` во временной копии под SDK 57 прошёл (Android: `CAMERA` есть, `RECORD_AUDIO` удалён, `usesCleartextTraffic`; iOS: `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`, микрофона нет). Единственная заметка `prebuild`: «android: userInterfaceStyle: Install expo-system-ui» — относится только к Android и была и на SDK 54; пакет не добавлялся.
+
+### Проверки (запуском)
+`tsc --noEmit` 0 ошибок · `npm test` 28/28 · `expo-doctor` **21/21** · `eslint` 0 ошибок / 87 предупреждений · `expo export --platform ios` и `--platform android` собираются (Hermes, 7.3 и 7.6 МБ) · запущенный Metro отдаёт манифест `sdkVersion: 57.0.0` и собирает dev‑бандл iOS (HTTP 200, 14.3 МБ, 8 с) · бэкенд `tsc` 0 ошибок.
+
+### Совместимость с Expo Go 57 (запуском: сравнение с `expo/bundledNativeModules.json`)
+Все 26 пакетов с нативным кодом, найденные в `node_modules` (async-storage, netinfo, expo-camera, expo-image-picker, expo-image-manipulator, expo-secure-store, expo-localization, expo-clipboard, expo-font, expo-constants, expo-linking, expo-router, expo-status-bar, reanimated, worklets, gesture-handler, screens, safe-area-context, svg, masked-view, …), входят в Expo Go, и установленные версии **совпадают с ожидаемыми**. Вне списка только ядро `expo`/`expo-modules-*` (встроено). Остальное (Tamagui, zustand, react-query, axios, zod, react-hook-form, i18next, `react-native-qrcode-svg`) — чистый JS. `expo-build-properties` — только config plugin, в Expo Go не используется. Замен не требуется.
+
+### Не проверено ❓
+Запуск на iPhone в Expo Go 57 (устройства нет): возможны поведенческие различия RN 0.86/Hermes v1 в рантайме, которые сборка не ловит; edge‑to‑edge/безопасные зоны на Android; новый механизм `expo/fetch`. 50 предупреждений React‑Compiler‑правил указывают на реальные места (setState в эффектах, refs при рендере), стоит разобрать позже. Предупреждение Metro «react-native contains an invalid package.json configuration» (RN 0.86 + текущий Metro) на сборку не влияет. В режиме `--offline`/`EXPO_OFFLINE=1` Metro не может подтянуть иконки манифеста («Unable to resolve manifest assets») — на работу приложения это не влияет.
+
+### Запуск
+`./start-all.sh` (Expo в переднем плане, видно QR) или, как в этой сессии: из `splitter-frontend-main` — `EXPO_OFFLINE=1 REACT_NATIVE_PACKAGER_HOSTNAME=$(ipconfig getifaddr en0) CI=1 npx expo start --lan -c`. Остановить: `./stop-all.sh`.
