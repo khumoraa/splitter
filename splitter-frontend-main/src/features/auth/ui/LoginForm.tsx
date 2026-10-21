@@ -48,7 +48,9 @@ export default function LoginForm() {
       }
 
       setAuth(res.token, profile);
-      router.replace('/');
+      // one navigation, from the submit handler: straight to the app (replace('/') would first land on Welcome,
+      // whose <Redirect> then fires a second replace)
+      router.replace('/tabs');
     } catch (error: unknown) {
       // translated by status / error kind, the English server text is never shown
       Alert.alert(t('common.error', 'Error'), authErrorMessage(error, 'login', asTranslate(t)));
