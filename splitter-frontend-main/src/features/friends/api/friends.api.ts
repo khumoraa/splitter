@@ -1,83 +1,56 @@
-import { apiClient } from '@/features/auth/api'       // единый axios-инстанс проекта
-import { z } from 'zod'
-import { ZRequestsPayload } from '../model/types'
-
-// Временные «loose»-схемы, пока не зафиксировали точные ответы
-const ZUserLoose = z.object({
-  id: z.number().optional(),
-  userId: z.number().optional(),
-  username: z.string().optional(),
-  uniqueId: z.string().optional(),
-  email: z.string().email().optional(),
-  displayName: z.string().optional(),
-}).catchall(z.unknown())
-
-const ZFriendLoose = z.object({
-  user: ZUserLoose.optional(),
-  uniqueId: z.string().optional(),
-  username: z.string().optional(),
-  avatarUrl: z.string().nullish(),
-}).transform((f) => ({
-  uniqueId: f.uniqueId ?? f.user?.uniqueId,
-  username: f.username ?? f.user?.username,
-  avatarUrl: f.avatarUrl ?? f.user?.avatarUrl ?? null,
-  raw: f,
-}));
+import { z } from 'zod';
+import { apiClient } from '@/features/auth/api';
+import { ZRequests, ZSearchPage, ZUser, type User } from '../model/types';
 
 export const FriendsApi = {
-  /** GET /friends — список друзей */
-  async list() {
-    const { data } = await apiClient.get('/friends')
-    return z.array(ZFriendLoose).parse(data)
+  async list(): Promise<User[]> {
+    const { data } = await apiClient.get('/friends');
+    return z.array(ZUser).parse(data);
   },
 
-  /** GET /friends/requests — входящие/исходящие заявки */
   async requests() {
-    const { data } = await apiClient.get('/friends/requests')
-    return ZRequestsPayload.parse(data)
+    const { data } = await apiClient.get('/friends/requests');
+    return ZRequests.parse(data);
   },
 
-  /** GET /friends/search?q=USER#1234 — поиск по uniqueId */
-  async search(q: string) {
-    const { data } = await apiClient.get('/friends/search', { params: { q } })
-    return z.array(ZUserLoose).parse(data)
+  /** q = username or ID; groupId adds `groupStatus` to every hit (for inviting to that group). */
+  async search(q: string, opts: { offset?: number; groupId?: number; signal?: AbortSignal } = {}) {
+    const { data } = await apiClient.get('/friends/search', {
+      params: { q, ...(opts.offset ? { offset: opts.offset } : {}), ...(opts.groupId !== undefined ? { groupId: opts.groupId } : {}) },
+      ...(opts.signal ? { signal: opts.signal } : {}),
+    });
+    return ZSearchPage.parse(data);
   },
 
-  /** POST /friends/request { uniqueId } — отправить инвайт */
-  async sendRequest(uniqueId: string) {
-    const { data } = await apiClient.post('/friends/request', { uniqueId })
-    return data
+  async sendRequest(uniqueId: string): Promise<{ action: 'requested' | 'accepted' }> {
+    const { data } = await apiClient.post('/friends/request', { uniqueId });
+    return { action: data?.action === 'accepted' ? 'accepted' : 'requested' };
   },
 
-  /** PATCH /friends/accept — { uniqueId, requesterId } */
-  async accept(uniqueId: string, requesterId: number) {
-    const { data } = await apiClient.patch('/friends/accept', { uniqueId, requesterId })
-    return data
+  async accept(user: Pick<User, 'id' | 'uniqueId'>) {
+    await apiClient.patch('/friends/accept', { requesterId: user.id, uniqueId: user.uniqueId });
   },
 
-  /** PATCH /friends/reject — { uniqueId, requesterId } */
-  async reject(uniqueId: string, requesterId: number) {
-    const { data } = await apiClient.patch('/friends/reject', { uniqueId, requesterId })
-    return data
+  async reject(user: Pick<User, 'id' | 'uniqueId'>) {
+    await apiClient.patch('/friends/reject', { requesterId: user.id, uniqueId: user.uniqueId });
   },
 
-  /** DELETE /friends/{userId} — удалить из друзей/отменить связь */
+  /** Cancel my own pending request. */
+  async cancelRequest(uniqueId: string) {
+    await apiClient.delete(`/friends/requests/${encodeURIComponent(uniqueId)}`);
+  },
+
   async remove(uniqueId: string) {
-    const { data } = await apiClient.delete(`/friends/${encodeURIComponent(uniqueId)}`);
-    return data as { success?: boolean; removed?: boolean };
+    await apiClient.delete(`/friends/${encodeURIComponent(uniqueId)}`);
   },
 
-  /** POST /friends/invite { expiresInSeconds } -> { token, url, expiresAt } */
   async createInvite(expiresInSeconds: number) {
     const { data } = await apiClient.post('/friends/invite', { expiresInSeconds });
     return data as { token: string; url: string; expiresAt: string };
   },
 
-  /** POST /friends/join { token } -> 200 OK (created/accepted/already exists) */
   async joinByToken(token: string) {
     const { data } = await apiClient.post('/friends/join', { token });
     return data;
   },
 };
-
-

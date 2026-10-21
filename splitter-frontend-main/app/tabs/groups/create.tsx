@@ -1,305 +1,109 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  YStack,
-  XStack,
-  Input,
-  Button,
-  Paragraph,
-  Separator,
-  Spinner,
-  Text,
-} from 'tamagui';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
-import { Plus, Check, X as IconX, Crown } from '@tamagui/lucide-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { useGroupsStore } from '@/features/groups/model/groups.store';
+import { useColors } from '@/shared/lib/theme/use-colors';
+import { haptics } from '@/shared/lib/haptics';
+import { isApiError } from '@/shared/api/api-error';
+import { space } from '@/shared/ui/tokens';
+import { Banner, Button, Field } from '@/features/profile/ui/kit';
+import { Check, EmptyState, SearchField, SectionTitle, UserRow } from '@/features/social/ui/parts';
 import { useFriendsStore } from '@/features/friends/model/friends.store';
-import UserAvatar from '@/shared/ui/UserAvatar';
+import { useGroupsStore } from '@/features/groups/model/groups.store';
+import { filterFriends } from '@/features/social/lib/friends-list';
+import { socialErrorKey } from '@/features/social/lib/errors';
+import { useOnline } from '@/features/social/lib/use-online';
 
-function useAutoNotice() {
-  const [text, setText] = useState<string | undefined>();
-  const [kind, setKind] = useState<'success' | 'error' | undefined>();
+const MAX_NAME = 60;
 
-  useEffect(() => {
-    if (!text) return;
-    const timeout = setTimeout(() => {
-      setText(undefined);
-      setKind(undefined);
-    }, 2200);
-    return () => clearTimeout(timeout);
-  }, [text]);
-
-  return {
-    ok: (message: string) => {
-      setKind('success');
-      setText(message);
-    },
-    err: (message: string) => {
-      setKind('error');
-      setText(message);
-    },
-    node: text ? (
-      <Paragraph col={kind === 'error' ? '$red10' : '$green10'}>{text}</Paragraph>
-    ) : null,
-  };
-}
-
-function pickTitle(friend: any) {
-  return (
-    friend?.user?.displayName ||
-    friend?.user?.username ||
-    friend?.displayName ||
-    friend?.username ||
-    `User #${friend?.user?.id ?? friend?.userId ?? friend?.id}`
-  );
-}
-
-function pickUniqueId(friend: any): string | undefined {
-  return friend?.user?.uniqueId ?? friend?.uniqueId ?? undefined;
-}
-
-function pickSubtitle(friend: any) {
-  const uniqueId = pickUniqueId(friend);
-  return uniqueId ? `@${uniqueId.toLowerCase().replace('user#', 'user')}` : '';
-}
-
-export default function GroupCreateScreen() {
-  const router = useRouter();
-  const notice = useAutoNotice();
+export default function CreateGroupScreen() {
   const { t } = useTranslation();
-
-  const { createGroup, openGroup, addMember, removeMember, current, loading, clearCurrent } = useGroupsStore();
-  const { friends, fetchAll: fetchFriends } = useFriendsStore();
+  const c = useColors();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const online = useOnline();
+  const friends = useFriendsStore((s) => s.friends);
+  const fetchFriends = useFriendsStore((s) => s.fetchAll);
+  const createGroup = useGroupsStore((s) => s.createGroup);
 
   const [name, setName] = useState('');
-  const [creating, setCreating] = useState(false);
-  const [groupId, setGroupId] = useState<number | undefined>(undefined);
-  const [filter, setFilter] = useState('');
-  const [opUid, setOpUid] = useState<string | null>(null);
+  const [q, setQ] = useState('');
+  const [picked, setPicked] = useState<Record<string, boolean>>({});
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      clearCurrent();
-      setGroupId(undefined);
-      setName('');
-      setFilter('');
-      setOpUid(null);
-      setCreating(false);
-    }, [clearCurrent])
-  );
+  useFocusEffect(useCallback(() => { void fetchFriends(); }, [fetchFriends]));
 
-  useEffect(() => {
-    if (!friends?.length) fetchFriends();
-  }, [friends?.length, fetchFriends]);
+  const list = useMemo(() => filterFriends(friends, q), [friends, q]);
+  const count = Object.values(picked).filter(Boolean).length;
+  const valid = name.trim().length > 0 && name.trim().length <= MAX_NAME;
 
-  useEffect(() => {
-    if (groupId) openGroup(groupId);
-  }, [groupId, openGroup]);
-
-  const memberRole = useMemo(() => {
-    const map = new Map<string, string>();
-    (current?.members ?? []).forEach((member) => {
-      const key = (member?.uniqueId || '').toUpperCase();
-      if (key) map.set(key, member?.role || 'member');
-    });
-    return map;
-  }, [current?.members]);
-
-  useEffect(() => {
-    if (current?.group?.name) {
-      setName(current.group.name);
-    }
-  }, [current?.group?.name]);
-
-  const rows = useMemo(() => {
-    const list = (friends ?? []).map((friend: any) => {
-      const uid = pickUniqueId(friend);
-      const label = pickTitle(friend);
-      const subtitle = pickSubtitle(friend);
-      const role = uid ? memberRole.get(uid.toUpperCase()) : undefined;
-      return { uid, label, subtitle, role };
-    });
-    if (!filter) return list;
-    const q = filter.toLowerCase();
-    return list.filter(
-      (item) =>
-        (item.label ?? '').toLowerCase().includes(q) || (item.uid ?? '').toLowerCase().includes(q)
-    );
-  }, [friends, memberRole, filter]);
-
-  async function onCreate() {
-    if (!name.trim() || creating) return;
-    setCreating(true);
+  const submit = async () => {
+    if (busy || !valid) return;
+    if (!online) return setError(t('social.errors.offline', 'No connection.'));
+    setBusy(true);
+    setError(null);
     try {
-      const created = await createGroup(name.trim());
-      setGroupId(created.id);
-      notice.ok(t('groups.create.notice.success', 'Group created'));
-      await openGroup(created.id);
-    } catch (error: any) {
-      notice.err(error?.message ?? t('groups.create.notice.error', 'Failed to create group'));
-    } finally {
-      setCreating(false);
+      const g = await createGroup(name, Object.keys(picked).filter((k) => picked[k]));
+      haptics.success();
+      router.replace({ pathname: '/tabs/groups/[groupId]', params: { groupId: String(g.id) } } as never);
+    } catch (e) {
+      haptics.error();
+      setError(t(socialErrorKey(isApiError(e) ? e : {}), 'Something went wrong'));
+      setBusy(false);
     }
-  }
-
-  async function onAdd(uid: string) {
-    if (!groupId) return;
-    setOpUid(uid);
-    try {
-      await addMember(groupId, uid);
-      await openGroup(groupId);
-      notice.ok(t('groups.create.notice.memberAdded', 'Member added'));
-    } catch (error: any) {
-      notice.err(error?.message ?? t('groups.create.notice.addFailed', 'Failed to add member'));
-    } finally {
-      setOpUid(null);
-    }
-  }
-
-  async function onRemove(uid: string) {
-    if (!groupId) return;
-    setOpUid(uid);
-    try {
-      await removeMember(groupId, uid);
-      await openGroup(groupId);
-      notice.ok(t('groups.create.notice.memberRemoved', 'Member removed'));
-    } catch (error: any) {
-      notice.err(error?.message ?? t('groups.create.notice.removeFailed', 'Failed to remove member'));
-    } finally {
-      setOpUid(null);
-    }
-  }
+  };
 
   return (
-    <YStack f={1} p="$4" gap="$3" bg="$background">
-      <XStack>
-        <Button onPress={() => router.replace('/tabs/groups' as never)} size="$2" w={124} h={22} br={6}>
-          {t('groups.create.back', 'Back to Groups')}
-        </Button>
-      </XStack>
-
-      <Paragraph fow="700" fos="$7">
-        {t('groups.create.title', 'Create group')}
-      </Paragraph>
-      {notice.node}
-
-      <XStack gap="$2" ai="center">
-        <Input
-          f={1}
-          value={name}
-          onChangeText={setName}
-          placeholder={t('groups.create.namePlaceholder', 'Group name')}
-          editable={!groupId}
-          returnKeyType="done"
-          onSubmitEditing={onCreate}
-        />
-        <Button onPress={onCreate} disabled={!!groupId || creating}>
-          {creating ? '...' : t('groups.create.action', 'Create')}
-        </Button>
-      </XStack>
-
-      <Separator />
-
-      {!groupId ? (
-        <Paragraph col="$gray10">
-          {t('groups.create.emptyState', 'Create a group to add members.')}
-        </Paragraph>
-      ) : loading && !current ? (
-        <Spinner />
-      ) : (
-        <>
-          <Paragraph fow="700" fos="$6">
-            {t('groups.create.manageMembers', 'Add or remove members')}
-          </Paragraph>
-          <Input
-            value={filter}
-            onChangeText={setFilter}
-            placeholder={t('groups.create.searchPlaceholder', 'Search friends…')}
-            returnKeyType="search"
-          />
-
-          {(rows ?? []).length === 0 ? (
-            <Paragraph col="$gray10">
-              {t('groups.create.noFriends', 'No friends to display')}
-            </Paragraph>
-          ) : (
-            <YStack borderWidth={1} borderColor="$gray5" borderRadius={8} overflow="hidden">
-              {rows.map((row, index) => {
-                const isOwner = row.role === 'owner';
-                const isMember = !!row.role;
-                const busy = opUid === row.uid;
-                const avatarLabel = (row.label || 'U').slice(0, 1).toUpperCase();
-
-                return (
-                  <React.Fragment key={row.uid ?? row.label ?? index}>
-                    <XStack
-                      h={60}
-                      ai="center"
-                      jc="space-between"
-                      px="$4"
-                      bg="$background"
-                    >
-                      <XStack ai="center" gap="$3">
-                        <UserAvatar
-                          uri={(row as any).avatarUrl ?? undefined}
-                          label={avatarLabel}
-                          size={36}
-                          textSize={14}
-                          backgroundColor="$gray5"
-                        />
-                        <YStack>
-                          <Text fontSize={17} fontWeight="600">
-                            {row.label}
-                          </Text>
-                          {!!row.subtitle && (
-                            <Paragraph fontSize={14} color="$gray10">
-                              {row.subtitle}
-                            </Paragraph>
-                          )}
-                        </YStack>
-                      </XStack>
-
-                      <XStack ai="center" gap="$2">
-                        {isOwner ? (
-                          <Crown size={18} color="$yellow10" />
-                        ) : isMember ? (
-                          <>
-                            <Check size={18} color="$green10" />
-                            <Button
-                              size="$2"
-                              chromeless
-                              circular
-                              icon={<IconX size={18} color="$red10" />}
-                              onPress={() => row.uid && onRemove(row.uid)}
-                              disabled={!row.uid || busy}
-                              pressStyle={{ bg: '$red3' }}
-                              aria-label={t('groups.create.removeMember', 'Remove member')}
-                            />
-                          </>
-                        ) : (
-                          <Button
-                            size="$2"
-                            chromeless
-                            circular
-                            icon={<Plus size={18} color="$blue10" />}
-                            onPress={() => row.uid && onAdd(row.uid)}
-                            disabled={!row.uid || busy}
-                            pressStyle={{ bg: '$blue3' }}
-                            aria-label={t('groups.create.addMember', 'Add member')}
-                          />
-                        )}
-                      </XStack>
-                    </XStack>
-                    {index < rows.length - 1 && <Separator />}
-                  </React.Fragment>
-                );
-              })}
-            </YStack>
-          )}
-        </>
-      )}
-    </YStack>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.screen }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 50 : 0}>
+      <FlatList
+        data={list}
+        keyExtractor={(f) => String(f.id)}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        contentContainerStyle={{ padding: space.lg, paddingBottom: space.xl }}
+        ListHeaderComponent={
+          <View style={{ gap: space.lg, paddingBottom: space.md }}>
+            {!!error && <Banner kind="error">{error}</Banner>}
+            <Field
+              label={t('social.create.name', 'Group name')}
+              placeholder={t('social.create.namePlaceholder', 'e.g. Kyoto trip')}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="sentences"
+              maxLength={MAX_NAME}
+              returnKeyType="done"
+              helper={t('social.create.nameHelper', { n: name.trim().length, max: MAX_NAME, defaultValue: '{{n}} / {{max}}' })}
+            />
+            <SectionTitle>{t('social.create.addFriends', 'Add friends (optional)')}</SectionTitle>
+            {friends.length > 0 && <SearchField value={q} onChangeText={setQ} label={t('social.friends.searchLabel', 'Search your friends')} placeholder={t('social.friends.searchPlaceholder', 'Search friends')} />}
+          </View>
+        }
+        renderItem={({ item }) => {
+          const on = !!picked[item.uniqueId];
+          return (
+            <Pressable
+              onPress={() => { haptics.selection(); setPicked((p) => ({ ...p, [item.uniqueId]: !on })); }}
+              accessibilityRole="checkbox"
+              accessibilityLabel={`${item.username}, ${item.uniqueId}`}
+              accessibilityState={{ checked: on }}
+              style={{ backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: on ? c.accentFill : c.border, marginBottom: space.sm }}
+            >
+              <UserRow user={item} right={<Check on={on} />} />
+            </Pressable>
+          );
+        }}
+        ListEmptyComponent={
+          <EmptyState title={friends.length === 0 ? t('social.create.noFriends', 'No friends to add yet') : t('social.friends.noMatch', 'No friends match')} message={friends.length === 0 ? t('social.create.noFriendsMessage', 'You can create the group now and invite people later, even if they are not your friends.') : undefined} />
+        }
+      />
+      <View style={{ padding: space.lg, paddingBottom: insets.bottom + space.md, borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.surface, gap: space.sm }}>
+        {count > 0 && <Text maxFontSizeMultiplier={1.5} style={{ color: c.textMuted, fontSize: 14, textAlign: 'center' }}>{t('social.create.selected', { count, defaultValue: '{{count}} selected' })}</Text>}
+        <Button title={t('social.create.submit', 'Create group')} loading={busy} disabled={!valid || !online} onPress={() => void submit()} />
+      </View>
+    </KeyboardAvoidingView>
   );
 }

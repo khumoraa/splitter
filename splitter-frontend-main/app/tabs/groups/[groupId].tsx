@@ -1,339 +1,226 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert } from 'react-native';
-import {
-  YStack, XStack, Paragraph, Separator, Button, Input, Spinner, Text
-} from 'tamagui';
+import React, { useCallback, useState } from 'react';
+import { Alert, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Crown, Pencil, Trash2, Check, X as IconX, ChevronLeft, QrCode } from '@tamagui/lucide-icons';
-
+import { useFocusEffect } from 'expo-router/react-navigation';
 import { useTranslation } from 'react-i18next';
-import { useGroupsStore } from '@/features/groups/model/groups.store';
-import { useFriendsStore } from '@/features/friends/model/friends.store';
-import UserAvatar from '@/shared/ui/UserAvatar';
+import { Link2, MoreHorizontal, UserPlus } from '@tamagui/lucide-icons';
+
+import { useColors } from '@/shared/lib/theme/use-colors';
 import { useAppStore } from '@/shared/lib/stores/app-store';
+import { haptics } from '@/shared/lib/haptics';
+import { isApiError } from '@/shared/api/api-error';
+import { radius, space } from '@/shared/ui/tokens';
+import { Banner, Button, Card, Field, Row, Screen, Section, Skeleton, FadeIn } from '@/features/profile/ui/kit';
+import { EmptyState, IconBtn, PillButton, SectionTitle, UserRow } from '@/features/social/ui/parts';
+import { useGroupsStore } from '@/features/groups/model/groups.store';
+import type { GroupMember } from '@/features/groups/api/groups.api';
+import { deleteConfirmed, deniedReasonKey, groupPermissions } from '@/features/social/lib/permissions';
+import { socialErrorKey } from '@/features/social/lib/errors';
+import { showSheet } from '@/features/social/lib/sheet';
+import { useOnline } from '@/features/social/lib/use-online';
+import { useNotice } from '@/features/social/lib/use-notice';
 
-const fmtUid = (uid?: string) => (uid ? `@${uid.toLowerCase().replace('user#','user')}` : '');
-
-function computeIsOwner(
-  current: { group?: { ownerId?: number }, role?: 'owner'|'member' } | undefined,
-  me?: { id?: number } | null
-): boolean {
-  if (!current) return false;
-  if (current.role === 'owner') return true;
-  if (typeof current.group?.ownerId === 'number' && typeof me?.id === 'number') {
-    return current.group.ownerId === me.id;
-  }
-  return false;
-}
-
-export default function GroupDetailsScreen() {
+export default function GroupScreen() {
+  const { t } = useTranslation();
+  const c = useColors();
+  const router = useRouter();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const gid = Number(groupId);
-  const router = useRouter();
-  const { t } = useTranslation();
+  const me = useAppStore((s) => s.user);
+  const online = useOnline();
+  const current = useGroupsStore((s) => s.current);
+  const sent = useGroupsStore((s) => s.sent);
+  const loading = useGroupsStore((s) => s.loading);
+  const errorKey = useGroupsStore((s) => s.errorKey);
+  const store = useGroupsStore.getState;
+  const openGroup = useGroupsStore((s) => s.openGroup);
 
-  const { current, loading, error, openGroup, renameGroup, deleteGroup, addMember, removeMember } = useGroupsStore();
-  const { friends, fetchAll: fetchFriends } = useFriendsStore();
-  const me = useAppStore(s => s.user);
-
-  const [editing, setEditing] = useState(false);
+  const [notice, notify] = useNotice();
+  const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState('');
-  const [filter, setFilter] = useState('');
-  const [opUid, setOpUid] = useState<string | null>(null);
-  const [busyHdr, setBusyHdr] = useState<string | number | undefined>();
+  const [deleting, setDeleting] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => { if (gid) openGroup(gid); }, [gid, openGroup]);
-  useEffect(() => { if (!friends?.length) fetchFriends(); }, [friends?.length, fetchFriends]);
-  useEffect(() => {
-    if (current?.group?.name) { setNewName(current.group.name!); setEditing(false); }
-  }, [current?.group?.name]);
+  useFocusEffect(useCallback(() => { void openGroup(gid); }, [openGroup, gid]));
 
-  const canManage = useMemo(() => computeIsOwner(current, me), [current, me]);
-  const title = current?.group?.name ?? 'Group';
-  const members = useMemo(() => current?.members ?? [], [current]);
-  const ownerId = current?.group?.ownerId;
+  const ready = current?.group.id === gid;
+  const role = ready ? current!.role : null;
+  const perms = groupPermissions(role);
+  const members = ready ? current!.members : [];
+  const name = ready ? current!.group.name : '';
 
-  const memberSetUpper = useMemo(
-    () => new Set((members ?? []).map(m => (m?.uniqueId || '').toUpperCase())),
-    [members]
-  );
+  const guard = async (fn: () => Promise<unknown>, okText?: string, after?: () => void): Promise<boolean> => {
+    if (busy) return false;
+    if (!online) { notify({ kind: 'error', text: t('social.errors.offline', 'No connection.') }); return false; }
+    setBusy(true);
+    try {
+      await fn();
+      haptics.success();
+      if (okText) notify({ kind: 'success', text: okText });
+      after?.();
+      return true;
+    } catch (e) {
+      haptics.error();
+      notify({ kind: 'error', text: t(socialErrorKey(isApiError(e) ? e : {}), 'Something went wrong') });
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
 
-  const candidatesBase = useMemo(() => {
-    return (friends ?? [])
-      .map((f: any) => {
-        const uid = f?.user?.uniqueId ?? f?.uniqueId ?? '';
-        const label = f?.user?.displayName || f?.user?.username || f?.displayName || f?.username || uid;
-        return { uniqueId: uid, username: label, displayName: f?.user?.displayName ?? f?.displayName, avatarUrl: f?.user?.avatarUrl ?? f?.avatarUrl ?? null } as any;
-      })
-      .filter(u => !!u.uniqueId && !memberSetUpper.has(u.uniqueId.toUpperCase()));
-  }, [friends, memberSetUpper]);
+  const goInvite = () => router.push({ pathname: '/tabs/groups/invite-people', params: { groupId: String(gid) } } as never);
+  const goLink = () => router.push({ pathname: '/tabs/groups/invite', params: { groupId: String(gid) } } as never);
 
-  const candidates = useMemo(() => {
-    const q = filter.toLowerCase();
-    return candidatesBase.filter(u => {
-      const name = (u.displayName || u.username || u.uniqueId || '').toLowerCase();
-      const uid  = (u.uniqueId || '').toLowerCase();
-      return !filter || name.includes(q) || uid.includes(q);
-    });
-  }, [candidatesBase, filter]);
+  const memberMenu = (m: GroupMember) =>
+    showSheet(
+      m.username,
+      [
+        { label: t('social.group.makeOwner', 'Make owner'), onPress: () => confirmTransfer(m) },
+        { label: t('social.group.removeMember', 'Remove from group'), destructive: true, onPress: () => confirmRemove(m) },
+      ],
+      t('common.cancel', 'Cancel'),
+      m.uniqueId
+    );
 
-  async function onRenameConfirm() {
-    if (!gid || !newName.trim() || newName.trim() === title) { setEditing(false); return; }
-    setBusyHdr('rename');
-    try { await renameGroup(gid, newName.trim()); await openGroup(gid); }
-    finally { setBusyHdr(undefined); setEditing(false); }
-  }
+  const confirmRemove = (m: GroupMember) =>
+    Alert.alert(t('social.group.removeTitle', { name: m.username, defaultValue: 'Remove {{name}}?' }), t('social.group.removeMessage', 'They lose access to this group. Their share of past bills stays.'), [
+      { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+      { text: t('social.group.removeMember', 'Remove from group'), style: 'destructive', onPress: () => void guard(() => store().removeMember(gid, m.uniqueId), t('social.group.removed', { name: m.username, defaultValue: '{{name}} was removed.' })) },
+    ]);
 
-  function onDeleteAsk() {
+  const confirmTransfer = (m: GroupMember) =>
     Alert.alert(
-      t('groups.details.deleteTitle', 'Delete group'),
-      t('groups.details.deleteMessage', 'Are you sure you want to delete this group? This action cannot be undone.'),
+      t('social.group.transferTitle', { name: m.username, defaultValue: 'Make {{name}} the owner?' }),
+      t('social.group.transferMessage', 'They will be able to rename and delete the group and manage members. You stay in the group as a member. Pending invitations are cancelled.'),
       [
         { text: t('common.cancel', 'Cancel'), style: 'cancel' },
-        {
-          text: t('groups.details.delete', 'Delete'),
-          style: 'destructive',
-          onPress: async () => {
-            if (!gid) return;
-            setBusyHdr('delete');
-            try { await deleteGroup(gid); router.replace('/tabs/groups' as never); }
-            finally { setBusyHdr(undefined); }
-          },
-        },
-      ],
-      { cancelable: true }
+        { text: t('social.group.transfer', 'Transfer ownership'), style: 'destructive', onPress: () => void guard(() => store().transferOwnership(gid, m.uniqueId), t('social.group.transferred', { name: m.username, defaultValue: '{{name}} is now the owner.' })) },
+      ]
+    );
+
+  const pickNewOwner = () => {
+    const candidates = members.filter((m) => m.role !== 'owner');
+    if (candidates.length === 0) return Alert.alert(t('social.group.transfer', 'Transfer ownership'), t('social.group.transferNoMembers', 'There is nobody else in the group yet. Invite someone first.'));
+    showSheet(t('social.group.transferPick', 'Choose the new owner'), candidates.slice(0, 8).map((m) => ({ label: `${m.username} ${m.uniqueId}`, onPress: () => confirmTransfer(m) })), t('common.cancel', 'Cancel'));
+  };
+
+  const confirmLeave = () =>
+    Alert.alert(t('social.group.leaveTitle', { name, defaultValue: 'Leave “{{name}}”?' }), t('social.group.leaveMessage', 'You will no longer see this group. Your share of past bills stays.'), [
+      { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+      { text: t('social.group.leave', 'Leave group'), style: 'destructive', onPress: () => void guard(() => store().leaveGroup(gid), undefined, () => router.replace('/tabs/groups' as never)) },
+    ]);
+
+  const saveName = async () => {
+    const ok = await guard(() => store().renameGroup(gid, newName), t('social.group.renamed', 'Group renamed.'));
+    if (ok) setRenaming(false);
+  };
+
+  const doDelete = () => void guard(() => store().deleteGroup(gid), undefined, () => router.replace('/tabs/groups' as never));
+
+  if (!ready) {
+    return (
+      <Screen keyboard={false}>
+        {errorKey && !loading ? (
+          <EmptyState title={t('social.loadError', "Couldn't load")} message={t(errorKey, 'Something went wrong')}>
+            <Button variant="secondary" title={t('common.retry', 'Retry')} onPress={() => void openGroup(gid)} />
+          </EmptyState>
+        ) : (
+          <View style={{ gap: space.md }} accessibilityLabel={t('common.loading', 'Loading...')}><Skeleton height={110} style={{ borderRadius: radius.card }} /><Skeleton height={64} /><Skeleton height={64} /></View>
+        )}
+      </Screen>
     );
   }
 
-  async function onAdd(uid: string) {
-    if (!gid) return;
-    setOpUid(uid);
-    try { await addMember(gid, uid); await openGroup(gid); }
-    finally { setOpUid(null); }
-  }
-
-  async function onRemove(uid: string) {
-    if (!gid) return;
-    setOpUid(uid);
-    try { await removeMember(gid, uid); await openGroup(gid); }
-    finally { setOpUid(null); }
-  }
-
-  const openGroupQR = () => {
-    if (!groupId) return;
-    router.push({ pathname: '/tabs/groups/invite', params: { groupId } });
-  };
-
-  if (loading && !current) return <YStack f={1} ai="center" jc="center"><Spinner /></YStack>;
-  if (error) return <YStack f={1} p="$4"><Paragraph col="$red10">{error}</Paragraph></YStack>;
-  if (!current) return <YStack f={1} p="$4"><Paragraph>{t('groups.details.notFound', 'No group')}</Paragraph></YStack>;
-
   return (
-    <YStack f={1} p="$4" gap="$3" bg="$background">
-      {/* Back (text-only) with chevron) */}
-      <XStack>
-        <Button
-          onPress={() => router.replace('/tabs/groups' as never)}
-          size="$2"
-          h={22}
-          px={0}
-          unstyled
-          chromeless
-          bg="transparent"
-          borderWidth={0}
-          color="$gray12"
-          pressStyle={{ opacity: 0.6 }}
-          icon={<ChevronLeft size={18} color="$gray12" />}
-        >
-          {t('groups.create.back', 'Back to Groups')}
-        </Button>
-      </XStack>
+    <Screen>
+      {notice && <Banner kind={notice.kind === 'error' ? 'error' : 'success'}>{notice.text}</Banner>}
 
-      {/* Title row: title + inline actions */}
-      <XStack ai="center" gap="$2">
-        <XStack f={1} ai="center" gap="$2" minHeight={22}>
-          {!editing ? (
-            <Text numberOfLines={1} fontSize={14} fontWeight="400">
-              {title}
-            </Text>
+      <FadeIn>
+        <Card style={{ gap: space.md }}>
+          {renaming ? (
+            <>
+              <Field label={t('social.create.name', 'Group name')} value={newName} onChangeText={setNewName} autoCapitalize="sentences" maxLength={60} autoFocus returnKeyType="done" onSubmitEditing={() => void saveName()} />
+              <View style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' }}>
+                <PillButton kind="secondary" title={t('common.cancel', 'Cancel')} onPress={() => setRenaming(false)} />
+                <PillButton title={t('social.group.save', 'Save')} loading={busy} disabled={newName.trim().length === 0} onPress={() => void saveName()} />
+              </View>
+            </>
           ) : (
-            <Input
-              value={newName}
-              onChangeText={setNewName}
-              autoFocus
-              f={1}
-              h={38}
-              px={10}
-              borderRadius={8}
-              fontSize={14}
-              bg="$backgroundPress"
-              color="$gray12"
-              placeholderTextColor="$gray10"
-              borderWidth={0}
-              returnKeyType="done"
-              onSubmitEditing={onRenameConfirm}
-            />
+            <>
+              <Text accessibilityRole="header" maxFontSizeMultiplier={1.4} style={{ color: c.text, fontSize: 24, fontWeight: '800' }}>{name}</Text>
+              <Text maxFontSizeMultiplier={1.5} style={{ color: c.textMuted, fontSize: 15 }}>
+                {t('social.group.memberCount', { count: members.length, defaultValue: '{{count}} members' })} · {role === 'owner' ? t('social.group.youOwner', 'You are the owner') : t('social.group.youMember', 'You are a member')}
+              </Text>
+              {perms.canRename && <View style={{ alignSelf: 'flex-start' }}><PillButton kind="secondary" title={t('social.group.rename', 'Rename')} onPress={() => { setNewName(name); setRenaming(true); }} /></View>}
+            </>
           )}
-        </XStack>
+        </Card>
+      </FadeIn>
 
-        {canManage && !editing && (
-          <XStack ai="center" gap="$1">
-            <Button
-              chromeless
-              circular
-              size="$2"
-              aria-label={t('groups.details.rename', 'Rename')}
-              icon={<Pencil size={18} color="$gray12" />}
-              onPress={() => setEditing(true)}
-            />
-            <Button
-              chromeless
-              circular
-              size="$2"
-              aria-label={t('groups.details.deleteGroup', 'Delete group')}
-              icon={<Trash2 size={18} color="$red10" />}
-              onPress={onDeleteAsk}
-              disabled={busyHdr === 'delete'}
-            />
-          </XStack>
-        )}
+      <Section
+        title={t('social.group.people', 'People')}
+        footer={!perms.canInvite ? t('social.group.ownerOnlyInvite', 'Only the owner can invite people.') : t('social.group.inviteFooter', 'Invited people join only if they accept.')}
+      >
+        <Row icon={<UserPlus size={22} color={c.accentText} />} label={t('social.group.invitePeople', 'Invite people')} subtitle={t('social.group.invitePeopleHint', 'Add friends or invite anyone by username or ID')} onPress={goInvite} disabled={!perms.canInvite || !online} />
+        <Row icon={<Link2 size={22} color={c.accentText} />} label={t('social.group.inviteLink', 'Invite by link or QR')} onPress={goLink} disabled={!perms.canCreateLink || !online} />
+      </Section>
 
-        {canManage && editing && (
-          <XStack ai="center" gap="$1">
-            <Button
-              chromeless
-              circular
-              size="$2"
-              aria-label={t('groups.details.confirmRename', 'Confirm rename')}
-              icon={<Check size={18} color="$green10" />}
-              onPress={onRenameConfirm}
-              disabled={busyHdr === 'rename'}
-            />
-            <Button
-              chromeless
-              circular
-              size="$2"
-              aria-label={t('groups.details.cancelRename', 'Cancel rename')}
-              icon={<IconX size={18} color="$gray11" />}
-              onPress={() => { setNewName(title); setEditing(false); }}
-            />
-          </XStack>
-        )}
-      </XStack>
-
-      {/* INVITE ACTIONS — только QR (сканер перенесён на список групп) */}
-      {canManage && (
-        <>
-          <XStack jc="flex-end" ai="center" py="$2">
-            <Button
-              onPress={openGroupQR}
-              theme="gray"
-              size="$3"
-              borderRadius="$3"
-              icon={<QrCode size={18} />}
-            >
-              {t('groups.details.showQr', 'Show group QR')}
-            </Button>
-          </XStack>
-          <Separator />
-        </>
-      )}
-
-      {/* MEMBERS */}
-      <Paragraph fow="700" fos="$6">{t('groups.details.members', 'Members')}</Paragraph>
-      {members.length === 0 ? (
-        <Paragraph col="$gray10">{t('groups.details.noMembers', 'No members yet')}</Paragraph>
-      ) : (
-        <YStack borderWidth={1} borderColor="$gray5" borderRadius={8} overflow="hidden">
-          {members.map((m, idx) => {
-            const uid = m.uniqueId;
-            const label = m.displayName || m.username || uid;
-            const avatarUrl = m.avatarUrl ?? m.user?.avatarUrl ?? null;
-            const isOwnerMember =
-              m.role === 'owner' ||
-              (typeof m.id === 'number' && typeof ownerId === 'number' && ownerId === m.id);
-            const busy = opUid === uid;
-
+      <View style={{ gap: space.sm }}>
+        <SectionTitle>{t('social.group.membersTitle', { count: members.length, defaultValue: 'Members ({{count}})' })}</SectionTitle>
+        <View style={{ backgroundColor: c.surface, borderRadius: radius.card, borderWidth: 1, borderColor: c.border, overflow: 'hidden' }}>
+          {members.map((m, i) => {
+            const isMe = m.uniqueId === me?.uniqueId;
+            const manageable = perms.canRemoveMembers && m.role !== 'owner' && !isMe;
             return (
-              <React.Fragment key={uid ?? `${label}-${idx}`}>
-                <XStack h={60} ai="center" jc="space-between" px="$4" bg="$green3">
-                  <XStack ai="center" gap="$3">
-                    <UserAvatar uri={avatarUrl ?? undefined} label={(label || "U").slice(0, 1).toUpperCase()} size={36} textSize={14} backgroundColor="$gray5" />
-                    <YStack>
-                      <Text fontSize={17} fontWeight="600">{label}</Text>
-                      {!!uid && <Paragraph fontSize={14} color="$gray10">{fmtUid(uid)}</Paragraph>}
-                    </YStack>
-                  </XStack>
-
-                  <XStack ai="center" gap="$2">
-                    {isOwnerMember && <Crown size={18} color="$yellow10" />}
-                    {canManage && !isOwnerMember && (
-                      <Button size="$2" theme="red" onPress={() => uid && onRemove(uid)} disabled={!uid || busy}>
-                        {busy ? '...' : t('groups.details.remove', 'Remove')}
-                      </Button>
-                    )}
-                  </XStack>
-                </XStack>
-                {idx < (members.length - 1) && <Separator />}
-              </React.Fragment>
+              <View key={m.id} style={{ borderTopWidth: i === 0 ? 0 : 1, borderTopColor: c.border }}>
+                <UserRow
+                  user={m}
+                  subtitle={m.role === 'owner' ? t('social.group.owner', 'Owner') : isMe ? t('social.group.you', 'You') : undefined}
+                  right={manageable ? <IconBtn label={t('social.group.memberActions', { name: m.username, defaultValue: 'Actions for {{name}}' })} onPress={() => memberMenu(m)} disabled={!online}><MoreHorizontal size={20} color={c.text} /></IconBtn> : undefined}
+                />
+              </View>
             );
           })}
-        </YStack>
+        </View>
+      </View>
+
+      {perms.canSeePending && sent.length > 0 && (
+        <View style={{ gap: space.sm }}>
+          <SectionTitle>{t('social.group.pending', 'Waiting for an answer')}</SectionTitle>
+          <View style={{ backgroundColor: c.surface, borderRadius: radius.card, borderWidth: 1, borderColor: c.border, overflow: 'hidden' }}>
+            {sent.map((s, i) => (
+              <View key={s.id} style={{ borderTopWidth: i === 0 ? 0 : 1, borderTopColor: c.border }}>
+                <UserRow user={s.invitee} right={<PillButton kind="secondary" title={t('social.action.cancelInvite', 'Cancel invitation')} a11yLabel={t('social.group.cancelInviteA11y', { name: s.invitee.username, defaultValue: 'Cancel invitation for {{name}}' })} disabled={busy || !online} onPress={() => void guard(() => store().cancelInvitation(gid, s.id), t('social.group.inviteCancelled', 'Invitation cancelled.'))} />} />
+              </View>
+            ))}
+          </View>
+        </View>
       )}
 
-      <Separator />
+      <Section title={t('social.group.dangerZone', 'Danger zone')} footer={role === 'owner' ? t('social.group.deleteFooter', 'Deleting a group keeps all bills and history; they are only detached from the group.') : undefined}>
+        <Row
+          label={t('social.group.leave', 'Leave group')}
+          subtitle={!perms.canLeave ? t(deniedReasonKey(role, 'leave'), 'Transfer ownership first.') : undefined}
+          destructive
+          disabled={!perms.canLeave || !online}
+          onPress={confirmLeave}
+        />
+        <Row label={t('social.group.transfer', 'Transfer ownership')} subtitle={!perms.canTransfer ? t('social.group.ownerOnly', 'Only the owner can do this.') : undefined} destructive disabled={!perms.canTransfer || !online} onPress={pickNewOwner} />
+        <Row label={t('social.group.delete', 'Delete group')} subtitle={!perms.canDelete ? t('social.group.ownerOnly', 'Only the owner can do this.') : undefined} destructive disabled={!perms.canDelete || !online} onPress={() => { setDeleting(true); setTyped(''); }} />
+      </Section>
 
-      {/* ADD FROM FRIENDS */}
-      <Paragraph fow="700" fos="$6">{t('groups.details.addFromFriends', 'Add from friends')}</Paragraph>
-      <Input
-        value={filter}
-        onChangeText={setFilter}
-        placeholder={t('groups.create.searchPlaceholder', 'Search friends…')}
-        h={41}
-        px={16}
-        borderRadius={10}
-        fontSize={14}
-        fontWeight="500"
-        color="$gray12"
-        placeholderTextColor="$gray10"
-        bg="$backgroundPress"
-        borderWidth={0}
-        returnKeyType="search"
-      />
-
-      {(candidates ?? []).length === 0 ? (
-        <Paragraph col="$gray10" mt="$2">{t('groups.details.noFriendsToAdd', 'No friends to add')}</Paragraph>
-      ) : (
-        <YStack borderWidth={1} borderColor="$gray5" borderRadius={8} overflow="hidden" mt="$2">
-          {candidates.map((u, idx) => {
-            const uid = u.uniqueId;
-            const label = u.displayName || u.username || uid;
-            const avatarUrl = u.avatarUrl ?? u.user?.avatarUrl ?? null;
-            const busy = opUid === uid;
-
-            return (
-              <React.Fragment key={uid ?? `${label}-${idx}`}>
-                <XStack h={60} ai="center" jc="space-between" px="$4">
-                  <XStack ai="center" gap="$3">
-                    <UserAvatar uri={avatarUrl ?? undefined} label={(label || "U").slice(0, 1).toUpperCase()} size={36} textSize={14} backgroundColor="$gray5" />
-                    <YStack>
-                      <Text fontSize={17} fontWeight="600">{label}</Text>
-                      {!!uid && <Paragraph fontSize={14} color="$gray10">{fmtUid(uid)}</Paragraph>}
-                    </YStack>
-                  </XStack>
-
-                  {canManage && (
-                    <Button size="$2" onPress={() => uid && onAdd(uid)} disabled={!uid || busy}>
-                      {busy ? '...' : t('groups.details.add', 'Add')}
-                    </Button>
-                  )}
-                </XStack>
-                {idx < (candidates.length - 1) && <Separator />}
-              </React.Fragment>
-            );
-          })}
-        </YStack>
+      {perms.canDelete && deleting && (
+        <Card style={{ gap: space.md, borderColor: c.danger }}>
+          <Text accessibilityRole="header" maxFontSizeMultiplier={1.4} style={{ color: c.danger, fontSize: 17, fontWeight: '800' }}>{t('social.group.deleteTitle', 'Delete this group?')}</Text>
+          <Text maxFontSizeMultiplier={1.5} style={{ color: c.text, fontSize: 14, lineHeight: 20 }}>{t('social.group.deleteMessage', { name, defaultValue: 'All members lose the group and pending invitations are cancelled. Bills and history are kept. This cannot be undone. Type “{{name}}” to confirm.' })}</Text>
+          <Field label={t('social.group.deleteType', 'Group name')} value={typed} onChangeText={setTyped} placeholder={name} autoCapitalize="none" />
+          <View style={{ flexDirection: 'row', gap: space.sm }}>
+            <View style={{ flex: 1 }}><Button variant="secondary" title={t('common.cancel', 'Cancel')} onPress={() => setDeleting(false)} /></View>
+            <View style={{ flex: 1 }}><Button variant="danger" title={t('social.group.deleteConfirm', 'Delete')} loading={busy} disabled={!deleteConfirmed(typed, name)} onPress={doDelete} /></View>
+          </View>
+        </Card>
       )}
-    </YStack>
+    </Screen>
   );
 }

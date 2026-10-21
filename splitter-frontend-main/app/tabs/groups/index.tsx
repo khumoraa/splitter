@@ -1,186 +1,185 @@
-import { ErrorRetry } from '@/shared/ui/ErrorRetry';
-import { useEffect, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, RefreshControl, Text, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router/react-navigation';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
-import { Scan } from '@tamagui/lucide-icons';
-import {
-  YStack,
-  Paragraph,
-  Card,
-  XStack,
-  Spinner,
-  Separator,
-  View,
-  Button,
-} from 'tamagui';
+import { Plus, Users } from '@tamagui/lucide-icons';
 
+import { useColors } from '@/shared/lib/theme/use-colors';
+import { useAppStore } from '@/shared/lib/stores/app-store';
+import { haptics } from '@/shared/lib/haptics';
+import { isApiError } from '@/shared/api/api-error';
+import { radius, space } from '@/shared/ui/tokens';
+import { Banner, Button, Card, FadeIn, Skeleton } from '@/features/profile/ui/kit';
+import { ProfileAvatar } from '@/features/profile/ui/ProfileAvatar';
+import { EmptyState, PillButton, SearchField, Segmented } from '@/features/social/ui/parts';
 import { useGroupsStore } from '@/features/groups/model/groups.store';
-import type { GroupMember } from '@/features/groups/api/groups.api';
-import UserAvatar from '@/shared/ui/UserAvatar';
-import Fab from '@/shared/ui/Fab';
+import type { Group, Invitation } from '@/features/groups/api/groups.api';
+import { socialErrorKey } from '@/features/social/lib/errors';
+import { useOnline } from '@/features/social/lib/use-online';
+import { useNotice } from '@/features/social/lib/use-notice';
 
-function AvatarStack({
-  members,
-  totalCount,
-  max = 5,
-}: {
-  members?: GroupMember[];
-  totalCount?: number;
-  max?: number;
-}) {
-  const list = Array.isArray(members) ? members : [];
-  const total = typeof totalCount === 'number' ? totalCount : list.length;
-  const shownMembers = list.slice(0, Math.min(max, list.length));
-  const hasMembers = shownMembers.length > 0;
-  const placeholderCount = hasMembers ? 0 : Math.min(total, max);
-  const extra = Math.max(0, total - (hasMembers ? shownMembers.length : placeholderCount));
+type Tab = 'groups' | 'invitations';
 
-  if (!hasMembers && placeholderCount === 0) {
-    return null;
-  }
-
-  const labelFor = (member: GroupMember) => {
-    const source = member.displayName || member.username || member.uniqueId || '';
-    return source.trim().charAt(0).toUpperCase() || 'U';
-  };
-
+const Collage = ({ group }: { group: Group }) => {
+  const c = useColors();
+  const members = (group.members ?? []).slice(0, 3);
   return (
-    <XStack ai="center">
-      {shownMembers.map((member, index) => (
-        <View key={`${member.uniqueId ?? 'member'}-${index}`} ml={index === 0 ? 0 : -10}>
-          <UserAvatar
-            uri={member.avatarUrl ?? member.user?.avatarUrl ?? undefined}
-            label={labelFor(member)}
-            size={34}
-            textSize={14}
-            backgroundColor="$gray5"
-          />
+    <View style={{ width: 44 + 14 * Math.max(0, members.length - 1), height: 44, justifyContent: 'center' }} importantForAccessibility="no-hide-descendants">
+      {members.map((m, i) => (
+        <View key={m.uniqueId} style={{ position: 'absolute', left: i * 14, borderRadius: 22, borderWidth: 2, borderColor: c.surface }}>
+          <ProfileAvatar uri={m.avatarUrl} name={m.username} seed={m.uniqueId} size={i === 0 ? 40 : 36} />
         </View>
       ))}
-      {!hasMembers &&
-        Array.from({ length: placeholderCount }).map((_, index) => (
-          <View key={`placeholder-${index}`} w={34} h={34} br={17} bg="$gray5" ml={index === 0 ? 0 : -10} />
-        ))}
-      {extra > 0 && (
-        <View
-          w={28}
-          h={28}
-          br={14}
-          bg="$gray8"
-          ai="center"
-          jc="center"
-          ml={hasMembers || placeholderCount > 0 ? -10 : 0}
-        >
-          <Paragraph size="$1" col="white">
-            +{extra}
-          </Paragraph>
-        </View>
-      )}
-    </XStack>
+    </View>
   );
-}
+};
 
-export default function GroupsListScreen() {
-  const router = useRouter();
+const GroupCard = memo(function GroupCard({ group, locale, onOpen }: { group: Group; locale: string; onOpen: (g: Group) => void }) {
+  const c = useColors();
   const { t } = useTranslation();
-  const { groups, counts, loading, error, fetchGroups } = useGroupsStore();
-
-  useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
-
-  const hasNoGroups = groups.length === 0;
-
-  const cards = useMemo(
-    () =>
-      groups.map((group) => {
-        const members = Array.isArray(group.members) ? group.members : [];
-        const storedCount = counts?.[group.id];
-        const apiCount = typeof group.counts?.members === 'number' ? group.counts.members : undefined;
-        const memberCount =
-          typeof storedCount === 'number'
-            ? storedCount
-            : typeof apiCount === 'number'
-            ? apiCount
-            : members.length;
-
-        const countLabel = t('groups.list.members', { count: memberCount });
-        const groupName = group.name ?? t('groups.common.untitled', 'Group');
-        const emptyMembersLabel = t('groups.list.members_zero', 'No members yet');
-
-        return (
-          <Card
-            key={group.id}
-            pressStyle={{ scale: 0.98 }}
-            onPress={() =>
-              router.push({
-                pathname: '/tabs/groups/[groupId]',
-                params: { groupId: String(group.id) },
-              } as never)
-            }
-            h={62}
-            br={12}
-            bw={1}
-            bc="$gray5"
-            px="$4"
-            ai="center"
-            jc="center"
-          >
-            <XStack w="100%" jc="space-between" ai="center">
-              <YStack>
-                <Paragraph fow="700" fos={16}>
-                  {groupName}
-                </Paragraph>
-                <Paragraph size={12} col="$gray10">
-                  {memberCount === 0 ? emptyMembersLabel : countLabel}
-                </Paragraph>
-              </YStack>
-              <AvatarStack members={members} totalCount={memberCount} />
-            </XStack>
-          </Card>
-        );
-      }),
-    [counts, groups, router, t]
+  const count = group.counts?.members ?? group.members?.length ?? 0;
+  const last = group.lastSession ? new Date(group.lastSession.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) : null;
+  const isOwner = group.myRole === 'owner';
+  return (
+    <Pressable
+      onPress={() => { haptics.selection(); onOpen(group); }}
+      accessibilityRole="button"
+      accessibilityLabel={`${group.name}. ${t('social.group.memberCount', { count, defaultValue: '{{count}} members' })}${last ? `. ${t('social.group.lastBill', { date: last, defaultValue: 'Last bill {{date}}' })}` : ''}`}
+      style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+    >
+      <Card style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 72 }}>
+        <Collage group={group} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text numberOfLines={1} maxFontSizeMultiplier={1.4} style={{ color: c.text, fontSize: 17, fontWeight: '700' }}>{group.name}</Text>
+          <Text numberOfLines={1} maxFontSizeMultiplier={1.4} style={{ color: c.textMuted, fontSize: 13 }}>
+            {t('social.group.memberCount', { count, defaultValue: '{{count}} members' })}
+            {last ? ` · ${t('social.group.lastBill', { date: last, defaultValue: 'Last bill {{date}}' })}` : ''}
+          </Text>
+        </View>
+        {isOwner && (
+          <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: c.accentSurface }} importantForAccessibility="no-hide-descendants">
+            <Text maxFontSizeMultiplier={1.2} style={{ color: c.accentText, fontSize: 12, fontWeight: '800' }}>{t('social.group.owner', 'Owner')}</Text>
+          </View>
+        )}
+      </Card>
+    </Pressable>
   );
+});
 
-  if (loading && hasNoGroups) {
-    return (
-      <YStack f={1} ai="center" jc="center">
-        <Spinner />
-      </YStack>
-    );
-  }
+export default function GroupsScreen() {
+  const { t } = useTranslation();
+  const c = useColors();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const locale = useAppStore((s) => s.language) || 'en';
+  const online = useOnline();
+  const groups = useGroupsStore((s) => s.groups);
+  const loaded = useGroupsStore((s) => s.loaded);
+  const errorKey = useGroupsStore((s) => s.errorKey);
+  const invitations = useGroupsStore((s) => s.invitations);
+  const fetchGroups = useGroupsStore((s) => s.fetchGroups);
+  const fetchInvitations = useGroupsStore((s) => s.fetchInvitations);
+  const accept = useGroupsStore((s) => s.acceptInvitation);
+  const decline = useGroupsStore((s) => s.declineInvitation);
+
+  const [tab, setTab] = useState<Tab>(params.tab === 'invitations' ? 'invitations' : 'groups');
+  const [q, setQ] = useState('');
+  const [busy, setBusy] = useState<Record<number, boolean>>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const [notice, notify] = useNotice();
+
+  const load = useCallback(() => Promise.all([fetchGroups(), fetchInvitations()]), [fetchGroups, fetchInvitations]);
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
+
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return s ? groups.filter((g) => g.name.toLowerCase().includes(s)) : groups;
+  }, [groups, q]);
+
+  const open = useCallback((g: Group) => router.push({ pathname: '/tabs/groups/[groupId]', params: { groupId: String(g.id) } } as never), [router]);
+
+  const answer = async (inv: Invitation, ok: boolean) => {
+    if (busy[inv.id]) return;
+    if (!online) return notify({ kind: 'error', text: t('social.errors.offline', 'No connection.') });
+    setBusy((b) => ({ ...b, [inv.id]: true }));
+    try {
+      await (ok ? accept(inv) : decline(inv));
+      haptics.success();
+      notify({ kind: 'success', text: ok ? t('social.invitations.joined', { group: inv.group.name, defaultValue: 'You joined “{{group}}”.' }) : t('social.invitations.declined', 'Invitation declined.') });
+    } catch (e) {
+      haptics.error();
+      notify({ kind: 'error', text: t(socialErrorKey(isApiError(e) ? e : {}), 'Something went wrong') });
+    } finally {
+      setBusy((b) => ({ ...b, [inv.id]: false }));
+    }
+  };
+
+  const pending = invitations?.length ?? 0;
+  const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+  const refreshControl = <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={c.accentText} colors={[c.accentText]} />;
 
   return (
-    <YStack f={1} p="$4" gap="$3" bg="$background">
-      <Paragraph fow="700" fos="$7">
-        {t('groups.title', 'Groups')}
-      </Paragraph>
-      <Separator />
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.screen }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 50 : 0}>
+      <FadeIn style={{ paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.sm, gap: space.sm }}>
+        <Segmented value={tab} onChange={setTab} options={[{ key: 'groups', label: t('social.tabs.groups', 'Groups') }, { key: 'invitations', label: t('social.tabs.invitations', 'Invitations'), badge: pending }]} />
+        {notice && <Banner kind={notice.kind === 'error' ? 'error' : 'success'}>{notice.text}</Banner>}
+      </FadeIn>
 
-      <XStack jc="flex-end" ai="center">
-        <Button
-          onPress={() =>
-            router.push({ pathname: '/tabs/scan-invite', params: { from: 'groups-index' } } as never)
-          }
-          size="$3"
-          borderRadius="$3"
-          theme="active"
-          icon={<Scan size={18} />}
-        >
-          {t('groups.actions.scanInvite', 'Scan invite')}
-        </Button>
-      </XStack>
-
-      {error && <ErrorRetry message={error} onRetry={() => fetchGroups()} disabled={loading} />}
-
-      {hasNoGroups ? (
-        <Paragraph col="$gray10">{t('groups.empty', 'No groups yet. Tap + to create.')}</Paragraph>
+      {tab === 'groups' ? (
+        !loaded && !errorKey ? (
+          <View style={{ padding: space.lg, gap: space.md }} accessibilityLabel={t('common.loading', 'Loading...')}>{[0, 1, 2].map((i) => <Skeleton key={i} height={72} style={{ borderRadius: radius.card }} />)}</View>
+        ) : !loaded && errorKey ? (
+          <EmptyState title={t('social.loadError', "Couldn't load")} message={t(errorKey, 'Something went wrong')}><Button variant="secondary" title={t('common.retry', 'Retry')} onPress={() => void load()} /></EmptyState>
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={(g) => String(g.id)}
+            refreshControl={refreshControl}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+            contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: insets.bottom + space.xxl }}
+            ItemSeparatorComponent={() => <View style={{ height: space.sm }} />}
+            ListHeaderComponent={
+              <View style={{ gap: space.md, paddingBottom: space.md }}>
+                <Button icon={<Plus size={18} color={c.onAccent} />} title={t('social.group.new', 'New group')} onPress={() => router.push('/tabs/groups/create' as never)} />
+                {groups.length > 1 && <SearchField value={q} onChangeText={setQ} label={t('social.group.searchLabel', 'Search your groups')} placeholder={t('social.group.searchPlaceholder', 'Search groups')} />}
+              </View>
+            }
+            renderItem={({ item }) => <GroupCard group={item} locale={locale} onOpen={open} />}
+            ListEmptyComponent={
+              groups.length === 0
+                ? <EmptyState icon={<Users size={30} color={c.accentText} />} title={t('social.group.emptyTitle', 'No groups yet')} message={t('social.group.emptyMessage', 'Create a group for a trip, a flat or a regular dinner.')} />
+                : <EmptyState title={t('social.group.noMatch', 'No groups match')} />
+            }
+          />
+        )
       ) : (
-        <YStack gap="$3">{cards}</YStack>
+        <FlatList
+          data={invitations ?? []}
+          keyExtractor={(i) => String(i.id)}
+          refreshControl={refreshControl}
+          contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: insets.bottom + space.xxl }}
+          ItemSeparatorComponent={() => <View style={{ height: space.sm }} />}
+          renderItem={({ item }) => (
+            <Card style={{ gap: space.md }}>
+              <View style={{ gap: 2 }}>
+                <Text accessibilityRole="header" maxFontSizeMultiplier={1.4} style={{ color: c.text, fontSize: 18, fontWeight: '700' }}>{item.group.name}</Text>
+                <Text maxFontSizeMultiplier={1.5} style={{ color: c.textMuted, fontSize: 14 }}>{t('social.invitations.from', { name: item.inviter.username, id: item.inviter.uniqueId, defaultValue: 'Invited by {{name}} ({{id}})' })}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: space.sm }}>
+                <PillButton kind="secondary" title={t('social.action.decline', 'Decline')} a11yLabel={t('social.invitations.declineA11y', { group: item.group.name, defaultValue: 'Decline invitation to {{group}}' })} disabled={!!busy[item.id] || !online} onPress={() => void answer(item, false)} />
+                <PillButton title={t('social.action.accept', 'Accept')} a11yLabel={t('social.invitations.acceptA11y', { group: item.group.name, defaultValue: 'Accept invitation to {{group}}' })} loading={!!busy[item.id]} disabled={!online} onPress={() => void answer(item, true)} />
+              </View>
+            </Card>
+          )}
+          ListEmptyComponent={invitations === null
+            ? <View style={{ gap: space.md }}><Skeleton height={96} style={{ borderRadius: radius.card }} /></View>
+            : <EmptyState icon={<Users size={30} color={c.accentText} />} title={t('social.invitations.emptyTitle', 'No invitations')} message={t('social.invitations.emptyMessage', 'When someone invites you to a group, it appears here. You join only if you accept.')} />}
+        />
       )}
-
-      <Fab onPress={() => router.push('/tabs/groups/create' as never)} />
-    </YStack>
+    </KeyboardAvoidingView>
   );
 }

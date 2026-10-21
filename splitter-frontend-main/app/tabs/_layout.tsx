@@ -195,6 +195,7 @@ export default function TabLayout() {
       <Tabs.Screen name="groups/index"   options={{ href: null, title: groupsTitle }} />
       <Tabs.Screen name="groups/create"  options={{ href: null, title: newGroupTitle }} />
       <Tabs.Screen name="groups/[groupId]" options={{ href: null, title: groupDetailsTitle }} />
+      <Tabs.Screen name="groups/invite-people" options={{ href: null, title: t('social.group.invitePeople', 'Invite people') }} />
 
       <Tabs.Screen name="scan-invite" options={{ href: null, title: scanInviteTitle }} />
       <Tabs.Screen name="friends/invite" options={{ href: null, title: friendQrTitle }} />

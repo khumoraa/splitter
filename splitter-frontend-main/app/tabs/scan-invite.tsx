@@ -10,6 +10,8 @@ import { useTranslation } from 'react-i18next';
 
 import { parseInviteFromScan } from '@/shared/lib/utils/invite';
 import { FriendsApi } from '@/features/friends/api/friends.api';
+import { isApiError } from '@/shared/api/api-error';
+import { socialErrorKey } from '@/features/social/lib/errors';
 import { GroupsApi } from '@/features/groups/api/groups.api';
 
 type FromParam = 'friends-requests' | 'groups-index' | undefined;
@@ -26,6 +28,7 @@ export default function ScanInviteScreen() {
   const [perm, requestPerm] = useCameraPermissions();
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [errorKey, setErrorKey] = useState('scanInvite.error');
   const lock = useRef(false);
   const isFocused = useIsFocused();
   const router = useRouter();
@@ -101,12 +104,14 @@ export default function ScanInviteScreen() {
 
       setStatus('ok');
       setTimeout(goBack, 3000); // 3 секунды показываем успех
-    } catch {
+    } catch (e) {
+      // the server's stable code decides the message (expired link, already a member, ...)
+      setErrorKey(isApiError(e) ? socialErrorKey(e) : 'scanInvite.error');
       setStatus('error');
       setTimeout(() => {
         setStatus('idle');
         lock.current = false;
-      }, 900);
+      }, 2400);
     }
   }
 
@@ -162,7 +167,7 @@ export default function ScanInviteScreen() {
       {/* Error статус */}
       {status === 'error' && (
         <View style={S.overlay}>
-          <Paragraph col="white">{t('scanInvite.error', 'Error 😕')}</Paragraph>
+          <Paragraph col="white" ta="center" px="$6">{t(errorKey, 'Error 😕')}</Paragraph>
         </View>
       )}
 
