@@ -13,6 +13,7 @@ import ScreenFormContainer from '@/shared/ui/ScreenFormContainer';
 import PasswordInput from '@/shared/ui/PasswordInput';
 import { login, LoginRequest, getCurrentUser } from '../api';
 import { saveToken } from '@/shared/lib/utils/token-storage';
+import { authErrorMessage } from '../lib/auth-errors';
 import { useAppStore } from '@/shared/lib/stores/app-store';
 import { Mail, Lock } from '@tamagui/lucide-icons';
 
@@ -48,11 +49,9 @@ export default function LoginForm() {
 
       setAuth(res.token, profile);
       router.replace('/');
-    } catch (error: any) {
-      Alert.alert(
-        t('common.error', 'Error'),
-        error.message || t('auth.loginError', 'An error occurred during login')
-      );
+    } catch (error: unknown) {
+      // translated by status / error kind, the English server text is never shown
+      Alert.alert(t('common.error', 'Error'), authErrorMessage(error, 'login', t));
     } finally {
       setIsLoading(false);
     }

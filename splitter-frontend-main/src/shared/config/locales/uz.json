@@ -41,7 +41,10 @@
       "passwordUpper": "Parolda bosh harf bo'lishi kerak",
       "passwordLower": "Parolda kichik harf bo'lishi kerak",
       "passwordDigit": "Parolda raqam bo'lishi kerak",
-      "passwordSpecial": "Parolda maxsus belgi bo'lishi kerak"
+      "passwordSpecial": "Parolda maxsus belgi bo'lishi kerak",
+      "emailInUse": "Bu email allaqachon ro'yxatdan o'tgan. Kirishga urinib ko'ring.",
+      "invalidCredentials": "Email yoki parol noto'g'ri.",
+      "registerInvalid": "Kiritilgan ma'lumotlarni tekshirib, qayta urinib ko'ring."
     }
   },
   "common": {

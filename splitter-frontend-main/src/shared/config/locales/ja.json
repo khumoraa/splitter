@@ -41,7 +41,10 @@
       "passwordUpper": "パスワードには大文字を含めてください",
       "passwordLower": "パスワードには小文字を含めてください",
       "passwordDigit": "パスワードには数字を含めてください",
-      "passwordSpecial": "パスワードには記号を含めてください"
+      "passwordSpecial": "パスワードには記号を含めてください",
+      "emailInUse": "このメールアドレスは既に登録されています。サインインしてください。",
+      "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
+      "registerInvalid": "入力内容を確認してもう一度お試しください。"
     }
   },
   "common": {

@@ -15,6 +15,7 @@ import { register as registerUser, RegisterRequest, getCurrentUser } from '../ap
 import { saveToken } from '@/shared/lib/utils/token-storage';
 import { useAppStore } from '@/shared/lib/stores/app-store';
 import { passwordIssue } from '@/shared/lib/utils/password';
+import { authErrorMessage } from '../lib/auth-errors';
 import { User, Mail, Lock } from '@tamagui/lucide-icons';
 
 // Messages are i18n keys: they are translated where the error is rendered (see tr() below)
@@ -56,11 +57,9 @@ export default function RegisterForm() {
 
       setAuth(res.token, profile);
       router.replace('/');
-    } catch (error: any) {
-      Alert.alert(
-        t('common.error', 'Error'),
-        error.message || t('auth.registerError', 'An error occurred during registration')
-      );
+    } catch (error: unknown) {
+      // translated by status / error kind, the English server text is never shown
+      Alert.alert(t('common.error', 'Error'), authErrorMessage(error, 'register', t));
     } finally {
       setIsLoading(false);
     }
