@@ -732,7 +732,14 @@
     "goBack": "Go back",
     "back": "< Back",
     "defaultItem": "Item",
-    "noItems": "No items assigned"
+    "noItems": "No items assigned",
+    "filter": {
+      "all": "All",
+      "unpaid": "Unpaid",
+      "partial": "Partial",
+      "paid": "Paid",
+      "empty": "No bills with this status."
+    }
   },
   "finish": {
     "title": "Bill Summary",
@@ -989,6 +996,202 @@
       "none": "Friend requests",
       "withCount_one": "Friend requests, {{count}} new",
       "withCount_other": "Friend requests, {{count}} new"
+    }
+  },
+  "finance": {
+    "title": "Finances",
+    "profileHint": "Who owes you, what you owe, statements",
+    "owedToYou": "Owed to you",
+    "youOwe": "You owe",
+    "filter": {
+      "open": "Open",
+      "settled": "Settled",
+      "all": "All",
+      "allGroups": "All groups"
+    },
+    "period": {
+      "all": "Any time",
+      "30d": "30 days",
+      "90d": "90 days",
+      "year": "12 months"
+    },
+    "searchLabel": "Search people",
+    "searchPlaceholder": "Name or ID",
+    "bills_one": "{{count}} bill",
+    "bills_other": "{{count}} bills",
+    "settledShort": "Settled",
+    "owesYouA11y": "{{name}} owes you {{amount}}. Opens details",
+    "youOweA11y": "You owe {{name}} {{amount}}. Opens details",
+    "groupsTitle": "Groups: settled so far",
+    "groupProgress": "{{settled}} of {{total}} settled",
+    "empty": {
+      "owedTitle": "Nobody owes you",
+      "oweTitle": "You owe nothing",
+      "message": "Debts appear here after you split a bill with others.",
+      "search": "Nobody matches this search.",
+      "cta": "Split a bill"
+    },
+    "person": {
+      "title": "Balance",
+      "owesYou": "{{name}} owes you",
+      "youOweThem": "You owe {{name}}",
+      "even": "You are even",
+      "bills": "Bills together",
+      "theyOwe": "they owe you",
+      "iOwe": "you owe",
+      "net": "balance {{amount}}",
+      "balance": "Balance (positive: owed to you)",
+      "none": "You have no shared bills with this person.",
+      "remindMessage": "Hi {{name}}! Just a friendly reminder about our shared bills in Splitter: {{amount}} is still open. No rush, thank you!"
+    }
+  },
+  "leave": {
+    "title": "Discard changes?",
+    "message": "What you entered on this screen will be lost.",
+    "busyMessage": "Something is still in progress. If you leave now, it may not finish.",
+    "stay": "Keep editing",
+    "discard": "Discard"
+  },
+  "payments": {
+    "status": {
+      "UNPAID": "Unpaid",
+      "PARTIALLY_PAID": "Partly paid",
+      "PAID_PENDING_CONFIRMATION": "Awaiting confirmation",
+      "PAID": "Paid",
+      "FORGIVEN": "Forgiven",
+      "CANCELLED": "Cancelled"
+    },
+    "bill": {
+      "paid": "Paid",
+      "partial": "Partial",
+      "unpaid": "Unpaid"
+    },
+    "method": {
+      "CASH": "Cash",
+      "TRANSFER": "Transfer",
+      "OTHER": "Other"
+    },
+    "paymentStatus": {
+      "PENDING": "awaiting confirmation",
+      "CONFIRMED": "confirmed",
+      "REJECTED": "rejected"
+    },
+    "payment": {
+      "PENDING": "{{name}} marked {{amount}} as paid ({{method}}) — awaiting confirmation",
+      "CONFIRMED": "{{amount}} received ({{method}})",
+      "REJECTED": "{{name}}'s mark of {{amount}} was rejected",
+      "reason": "Reason: {{reason}}"
+    },
+    "row": {
+      "youOwe": "You owe {{name}}",
+      "owesYou": "{{name}} owes you",
+      "owes": "{{from}} owes {{to}}",
+      "left": "Left: {{amount}}"
+    },
+    "action": {
+      "iPaid": "I paid",
+      "received": "Received",
+      "confirm": "Confirm",
+      "reject": "Reject",
+      "forgive": "Forgive",
+      "remind": "Remind"
+    },
+    "block": {
+      "title": "Settlement",
+      "paidBy": "{{name}} paid the bill",
+      "nothing": "Nothing to settle in this bill.",
+      "settled": "Settled {{amount}}",
+      "outstanding": "Open {{amount}}",
+      "progressA11y": "{{settled}} of {{total}} settled"
+    },
+    "confirm": {
+      "title": "Confirm payment?",
+      "message": "Confirm that you received {{amount}} from {{name}}."
+    },
+    "done": {
+      "confirmed": "Payment confirmed."
+    },
+    "remind": {
+      "message": "Hi {{name}}! A friendly reminder about \"{{bill}}\": your share of {{amount}} to {{payer}} is still open in Splitter. No rush, thank you!"
+    },
+    "timeline": {
+      "title": "Activity",
+      "all_one": "Show all ({{count}})",
+      "all_other": "Show all ({{count}})",
+      "less": "Show less"
+    },
+    "event": {
+      "CREATED": "{{name}} recorded the debt of {{debtor}}: {{amount}}",
+      "PAYMENT_MARKED": "{{name}} marked {{amount}} as paid",
+      "PAYMENT_RECORDED": "{{name}} recorded {{amount}} as received",
+      "PAYMENT_CONFIRMED": "{{name}} confirmed {{amount}}",
+      "PAYMENT_REJECTED": "{{name}} rejected a mark of {{amount}}",
+      "FORGIVEN": "{{name}} forgave {{amount}} for {{debtor}}",
+      "CANCELLED": "The debt of {{debtor}} was replaced after the bill changed",
+      "REMINDER_SENT": "{{name}} sent a reminder to {{debtor}}",
+      "OTHER": "{{name}} updated the record"
+    },
+    "share": {
+      "text": "Share",
+      "pdf": "PDF statement"
+    },
+    "sheet": {
+      "markTitle": "I paid",
+      "recordTitle": "Payment received",
+      "rejectTitle": "Reject the mark",
+      "forgiveTitle": "Forgive the debt",
+      "markHint": "Tell {{name}} you paid (up to {{amount}}). They confirm it when they receive the money.",
+      "recordHint": "Record money you received from {{name}} (up to {{amount}}).",
+      "rejectHint": "{{name}} marked {{amount}} as paid. Say why you have not received it.",
+      "forgiveHint": "{{name}} will not owe you the remaining {{amount}}. This cannot be undone.",
+      "amount": "Amount",
+      "amountHelp": "Leave empty for the full {{amount}}, or enter a part.",
+      "method": "How",
+      "note": "Comment (optional)",
+      "notePlaceholder": "e.g. paid at the table",
+      "reason": "Reason",
+      "reasonPlaceholder": "e.g. nothing arrived yet",
+      "offline": "You're offline. Connect to the internet to save this.",
+      "forgiveConfirmTitle": "Forgive this debt?",
+      "forgiveConfirm": "{{name}} will not owe you {{amount}}. Everyone in the bill will see this in the activity.",
+      "disclaimer": "Splitter does not move money. It only keeps a record of settlements you make in cash or by transfer."
+    },
+    "errors": {
+      "OVERPAYMENT": "That is more than what is left to pay.",
+      "OBLIGATION_CLOSED": "This debt is already settled, forgiven or cancelled.",
+      "PAYMENT_NOT_PENDING": "This payment was already confirmed or rejected.",
+      "PENDING_PAYMENTS": "First confirm or reject the payment that is waiting.",
+      "REMINDER_TOO_SOON": "You already sent a reminder in the last 24 hours.",
+      "SESSION_LOCKED": "This bill already has recorded payments, so its amounts can no longer be changed.",
+      "amount": "Enter an amount greater than zero.",
+      "noAccess": "You are not part of this bill.",
+      "export": "Could not create the statement. Please try again."
+    },
+    "statement": {
+      "title": "Settlement statement",
+      "personTitle": "Settlement statement with {{name}}",
+      "untitled": "Bill",
+      "generated": "Prepared {{date}}",
+      "bill": "Bill",
+      "billName": "Place",
+      "date": "Date",
+      "paidBy": "Paid by",
+      "group": "Group",
+      "items": "Items",
+      "tax": "tax",
+      "tip": "tip / service",
+      "discount": "discount",
+      "shares": "Shares",
+      "debts": "Who owes whom",
+      "left": "left {{amount}}",
+      "payments": "Recorded payments",
+      "totals": "Totals",
+      "totalDebts": "Total of debts",
+      "settled": "Settled",
+      "forgiven": "Forgiven",
+      "outstanding": "Still open",
+      "signature": "Prepared with Splitter",
+      "legal": "Settlement generated by Splitter for personal record-keeping. Not a payment or tax document."
     }
   }
 }

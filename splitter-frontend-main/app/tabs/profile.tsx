@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import * as Clipboard from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
-import { Copy, Pencil, QrCode, Settings as SettingsIcon } from '@tamagui/lucide-icons';
+import { Copy, Pencil, QrCode, Settings as SettingsIcon, Wallet } from '@tamagui/lucide-icons';
 
 import { useAppStore } from '@/shared/lib/stores/app-store';
 import { useColors } from '@/shared/lib/theme/use-colors';
@@ -138,6 +138,12 @@ export default function ProfileScreen() {
 
       <FadeIn delay={180}>
         <Section>
+          <Row
+            icon={<Wallet size={22} color={c.accentText} />}
+            label={t('finance.title', 'Finances')}
+            subtitle={t('finance.profileHint', 'Who owes you, what you owe, statements')}
+            onPress={() => router.push('/tabs/finances' as never)}
+          />
           <Row
             icon={<SettingsIcon size={22} color={c.accentText} />}
             label={t('profile.actions.settings', 'Settings')}

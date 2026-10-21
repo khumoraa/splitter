@@ -732,7 +732,14 @@
     "goBack": "Orqaga qaytish",
     "back": "< Ortga",
     "defaultItem": "Tovar",
-    "noItems": "Hech qanday element biriktirilmagan"
+    "noItems": "Hech qanday element biriktirilmagan",
+    "filter": {
+      "all": "Hammasi",
+      "unpaid": "To'lanmagan",
+      "partial": "Qisman",
+      "paid": "To'langan",
+      "empty": "Bu holatdagi hisoblar yo'q."
+    }
   },
   "finish": {
     "title": "Hisob xulosasi",
@@ -989,6 +996,202 @@
       "none": "Do'stlik so'rovlari",
       "withCount_one": "Do'stlik so'rovlari, {{count}} ta yangi",
       "withCount_other": "Do'stlik so'rovlari, {{count}} ta yangi"
+    }
+  },
+  "finance": {
+    "title": "Moliya",
+    "profileHint": "Kim sizdan qarzdor, siz kimga qarzdorsiz, hisobotlar",
+    "owedToYou": "Sizga qarzlar",
+    "youOwe": "Sizning qarzlaringiz",
+    "filter": {
+      "open": "Ochiq",
+      "settled": "Hisob-kitob qilingan",
+      "all": "Hammasi",
+      "allGroups": "Barcha guruhlar"
+    },
+    "period": {
+      "all": "Butun davr",
+      "30d": "30 kun",
+      "90d": "90 kun",
+      "year": "12 oy"
+    },
+    "searchLabel": "Odamlarni qidirish",
+    "searchPlaceholder": "Ism yoki ID",
+    "bills_one": "{{count}} ta hisob",
+    "bills_other": "{{count}} ta hisob",
+    "settledShort": "Yopilgan",
+    "owesYouA11y": "{{name}} sizga {{amount}} qarzdor. Batafsil ochiladi",
+    "youOweA11y": "Siz {{name}} ga {{amount}} qarzdorsiz. Batafsil ochiladi",
+    "groupsTitle": "Guruhlar: qancha yopilgan",
+    "groupProgress": "{{total}} dan {{settled}} yopilgan",
+    "empty": {
+      "owedTitle": "Sizdan hech kim qarzdor emas",
+      "oweTitle": "Sizning qarzingiz yo'q",
+      "message": "Hisobni boshqalar bilan bo'lganingizdan keyin qarzlar shu yerda ko'rinadi.",
+      "search": "Qidiruvga mos odam yo'q.",
+      "cta": "Hisobni bo'lish"
+    },
+    "person": {
+      "title": "Balans",
+      "owesYou": "{{name}} sizga qarzdor",
+      "youOweThem": "Siz {{name}} ga qarzdorsiz",
+      "even": "Hisob teng",
+      "bills": "Birgalikdagi hisoblar",
+      "theyOwe": "u sizga qarzdor",
+      "iOwe": "siz qarzdorsiz",
+      "net": "balans {{amount}}",
+      "balance": "Balans (musbat: sizga qarz)",
+      "none": "Bu odam bilan umumiy hisoblar yo'q.",
+      "remindMessage": "Salom, {{name}}! Splitter'dagi umumiy hisoblarimiz haqida eslatma: {{amount}} hali yopilmagan. Shoshilmang, rahmat!"
+    }
+  },
+  "leave": {
+    "title": "O'zgarishlar bekor qilinsinmi?",
+    "message": "Bu ekranda kiritganlaringiz yo'qoladi.",
+    "busyMessage": "Jarayon hali tugamagan. Hozir chiqsangiz, u tugamasligi mumkin.",
+    "stay": "Tahrirlashni davom ettirish",
+    "discard": "Bekor qilish"
+  },
+  "payments": {
+    "status": {
+      "UNPAID": "To'lanmagan",
+      "PARTIALLY_PAID": "Qisman to'langan",
+      "PAID_PENDING_CONFIRMATION": "Tasdiq kutilmoqda",
+      "PAID": "To'langan",
+      "FORGIVEN": "Kechirilgan",
+      "CANCELLED": "Bekor qilingan"
+    },
+    "bill": {
+      "paid": "To'langan",
+      "partial": "Qisman",
+      "unpaid": "To'lanmagan"
+    },
+    "method": {
+      "CASH": "Naqd",
+      "TRANSFER": "O'tkazma",
+      "OTHER": "Boshqa"
+    },
+    "paymentStatus": {
+      "PENDING": "tasdiq kutilmoqda",
+      "CONFIRMED": "tasdiqlangan",
+      "REJECTED": "rad etilgan"
+    },
+    "payment": {
+      "PENDING": "{{name}} {{amount}} ni to'langan deb belgiladi ({{method}}) — tasdiq kutilmoqda",
+      "CONFIRMED": "{{amount}} olindi ({{method}})",
+      "REJECTED": "{{name}} ning {{amount}} belgisi rad etildi",
+      "reason": "Sabab: {{reason}}"
+    },
+    "row": {
+      "youOwe": "Siz {{name}} ga qarzdorsiz",
+      "owesYou": "{{name}} sizga qarzdor",
+      "owes": "{{from}} {{to}} ga qarzdor",
+      "left": "Qoldi: {{amount}}"
+    },
+    "action": {
+      "iPaid": "To'ladim",
+      "received": "Oldim",
+      "confirm": "Tasdiqlash",
+      "reject": "Rad etish",
+      "forgive": "Kechirish",
+      "remind": "Eslatish"
+    },
+    "block": {
+      "title": "Hisob-kitob",
+      "paidBy": "Hisobni {{name}} to'ladi",
+      "nothing": "Bu hisobda yopiladigan narsa yo'q.",
+      "settled": "Yopilgan {{amount}}",
+      "outstanding": "Ochiq {{amount}}",
+      "progressA11y": "{{total}} dan {{settled}} yopilgan"
+    },
+    "confirm": {
+      "title": "To'lov tasdiqlansinmi?",
+      "message": "{{name}} dan {{amount}} olganingizni tasdiqlang."
+    },
+    "done": {
+      "confirmed": "To'lov tasdiqlandi."
+    },
+    "remind": {
+      "message": "Salom, {{name}}! \"{{bill}}\" bo'yicha eslatma: {{payer}} ga {{amount}} ulushingiz Splitter'da hali ochiq. Shoshilmang, rahmat!"
+    },
+    "timeline": {
+      "title": "Faollik",
+      "all_one": "Hammasini ko'rsatish ({{count}})",
+      "all_other": "Hammasini ko'rsatish ({{count}})",
+      "less": "Kamroq ko'rsatish"
+    },
+    "event": {
+      "CREATED": "{{name}} {{debtor}} ning {{amount}} qarzini qayd etdi",
+      "PAYMENT_MARKED": "{{name}} {{amount}} ni to'langan deb belgiladi",
+      "PAYMENT_RECORDED": "{{name}} {{amount}} olinganini qayd etdi",
+      "PAYMENT_CONFIRMED": "{{name}} {{amount}} ni tasdiqladi",
+      "PAYMENT_REJECTED": "{{name}} {{amount}} belgisini rad etdi",
+      "FORGIVEN": "{{name}} {{debtor}} ning {{amount}} qarzini kechirdi",
+      "CANCELLED": "Hisob o'zgargani uchun {{debtor}} ning qarzi almashtirildi",
+      "REMINDER_SENT": "{{name}} {{debtor}} ga eslatma yubordi",
+      "OTHER": "{{name}} yozuvni yangiladi"
+    },
+    "share": {
+      "text": "Ulashish",
+      "pdf": "PDF hisobot"
+    },
+    "sheet": {
+      "markTitle": "To'ladim",
+      "recordTitle": "To'lov olindi",
+      "rejectTitle": "Belgini rad etish",
+      "forgiveTitle": "Qarzni kechirish",
+      "markHint": "{{name}} ga to'laganingizni bildiring ({{amount}} gacha). Pulni olgach, u tasdiqlaydi.",
+      "recordHint": "{{name}} dan olgan pulingizni qayd eting ({{amount}} gacha).",
+      "rejectHint": "{{name}} {{amount}} ni to'langan deb belgiladi. Nega olmaganingizni yozing.",
+      "forgiveHint": "{{name}} qolgan {{amount}} ni sizga to'lamaydi. Buni qaytarib bo'lmaydi.",
+      "amount": "Summa",
+      "amountHelp": "To'liq {{amount}} uchun bo'sh qoldiring yoki bir qismini kiriting.",
+      "method": "Qanday",
+      "note": "Izoh (ixtiyoriy)",
+      "notePlaceholder": "masalan, joyida to'ladim",
+      "reason": "Sabab",
+      "reasonPlaceholder": "masalan, hali kelmadi",
+      "offline": "Siz oflayndasiz. Saqlash uchun internetga ulaning.",
+      "forgiveConfirmTitle": "Bu qarz kechirilsinmi?",
+      "forgiveConfirm": "{{name}} sizga {{amount}} qarz bo'lmaydi. Hisobdagi hamma buni faollikda ko'radi.",
+      "disclaimer": "Splitter pul o'tkazmaydi. U faqat naqd yoki o'tkazma orqali qilgan hisob-kitoblaringizni qayd etadi."
+    },
+    "errors": {
+      "OVERPAYMENT": "Bu to'lash qolgan summadan ko'p.",
+      "OBLIGATION_CLOSED": "Bu qarz allaqachon yopilgan, kechirilgan yoki bekor qilingan.",
+      "PAYMENT_NOT_PENDING": "Bu to'lov allaqachon tasdiqlangan yoki rad etilgan.",
+      "PENDING_PAYMENTS": "Avval kutilayotgan to'lovni tasdiqlang yoki rad eting.",
+      "REMINDER_TOO_SOON": "So'nggi 24 soatda allaqachon eslatma yuborgansiz.",
+      "SESSION_LOCKED": "Bu hisobda to'lovlar qayd etilgan, shuning uchun summalarni o'zgartirib bo'lmaydi.",
+      "amount": "Noldan katta summa kiriting.",
+      "noAccess": "Siz bu hisob ishtirokchisi emassiz.",
+      "export": "Hisobotni yaratib bo'lmadi. Qayta urinib ko'ring."
+    },
+    "statement": {
+      "title": "Hisob-kitob hisoboti",
+      "personTitle": "{{name}} bilan hisob-kitob hisoboti",
+      "untitled": "Hisob",
+      "generated": "Tayyorlangan: {{date}}",
+      "bill": "Hisob",
+      "billName": "Joy",
+      "date": "Sana",
+      "paidBy": "To'lagan",
+      "group": "Guruh",
+      "items": "Mahsulotlar",
+      "tax": "soliq",
+      "tip": "choychaqa / xizmat",
+      "discount": "chegirma",
+      "shares": "Ulushlar",
+      "debts": "Kim kimga qarzdor",
+      "left": "qoldi {{amount}}",
+      "payments": "Qayd etilgan to'lovlar",
+      "totals": "Jami",
+      "totalDebts": "Qarzlar jami",
+      "settled": "Yopilgan",
+      "forgiven": "Kechirilgan",
+      "outstanding": "Hali ochiq",
+      "signature": "Splitter yordamida tayyorlangan",
+      "legal": "Ushbu hisob-kitob Splitter tomonidan shaxsiy hisob yuritish uchun yaratilgan. To'lov yoki soliq hujjati emas."
     }
   }
 }

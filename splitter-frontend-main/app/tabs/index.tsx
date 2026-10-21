@@ -4,7 +4,7 @@ import { Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import { YStack, XStack, Text, View, Circle } from 'tamagui';
-import { ScanLine, Users, UserPlus, RefreshCw } from '@tamagui/lucide-icons';
+import { ScanLine, Users, UserPlus, RefreshCw, Wallet } from '@tamagui/lucide-icons';
 import { useTranslation } from 'react-i18next';
 
 import { ScreenContainer } from '@/shared/ui/ScreenContainer';
@@ -37,15 +37,19 @@ function ActionButton({
   title,
   icon,
   onPress,
+  width = 171,
 }: {
   title: string;
   icon: React.ReactNode;
   onPress: () => void;
+  width?: number | `${number}%`;
 }) {
   return (
     <XStack
       onPress={onPress}
-      width={171}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      width={width}
       height={48}
       borderRadius={12}
       alignItems="center"
@@ -194,6 +198,7 @@ export default function HomePage() {
   const openGroups = () => router.push('/tabs/groups');
   const onScan = () => router.push('/tabs/new-receipt' as never);
   const openAllSessions = () => router.push('/tabs/sessions/history');
+  const openFinances = () => router.push('/tabs/finances' as never);
 
   const recent = useMemo<SessionHistoryEntry[]>(() => sessions.slice(0, 3), [sessions]);
 
@@ -201,7 +206,7 @@ export default function HomePage() {
     <ScreenContainer>
       <YStack f={1} ai="center" bg="$background">
         <YStack ai="center" mt="$6" mb="$4">
-          <Pressable onPress={onScan}>
+          <Pressable onPress={onScan} accessibilityRole="button" accessibilityLabel={t('navigation.newReceipt', 'New receipt')}>
             <Circle size={64} bg="#2ECC71" ai="center" jc="center" elevationAndroid={4}>
               <ScanLine size={26} color="white" />
             </Circle>
@@ -222,6 +227,9 @@ export default function HomePage() {
             icon={<UserPlus size={18} />}
             onPress={openGroups}
           />
+        </XStack>
+        <XStack w={358} mb="$5" mt={-8}>
+          <ActionButton width={358} title={t('finance.title', 'Finances')} icon={<Wallet size={18} />} onPress={openFinances} />
         </XStack>
 
         <XStack w={358} jc="space-between" ai="center" mb="$3">

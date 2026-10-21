@@ -13,8 +13,7 @@ import type {
 } from '@/features/sessions/api/history.api';
 import { formatAmount } from '@/shared/lib/utils/money';
 import { useTranslation } from 'react-i18next';
-import { SettlementList } from '@/features/receipt/ui/SettlementList';
-import { useAppStore } from '@/shared/lib/stores/app-store';
+import { SettlementBlock } from '@/features/payments/ui/SettlementBlock';
 
 const DEFAULT_CURRENCY = 'UZS';
 const fmtCurrency = (value: number, currency: string) => `${currency} ${formatAmount(value, currency)}`;
@@ -97,7 +96,6 @@ export default function HistoryDetailsScreen() {
   const { historyId } = useLocalSearchParams<{ historyId: string }>();
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const meUniqueId = useAppStore(state => state.user?.uniqueId);
   const sessions = useSessionsHistoryStore(state => state.sessions);
   const loading = useSessionsHistoryStore(state => state.loading);
   const initialized = useSessionsHistoryStore(state => state.initialized);
@@ -172,16 +170,7 @@ export default function HistoryDetailsScreen() {
         </YStack>
 
         <YStack w={358}>
-          <SettlementList
-            shares={participants.map(({ participant, amount }) => ({
-              uniqueId: participant.uniqueId,
-              username: participant.username,
-              amountOwed: amount,
-            }))}
-            payer={bill.payer}
-            currency={currency}
-            meUniqueId={meUniqueId}
-          />
+          <SettlementBlock sessionId={bill.sessionId} />
         </YStack>
 
         {participants.map(({ participant, avatarUrl, amount, items }) => (

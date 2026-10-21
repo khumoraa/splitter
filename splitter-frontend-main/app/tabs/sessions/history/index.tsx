@@ -1,4 +1,7 @@
 import { ErrorRetry } from '@/shared/ui/ErrorRetry';
+import { billLook, type BillPaymentState } from '@/features/payments/lib/status-ui';
+import { StatusBadge } from '@/features/payments/ui/StatusBadge';
+import { PillButton } from '@/features/social/ui/parts';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { Pressable, RefreshControl } from 'react-native';
@@ -71,21 +74,27 @@ function HistoryCard({
   summary,
   amountLabel,
   participants,
+  payment,
   onPress,
 }: {
   title: string;
   summary: string;
   amountLabel: string;
   participants: SessionHistoryParticipantLight[];
+  payment?: BillPaymentState;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
+  const look = payment ? billLook(payment) : null;
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => ({ width: 358, opacity: pressed ? 0.9 : 1 })}
+      accessibilityRole="button"
+      accessibilityLabel={[title, summary, amountLabel, look ? t(look.labelKey) : ''].filter(Boolean).join(', ')}
+      style={({ pressed }) => ({ width: '100%', opacity: pressed ? 0.9 : 1 })}
     >
       <YStack
-        h={110}
+        minHeight={110}
         br={12}
         borderWidth={1}
         borderColor="$gray5"
@@ -106,8 +115,9 @@ function HistoryCard({
           </Text>
         </XStack>
 
-        <XStack mt="auto" ai="center">
+        <XStack mt="auto" ai="center" jc="space-between" pt="$2">
           <AvatarGroup participants={participants} />
+          {look && <StatusBadge look={look} compact />}
         </XStack>
       </YStack>
     </Pressable>
@@ -146,21 +156,27 @@ export default function SessionsHistoryScreen() {
     }
   }, [fetchHistory]);
 
-  const history = useMemo<SessionHistoryEntry[]>(() => sessions, [sessions]);
+  const [filter, setFilter] = useState<'all' | 'unpaid' | 'partial' | 'paid'>('all');
+  const history = useMemo<SessionHistoryEntry[]>(
+    () => (filter === 'all' ? sessions : sessions.filter((s) => s.payment?.status === filter)),
+    [sessions, filter]
+  );
 
   return (
     <YStack f={1} bg="$background" px="$4" pt="$4">
       <ScrollView
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ alignItems: 'center', paddingBottom: 32, gap: 16 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <YStack w={358} gap="$1" mb="$2">
-          <Text fontSize={24} fontWeight="700">{t('history.title', 'Recent bills')}</Text>
-          <Text fontSize={12} color="$gray10">{t('history.subtitle', 'Home')}</Text>
-        </YStack>
+        <XStack w="100%" gap="$2" flexWrap="wrap" accessibilityRole="radiogroup">
+          {(['all', 'unpaid', 'partial', 'paid'] as const).map((f) => (
+            <PillButton key={f} kind={filter === f ? 'primary' : 'secondary'} title={t(`history.filter.${f}`)} onPress={() => setFilter(f)} />
+          ))}
+        </XStack>
 
         {loading && (
           <Text color="$gray10" fontSize={14}>
@@ -170,7 +186,7 @@ export default function SessionsHistoryScreen() {
         {error && <ErrorRetry message={error} onRetry={onRefresh} disabled={loading || refreshing} />}
         {!loading && !error && !history.length && (
           <Text color="$gray10" fontSize={14}>
-            {t('history.empty', 'No history yet')}
+            {filter === 'all' ? t('history.empty', 'No history yet') : t('history.filter.empty')}
           </Text>
         )}
 
@@ -188,6 +204,7 @@ export default function SessionsHistoryScreen() {
               summary={summary}
               amountLabel={amountLabel}
               participants={participants}
+              payment={bill.payment?.status}
               onPress={() =>
                 router.push({
                   pathname: '/tabs/sessions/history/[historyId]',

@@ -732,7 +732,14 @@
     "goBack": "戻る",
     "back": "< 戻る",
     "defaultItem": "項目",
-    "noItems": "割り当てられた項目はありません"
+    "noItems": "割り当てられた項目はありません",
+    "filter": {
+      "all": "すべて",
+      "unpaid": "未払い",
+      "partial": "一部支払い",
+      "paid": "支払い済み",
+      "empty": "この状態の会計はありません。"
+    }
   },
   "finish": {
     "title": "会計の概要",
@@ -989,6 +996,202 @@
       "none": "友だちリクエスト",
       "withCount_one": "友だちリクエスト、新着{{count}}件",
       "withCount_other": "友だちリクエスト、新着{{count}}件"
+    }
+  },
+  "finance": {
+    "title": "お金の記録",
+    "profileHint": "貸し・借り・明細",
+    "owedToYou": "あなたがもらう分",
+    "youOwe": "あなたが払う分",
+    "filter": {
+      "open": "未精算",
+      "settled": "精算済み",
+      "all": "すべて",
+      "allGroups": "すべてのグループ"
+    },
+    "period": {
+      "all": "全期間",
+      "30d": "30日",
+      "90d": "90日",
+      "year": "12か月"
+    },
+    "searchLabel": "人を検索",
+    "searchPlaceholder": "名前またはID",
+    "bills_one": "{{count}}件の会計",
+    "bills_other": "{{count}}件の会計",
+    "settledShort": "精算済み",
+    "owesYouA11y": "{{name}}さんはあなたに{{amount}}を払います。詳細を開く",
+    "youOweA11y": "あなたは{{name}}さんに{{amount}}を払います。詳細を開く",
+    "groupsTitle": "グループの精算状況",
+    "groupProgress": "{{total}}のうち{{settled}}が精算済み",
+    "empty": {
+      "owedTitle": "もらう分はありません",
+      "oweTitle": "払う分はありません",
+      "message": "誰かと会計を分けると、ここに表示されます。",
+      "search": "検索に合う人はいません。",
+      "cta": "会計を分ける"
+    },
+    "person": {
+      "title": "残高",
+      "owesYou": "{{name}}さんからもらう分",
+      "youOweThem": "{{name}}さんに払う分",
+      "even": "貸し借りはありません",
+      "bills": "いっしょの会計",
+      "theyOwe": "相手が払う",
+      "iOwe": "あなたが払う",
+      "net": "残高 {{amount}}",
+      "balance": "残高（プラス：あなたがもらう分）",
+      "none": "この人とのいっしょの会計はありません。",
+      "remindMessage": "{{name}}さん、こんにちは。Splitterの割り勘で、{{amount}}がまだ残っています。急がなくて大丈夫です。よろしくお願いします！"
+    }
+  },
+  "leave": {
+    "title": "変更を破棄しますか？",
+    "message": "この画面で入力した内容は消えます。",
+    "busyMessage": "まだ処理中です。今戻ると、終わらないかもしれません。",
+    "stay": "編集を続ける",
+    "discard": "破棄する"
+  },
+  "payments": {
+    "status": {
+      "UNPAID": "未払い",
+      "PARTIALLY_PAID": "一部支払い",
+      "PAID_PENDING_CONFIRMATION": "確認待ち",
+      "PAID": "支払い済み",
+      "FORGIVEN": "免除",
+      "CANCELLED": "取り消し"
+    },
+    "bill": {
+      "paid": "支払い済み",
+      "partial": "一部支払い",
+      "unpaid": "未払い"
+    },
+    "method": {
+      "CASH": "現金",
+      "TRANSFER": "振込",
+      "OTHER": "その他"
+    },
+    "paymentStatus": {
+      "PENDING": "確認待ち",
+      "CONFIRMED": "確認済み",
+      "REJECTED": "却下"
+    },
+    "payment": {
+      "PENDING": "{{name}}さんが{{amount}}を支払い済みにしました（{{method}}）。確認待ちです",
+      "CONFIRMED": "{{amount}}を受け取りました（{{method}}）",
+      "REJECTED": "{{name}}さんの{{amount}}の支払いは却下されました",
+      "reason": "理由：{{reason}}"
+    },
+    "row": {
+      "youOwe": "{{name}}さんに払う",
+      "owesYou": "{{name}}さんがあなたに払う",
+      "owes": "{{from}}さんが{{to}}さんに払う",
+      "left": "残り：{{amount}}"
+    },
+    "action": {
+      "iPaid": "支払いました",
+      "received": "受け取った",
+      "confirm": "確認する",
+      "reject": "却下する",
+      "forgive": "免除する",
+      "remind": "お知らせ"
+    },
+    "block": {
+      "title": "精算",
+      "paidBy": "{{name}}さんが会計を払いました",
+      "nothing": "この会計で精算するものはありません。",
+      "settled": "精算済み {{amount}}",
+      "outstanding": "未精算 {{amount}}",
+      "progressA11y": "{{total}}のうち{{settled}}が精算済み"
+    },
+    "confirm": {
+      "title": "支払いを確認しますか？",
+      "message": "{{name}}さんから{{amount}}を受け取ったことを確認します。"
+    },
+    "done": {
+      "confirmed": "支払いを確認しました。"
+    },
+    "remind": {
+      "message": "{{name}}さん、こんにちは。「{{bill}}」の分担 {{amount}}（{{payer}}さんへ）がSplitterでまだ残っています。急がなくて大丈夫です。よろしくお願いします！"
+    },
+    "timeline": {
+      "title": "履歴",
+      "all_one": "すべて表示（{{count}}）",
+      "all_other": "すべて表示（{{count}}）",
+      "less": "閉じる"
+    },
+    "event": {
+      "CREATED": "{{name}}さんが{{debtor}}さんの分担 {{amount}} を記録しました",
+      "PAYMENT_MARKED": "{{name}}さんが{{amount}}を支払い済みにしました",
+      "PAYMENT_RECORDED": "{{name}}さんが{{amount}}の受け取りを記録しました",
+      "PAYMENT_CONFIRMED": "{{name}}さんが{{amount}}を確認しました",
+      "PAYMENT_REJECTED": "{{name}}さんが{{amount}}の支払いを却下しました",
+      "FORGIVEN": "{{name}}さんが{{debtor}}さんの{{amount}}を免除しました",
+      "CANCELLED": "会計が変わったため、{{debtor}}さんの分担が置き換えられました",
+      "REMINDER_SENT": "{{name}}さんが{{debtor}}さんにお知らせを送りました",
+      "OTHER": "{{name}}さんが記録を更新しました"
+    },
+    "share": {
+      "text": "共有",
+      "pdf": "PDF明細"
+    },
+    "sheet": {
+      "markTitle": "支払いました",
+      "recordTitle": "受け取りの記録",
+      "rejectTitle": "支払いを却下",
+      "forgiveTitle": "分担を免除",
+      "markHint": "{{name}}さんに支払ったことを伝えます（最大{{amount}}）。受け取ったら確認してもらえます。",
+      "recordHint": "{{name}}さんから受け取ったお金を記録します（最大{{amount}}）。",
+      "rejectHint": "{{name}}さんが{{amount}}を支払い済みにしました。受け取っていない理由を書いてください。",
+      "forgiveHint": "{{name}}さんの残り{{amount}}を免除します。元に戻せません。",
+      "amount": "金額",
+      "amountHelp": "空欄なら全額 {{amount}} です。一部だけの場合は金額を入力してください。",
+      "method": "方法",
+      "note": "コメント（任意）",
+      "notePlaceholder": "例：その場で払った",
+      "reason": "理由",
+      "reasonPlaceholder": "例：まだ届いていません",
+      "offline": "オフラインです。保存するにはインターネットに接続してください。",
+      "forgiveConfirmTitle": "この分担を免除しますか？",
+      "forgiveConfirm": "{{name}}さんの{{amount}}を免除します。会計の全員が履歴で確認できます。",
+      "disclaimer": "Splitterはお金を送りません。現金や振込で行った精算を記録するだけです。"
+    },
+    "errors": {
+      "OVERPAYMENT": "残りの金額より多いです。",
+      "OBLIGATION_CLOSED": "この分担は精算・免除・取り消し済みです。",
+      "PAYMENT_NOT_PENDING": "この支払いはすでに確認または却下されています。",
+      "PENDING_PAYMENTS": "先に、確認待ちの支払いを確認するか却下してください。",
+      "REMINDER_TOO_SOON": "24時間以内にすでにお知らせを送りました。",
+      "SESSION_LOCKED": "この会計にはすでに支払いの記録があるため、金額を変更できません。",
+      "amount": "0より大きい金額を入力してください。",
+      "noAccess": "あなたはこの会計に参加していません。",
+      "export": "明細を作れませんでした。もう一度お試しください。"
+    },
+    "statement": {
+      "title": "精算明細",
+      "personTitle": "{{name}}さんとの精算明細",
+      "untitled": "会計",
+      "generated": "作成日 {{date}}",
+      "bill": "会計",
+      "billName": "お店",
+      "date": "日付",
+      "paidBy": "支払った人",
+      "group": "グループ",
+      "items": "品目",
+      "tax": "税",
+      "tip": "チップ・サービス料",
+      "discount": "割引",
+      "shares": "分担",
+      "debts": "誰が誰に払うか",
+      "left": "残り {{amount}}",
+      "payments": "記録された支払い",
+      "totals": "合計",
+      "totalDebts": "分担の合計",
+      "settled": "精算済み",
+      "forgiven": "免除",
+      "outstanding": "未精算",
+      "signature": "Splitterで作成",
+      "legal": "この精算書は、個人の記録用にSplitterが作成したものです。支払いの書類や税務の書類ではありません。"
     }
   }
 }

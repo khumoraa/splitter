@@ -6,6 +6,7 @@ import { friendAction, inviteAction } from "./relation-ui.ts";
 import { groupPermissions, deleteConfirmed, deniedReasonKey } from "./permissions.ts";
 import { filterFriends, sectionizeFriends } from "./friends-list.ts";
 import { socialErrorKey, SOCIAL_ERROR_KEYS, SOCIAL_ERROR_CODES } from "./errors.ts";
+import { PAYMENT_ERROR_CODES, paymentErrorKey } from "../../payments/lib/errors.ts";
 
 // ---- a fake clock and a controllable fetcher
 function harness() {
@@ -157,5 +158,9 @@ test("every social error key exists in en, ja and uz; codes map to keys", () => 
   const server = fs.readFileSync(new URL("../../../../../splitter-backend-main/src/utils/apiError.ts", import.meta.url), "utf8");
   const serverCodes = [...server.matchAll(/^\s+([A-Z_]+): \d{3},$/gm)].map((m) => m[1]);
   assert.ok(serverCodes.length > 20);
-  for (const c of serverCodes) assert.ok(SOCIAL_ERROR_CODES.includes(c), `client does not know ${c}`);
+  for (const c of serverCodes) assert.ok(SOCIAL_ERROR_CODES.includes(c) || PAYMENT_ERROR_CODES.includes(c), `client does not know ${c}`);
+  for (const l of ["en", "ja", "uz"]) {
+    const j = JSON.parse(fs.readFileSync(new URL(`../../../shared/config/locales/${l}.json`, import.meta.url), "utf8"));
+    for (const c of PAYMENT_ERROR_CODES) assert.equal(typeof lookup(j, paymentErrorKey({ code: c })), "string", `${l}: ${c}`);
+  }
 });

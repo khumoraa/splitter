@@ -59,6 +59,15 @@ export interface SessionHistoryEntryRaw {
   isCreator: boolean;
   payer?: { uniqueId: string; username: string } | null;
   payload: SessionHistoryPayload;
+  /** payment state of MY debts in this bill (server: obligations); absent on old servers */
+  payment?: HistoryPayment;
+}
+
+export interface HistoryPayment {
+  status: 'paid' | 'partial' | 'unpaid' | 'none';
+  /** positive: people owe me; negative: I owe (minor units of the bill currency) */
+  myBalanceMinor: number;
+  outstandingMinor: number;
 }
 
 /** Облегчённый вид участника для UI */
@@ -86,6 +95,7 @@ export interface SessionHistoryEntry {
   isCreator: boolean;
   payer?: { uniqueId: string; username: string } | null;
   payload: SessionHistoryPayload;
+  payment?: HistoryPayment;
 }
 
 /** Сырой ответ всего списка */

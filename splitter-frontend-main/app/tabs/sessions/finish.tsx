@@ -2,8 +2,7 @@ import React, { useMemo } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button, Circle, ScrollView } from 'tamagui';
 import { useTranslation } from 'react-i18next';
-import { SettlementList } from '@/features/receipt/ui/SettlementList';
-import { useAppStore } from '@/shared/lib/stores/app-store';
+import { SettlementBlock } from '@/features/payments/ui/SettlementBlock';
 import { Check } from '@tamagui/lucide-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { FinalizeTotalsByItem, FinalizeTotalsByParticipant, ReceiptAllocation } from '@/features/receipt/api/receipt.api';
@@ -42,7 +41,6 @@ export default function FinishScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const lastFinishPayload = useReceiptSessionStore((s) => s.lastFinishPayload);
-  const meUniqueId = useAppStore((s) => s.user?.uniqueId);
 
   const payload = useMemo<FinishPayload | null>(() => {
     if (data) {
@@ -546,16 +544,10 @@ export default function FinishScreen() {
           )}
         </YStack>
 
-        <SettlementList
-          shares={participantSummaries.map((entry) => ({
-            uniqueId: entry.uniqueId,
-            username: entry.username,
-            amountOwed: entry.amount,
-          }))}
-          payer={payload?.payer}
-          currency={currency}
-          meUniqueId={meUniqueId}
-        />
+        {/* who owes whom, payment status and actions, event log, share / PDF statement */}
+        <YStack mt="$4">
+          <SettlementBlock sessionId={payload?.sessionId} />
+        </YStack>
 
         {itemSummaries.length > 0 && (
           <YStack gap="$2" mt="$4">
@@ -639,7 +631,7 @@ export default function FinishScreen() {
           bg="#2ECC71"
           ai="center"
           jc="center"
-          onPress={() => router.replace('/tabs')}
+          onPress={() => router.dismissTo('/tabs')}
           pressStyle={{ opacity: 0.9 }}
         >
           <Text fontSize={16} fontWeight="600" color="white">
