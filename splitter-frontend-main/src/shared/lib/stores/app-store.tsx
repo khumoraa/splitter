@@ -8,7 +8,7 @@ import type { LanguageCode } from '@/shared/config/languages';
 import { DEVICE_LANGUAGE } from '@/shared/config/device-language';
 
 // Provider component for initialization
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'expo-router';
 import { onUnauthorized, resetUnauthorizedCooldown } from '@/shared/api/auth-events';
 
@@ -134,15 +134,11 @@ export const useAppStore = create<AppStore>()(
 
 /** true once the persisted settings (language, theme) are loaded from AsyncStorage. */
 export function useStoreHydrated(): boolean {
-  const [hydrated, setHydrated] = useState(() => useAppStore.persist.hasHydrated());
-  useEffect(() => {
-    if (useAppStore.persist.hasHydrated()) {
-      setHydrated(true);
-      return undefined;
-    }
-    return useAppStore.persist.onFinishHydration(() => setHydrated(true));
-  }, []);
-  return hydrated;
+  return useSyncExternalStore(
+    (onChange) => useAppStore.persist.onFinishHydration(onChange),
+    () => useAppStore.persist.hasHydrated(),
+    () => false
+  );
 }
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
