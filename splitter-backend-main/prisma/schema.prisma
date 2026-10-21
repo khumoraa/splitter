@@ -26,6 +26,11 @@ model User {
   scanRequests          ScanRequest[]
   invitationsSent       GroupInvitation[]     @relation("InvitationInviter")
   invitationsReceived   GroupInvitation[]     @relation("InvitationInvitee")
+  debts                 Obligation[]          @relation("ObligationDebtor")
+  credits               Obligation[]          @relation("ObligationCreditor")
+  paymentsRecorded      ObligationPayment[]   @relation("PaymentRecorder")
+  paymentsResolved      ObligationPayment[]   @relation("PaymentResolver")
+  obligationEvents      ObligationEvent[]
 }
 
 /// One receipt-scan attempt. Stores only the parsed result and the image hash, never the photo.
@@ -95,6 +100,7 @@ model Session {
   group           Group?               @relation(fields: [groupId], references: [id])
   participants    SessionParticipant[]
   historyEntry    SessionHistoryEntry?
+  obligations     Obligation[]
 }
 
 model SessionHistoryEntry {
@@ -185,4 +191,93 @@ model GroupInvitation {
 
   @@index([inviteeId, status])
   @@index([groupId, status])
+}
+
+enum ObligationStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID_PENDING_CONFIRMATION
+  PAID
+  FORGIVEN
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  OTHER
+}
+
+/// What one person owes another for one bill. Money in integer minor units of `currency`.
+/// The app never moves money: it only records debts and how they were settled outside the app.
+/// CHECK constraints and a partial unique index (one live obligation per bill + debtor) live in the migration SQL.
+model Obligation {
+  id             Int                 @id @default(autoincrement())
+  sessionId      Int
+  debtorId       Int
+  creditorId     Int
+  amountMinor    Int
+  currency       String
+  status         ObligationStatus    @default(UNPAID)
+  confirmedMinor Int                 @default(0)
+  pendingMinor   Int                 @default(0)
+  lastReminderAt DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  session        Session             @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  debtor         User                @relation("ObligationDebtor", fields: [debtorId], references: [id])
+  creditor       User                @relation("ObligationCreditor", fields: [creditorId], references: [id])
+  payments       ObligationPayment[]
+  events         ObligationEvent[]
+
+  @@index([debtorId, status])
+  @@index([creditorId, status])
+  @@index([sessionId])
+}
+
+/// A settlement recorded outside the app: PENDING when the debtor says "I paid", CONFIRMED when the creditor confirms
+/// or records it, REJECTED with a reason. Idempotency-Key makes a repeated request return the same row.
+model ObligationPayment {
+  id              Int           @id @default(autoincrement())
+  obligationId    Int
+  amountMinor     Int
+  method          PaymentMethod
+  note            String?
+  status          PaymentStatus
+  recordedById    Int
+  resolvedById    Int?
+  rejectionReason String?
+  idemKey         String?
+  createdAt       DateTime      @default(now())
+  resolvedAt      DateTime?
+  obligation      Obligation    @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+  recordedBy      User          @relation("PaymentRecorder", fields: [recordedById], references: [id])
+  resolvedBy      User?         @relation("PaymentResolver", fields: [resolvedById], references: [id])
+
+  @@unique([obligationId, recordedById, idemKey])
+  @@index([obligationId])
+}
+
+/// Append-only audit log (a trigger forbids UPDATE). Deleted only together with its bill or account.
+model ObligationEvent {
+  id           Int        @id @default(autoincrement())
+  obligationId Int
+  sessionId    Int
+  actorId      Int
+  type         String
+  amountMinor  Int?
+  paymentId    Int?
+  note         String?
+  createdAt    DateTime   @default(now())
+  obligation   Obligation @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+  actor        User       @relation(fields: [actorId], references: [id])
+
+  @@index([obligationId, createdAt])
+  @@index([sessionId])
 }
