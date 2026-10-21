@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { onSessionCleanup } from '@/shared/lib/session-cleanup';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Draft } from '../lib/receipt-calc';
@@ -40,3 +41,6 @@ export const useDraftStore = create<DraftStore>()(
     }
   )
 );
+
+// the unfinished receipt is persisted on the phone: it must not outlive the account
+onSessionCleanup(() => useDraftStore.getState().clear());

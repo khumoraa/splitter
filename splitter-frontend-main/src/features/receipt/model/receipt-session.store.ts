@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { onSessionCleanup } from '@/shared/lib/session-cleanup';
 import type {
   FinalizeReceiptResponse,
   FinalizeReceiptItemPayload,
@@ -203,3 +204,5 @@ export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => 
 
   reset: () => set({ ...INITIAL_STATE, currency: useAppStore.getState().defaultCurrency }),
 }));
+
+onSessionCleanup(() => useReceiptSessionStore.getState().reset());

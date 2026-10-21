@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { onSessionCleanup } from '@/shared/lib/session-cleanup';
 
 /** The photo travelling camera/gallery -> preview -> processing. In memory only; the file lives in the app cache and is deleted after sending. */
 export interface CapturedPhoto {
@@ -24,3 +25,5 @@ export const useCaptureStore = create<CaptureStore>((set) => ({
   setPhoto: (photo) => set({ photo, prepared: null }),
   setPrepared: (prepared) => set({ prepared }),
 }));
+
+onSessionCleanup(() => useCaptureStore.setState({ photo: null, prepared: null }));

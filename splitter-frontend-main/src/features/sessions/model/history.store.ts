@@ -1,4 +1,5 @@
 import { logLevelForError } from '@/shared/api/api-error';
+import { onSessionCleanup } from '@/shared/lib/session-cleanup';
 import { create } from 'zustand';
 
 import {
@@ -162,3 +163,5 @@ export const useSessionsHistoryStore = create<State & Actions>((set, get) => ({
     set(initialState);
   },
 }));
+
+onSessionCleanup(() => useSessionsHistoryStore.getState().reset());

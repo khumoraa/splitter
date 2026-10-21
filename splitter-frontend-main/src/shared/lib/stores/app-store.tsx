@@ -1,8 +1,9 @@
 import { create } from 'zustand';
+import { runSessionCleanup } from '@/shared/lib/session-cleanup';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCurrentUser } from '@/features/auth/api';
-import { isUnauthorized } from '@/shared/api/api-error';
+import { isUnauthorized, logLevelForError } from '@/shared/api/api-error';
 import { getToken, removeToken } from '../utils/token-storage';
 import type { LanguageCode } from '@/shared/config/languages';
 import { DEVICE_LANGUAGE } from '@/shared/config/device-language';
@@ -86,6 +87,7 @@ export const useAppStore = create<AppStore>()(
         try {
           await removeToken();
           set({ token: null, user: null });
+          runSessionCleanup(); // friends, groups, history, unfinished receipt: nothing may leak to the next account
         } catch (error) {
           console.error('Logout error:', error);
         }
@@ -112,7 +114,8 @@ export const useAppStore = create<AppStore>()(
             if (isUnauthorized(error)) {
               console.warn('Current user fetch: token is no longer valid, signing out');
             } else {
-              console.error('Current user fetch error:', error);
+              // offline at start-up is expected (the saved token stays, the profile loads when the network is back)
+              console[logLevelForError(error)]('Current user fetch error:', error instanceof Error ? error.message : error);
             }
             set({ user: null });
 

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { onSessionCleanup } from '@/shared/lib/session-cleanup';
 import { isApiError } from '@/shared/api/api-error';
 import { socialErrorKey } from '@/features/social/lib/errors';
 import { FriendsApi } from '../api/friends.api';
@@ -98,3 +99,8 @@ export const useFriendsStore = create<State & Actions>((set, get) => ({
     }
   },
 }));
+
+onSessionCleanup(() => {
+  inflight = null;
+  useFriendsStore.setState({ friends: [], requestsRaw: null, loading: false, error: undefined, errorKey: undefined });
+});

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { onSessionCleanup } from '@/shared/lib/session-cleanup';
 import { isApiError } from '@/shared/api/api-error';
 import { socialErrorKey } from '@/features/social/lib/errors';
 import { GroupsApi, type Group, type GroupDetails, type Invitation, type SentInvitation } from '../api/groups.api';
@@ -174,3 +175,7 @@ export const useGroupsStore = create<State & Actions>((set, get) => ({
     set({ current: undefined, sent: [] });
   },
 }));
+
+onSessionCleanup(() =>
+  useGroupsStore.setState({ groups: [], invitations: null, current: undefined, sent: [], counts: {}, loading: false, loaded: false, error: undefined, errorKey: undefined })
+);
