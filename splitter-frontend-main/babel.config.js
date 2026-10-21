@@ -30,7 +30,8 @@ module.exports = function (api) {
           extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
         }
       ],
-      'react-native-reanimated/plugin' // должен быть последним
+      // 'react-native-reanimated/plugin' removed: babel-preset-expo (SDK 54+) adds react-native-worklets/plugin
+      // automatically when it is installed, so listing it here would apply the same transform twice.
     ]
   };
 };
