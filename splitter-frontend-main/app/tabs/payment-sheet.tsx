@@ -3,6 +3,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, Tex
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { X } from '@tamagui/lucide-icons';
 
 import { useColors, useScheme } from '@/shared/lib/theme/use-colors';
 import { useAppStore } from '@/shared/lib/stores/app-store';
@@ -97,9 +98,20 @@ export default function PaymentSheet() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.surface }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.screen }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: space.lg, paddingTop: space.xl, paddingBottom: insets.bottom + space.xl, gap: space.lg }}>
-        <Text accessibilityRole="header" maxFontSizeMultiplier={1.4} style={{ color: c.text, fontSize: 22, fontWeight: '800' }}>{title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md }}>
+          <Text accessibilityRole="header" maxFontSizeMultiplier={1.4} style={{ color: c.text, fontSize: 22, fontWeight: '800', flexShrink: 1 }}>{title}</Text>
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close', 'Close')}
+            style={{ width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: c.field }}
+          >
+            <X size={20} color={c.text} />
+          </Pressable>
+        </View>
 
         {!o ? (
           <View style={{ gap: space.md }} accessibilityLabel={t('common.loading', 'Loading...')}><Skeleton height={20} /><Skeleton height={56} /></View>

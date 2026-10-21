@@ -60,7 +60,8 @@
     "continue": "Davom etish",
     "back": "Orqaga",
     "retry": "Qayta urinish",
-    "openSettings": "Sozlamalarni ochish"
+    "openSettings": "Sozlamalarni ochish",
+    "close": "Yopish"
   },
   "home": {
     "header": {

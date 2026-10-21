@@ -142,11 +142,9 @@ export default function AppStackLayout() {
 
       <Stack.Screen name="finances/index" options={{ title: t('finance.title', 'Finances'), ...large }} />
       <Stack.Screen name="finances/person" options={{ title: t('finance.person.title', 'Balance') }} />
-      {/* forms open as native iOS sheets: swipe down to close, the parent stays visible behind */}
-      <Stack.Screen
-        name="payment-sheet"
-        options={{ presentation: 'formSheet', headerShown: false, sheetAllowedDetents: [0.7, 1], sheetGrabberVisible: true, sheetCornerRadius: 24 }}
-      />
+      {/* the payment form opens as a native iOS modal card: swipe down to close, the bill stays visible behind.
+          (formSheet with detents rendered an empty white sheet: its flex: 1 content gets no height there) */}
+      <Stack.Screen name="payment-sheet" options={{ presentation: 'modal', headerShown: false, gestureEnabled: true }} />
     </Stack>
   );
 }

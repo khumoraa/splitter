@@ -60,7 +60,8 @@
     "continue": "続ける",
     "back": "戻る",
     "retry": "再試行",
-    "openSettings": "設定を開く"
+    "openSettings": "設定を開く",
+    "close": "閉じる"
   },
   "friends": {
     "title": "友だち",
