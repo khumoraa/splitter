@@ -12,6 +12,7 @@ import { useAppStore } from '@/shared/lib/stores/app-store';
 import { useReceiptSessionStore } from '@/features/receipt/model/receipt-session.store';
 import type { FinishPayload, ReceiptSplitItem } from '@/features/receipt/model/receipt-session.store';
 import { ReceiptApi } from '@/features/receipt/api/receipt.api';
+import { logLevelForError } from '@/shared/api/api-error';
 import { useDraftStore } from '@/features/scan/model/draft.store';
 import type { FinalizeReceiptItemPayload, FinalizeTotalsByItem, FinalizeTotalsByParticipant, ReceiptAllocation } from '@/features/receipt/api/receipt.api';
 import { formatAmount, fromMinor, splitMinor, toMinor } from '@/shared/lib/utils/money';
@@ -764,7 +765,8 @@ export default function ItemsSplitScreen() {
 
       const message = error instanceof Error ? error.message : t('items.errorFinalize', 'Failed to finalize session');
       setSubmitError(message);
-      console.error('Finalize error:', error);
+      // the message is already on screen (translated); offline/timeouts/4xx are warnings, not crashes
+      console[logLevelForError(error)]('Finalize error:', error instanceof Error ? error.message : error);
     }
   }, [
     canContinue,
@@ -839,7 +841,7 @@ export default function ItemsSplitScreen() {
               {t('items.title', 'Orders')}
             </Text>
             <Text fontSize={12} color="$gray10">
-              {sessionReceiptId ?? (isMockSession ? 'mock-001' : 'N/A')}
+              {session?.sessionName || (isMockSession ? 'mock-001' : '')}
             </Text>
           </YStack>
         </XStack>

@@ -1,5 +1,5 @@
 import { apiClient } from '@/features/auth/api';
-import { logLevelForStatus, isApiError } from '@/shared/api/api-error';
+import { logLevelForError, isApiError } from '@/shared/api/api-error';
 
 export type ParsedReceiptItemKind = 'item' | 'fee' | 'tax' | 'tip' | 'discount' | string;
 
@@ -97,7 +97,7 @@ export const ReceiptApi = {
       return data;
     } catch (error) {
       // a rejected bill (400) is an expected outcome the UI explains; only real failures are errors
-      console[isApiError(error) ? logLevelForStatus(error.status) : 'error']('[API] finalize failed');
+      console[logLevelForError(error)]('[API] finalize failed');
       throw normalizeError(error);
     }
   },

@@ -65,7 +65,8 @@ apiClient.interceptors.response.use(
     if (__DEV__) {
       // 4xx (e.g. 401 invalid token) is an expected outcome handled below: warn, so the dev red screen
       // does not pop up. 5xx / no response stay console.error.
-      const level = logLevelForStatus(error.response?.status);
+      // no response at all (offline, timeout) is shown to the user as a message, so it is a warning too
+      const level = error.response ? logLevelForStatus(error.response.status) : 'warn';
       console[level]('[API] Error details:', {
         message: error.message,
         code: (error as any).code,

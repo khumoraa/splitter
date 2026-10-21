@@ -1,3 +1,4 @@
+import { logLevelForError } from '@/shared/api/api-error';
 import { create } from 'zustand';
 
 import {
@@ -115,7 +116,7 @@ export const useSessionsHistoryStore = create<State & Actions>((set, get) => ({
         loading: false,
       });
 
-      console.error('Failed to fetch history:', error);
+      console[logLevelForError(error)]('Failed to fetch history:', error?.message ?? error);
       return undefined;
     }
   },

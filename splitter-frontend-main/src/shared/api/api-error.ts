@@ -31,6 +31,17 @@ export const logLevelForStatus = (status?: number): 'warn' | 'error' =>
   status !== undefined && status >= 400 && status < 500 ? 'warn' : 'error';
 
 export const isApiError =(e: unknown): e is ApiError => e instanceof ApiError;
+
+/**
+ * Console level for any caught failure. Being offline, a timeout, a cancelled request and 4xx answers are conditions
+ * the UI already explains to the user, so they are warnings (no red error overlay in dev); only unexpected failures
+ * (5xx, programming errors) are errors.
+ */
+export const logLevelForError = (e: unknown): 'warn' | 'error' => {
+  if (!(e instanceof ApiError)) return 'error';
+  if (e.kind === 'network' || e.kind === 'timeout' || e.kind === 'cancelled') return 'warn';
+  return logLevelForStatus(e.status);
+};
 export const isUnauthorized = (e: unknown): boolean => isApiError(e) && e.status === 401;
 /** The request was aborted on purpose (AbortController / axios cancel); not a failure to show to the user. */
 export const isCancelled = (e: unknown): boolean => isApiError(e) && e.kind === 'cancelled';

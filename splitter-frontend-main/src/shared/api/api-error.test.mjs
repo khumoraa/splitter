@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import axios, { isCancel } from "axios";
-import { ApiError, isApiError, isUnauthorized, isOffline, isCancelled, logLevelForStatus } from "./api-error.ts";
+import { ApiError, isApiError, isUnauthorized, isOffline, isCancelled, logLevelForStatus, logLevelForError } from "./api-error.ts";
 
 test("expected 4xx outcomes log as warnings, server and network failures as errors", () => {
   for (const s of [400, 401, 403, 404, 409, 422]) assert.equal(logLevelForStatus(s), "warn", String(s));
@@ -41,4 +41,14 @@ test("axios reports an aborted request via axios.isCancel (the check the interce
   await assert.rejects(pending, (e) => isCancel(e) === true && e.code === "ERR_CANCELED");
   server.closeAllConnections?.();
   server.close();
+});
+
+
+test("logLevelForError: offline, timeout, cancel and 4xx are warnings; 5xx and non-API errors are errors", () => {
+  assert.equal(logLevelForError(new ApiError("x", "timeout")), "warn");
+  assert.equal(logLevelForError(new ApiError("x", "network")), "warn");
+  assert.equal(logLevelForError(new ApiError("x", "cancelled")), "warn");
+  assert.equal(logLevelForError(new ApiError("x", "http", 409)), "warn");
+  assert.equal(logLevelForError(new ApiError("x", "http", 503)), "error");
+  assert.equal(logLevelForError(new TypeError("boom")), "error");
 });
