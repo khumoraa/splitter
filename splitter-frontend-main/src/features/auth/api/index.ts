@@ -14,18 +14,23 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(async (config) => {
   try {
     const token = await getToken();
+    // A multipart body must NOT get a Content-Type from us: the native networking layer adds it together with the
+    // boundary. A hand-written 'multipart/form-data' (or the instance default 'application/json') breaks the upload.
+    const isForm = typeof FormData !== 'undefined' && config.data instanceof FormData;
     if (token) {
       const headers: any = config.headers ?? {};
       if (typeof headers.set === 'function') {
         headers.set('Authorization', `Bearer ${token}`);
-        headers.set('Content-Type', headers.get?.('Content-Type') ?? 'application/json');
+        headers.set('Content-Type', isForm ? false : headers.get?.('Content-Type') ?? 'application/json');
       } else {
         config.headers = {
           ...headers,
           Authorization: `Bearer ${token}`,
-          'Content-Type': headers['Content-Type'] ?? 'application/json',
+          'Content-Type': isForm ? false : headers['Content-Type'] ?? 'application/json',
         };
       }
+    } else if (isForm && typeof (config.headers as any)?.set === 'function') {
+      (config.headers as any).set('Content-Type', false);
     }
   } catch {
     // If token retrieval fails we keep going; request will likely return 401.
@@ -72,6 +77,7 @@ apiClient.interceptors.response.use(
     if (error.response) {
       const status = error.response.status;
       const data = error.response.data as any;
+      const serverCode: string | undefined = typeof data?.code === 'string' ? data.code : undefined;
       const serverMsg: string | undefined =
         typeof data === 'string' ? data : data?.message || data?.error;
 
@@ -79,12 +85,12 @@ apiClient.interceptors.response.use(
       switch (status) {
         case 401:
           emitUnauthorized();
-          throw new ApiError(i18n.t('errors.unauthorized'), 'http', status);
+          throw new ApiError(i18n.t('errors.unauthorized'), 'http', status, serverCode);
         default:
           if (status >= 500) {
-            throw new ApiError(serverMsg || i18n.t('errors.server'), 'http', status);
+            throw new ApiError(serverMsg || i18n.t('errors.server'), 'http', status, serverCode);
           }
-          throw new ApiError(serverMsg || i18n.t('errors.request', { status }), 'http', status);
+          throw new ApiError(serverMsg || i18n.t('errors.request', { status }), 'http', status, serverCode);
       }
     } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
       throw new ApiError(i18n.t('errors.timeout'), 'timeout');

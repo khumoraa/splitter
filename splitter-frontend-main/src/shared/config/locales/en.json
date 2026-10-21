@@ -215,6 +215,24 @@
       "passwordComplexity": "Password must include uppercase, lowercase, number, and special character",
       "passwordMismatch": "Passwords do not match",
       "passwordDifferent": "Choose a different password"
+    },
+    "errors": {
+      "usernameRequired": "Enter your name.",
+      "usernameLength": "The name must be 2 to 32 characters long.",
+      "usernameChars": "Use letters, digits, spaces and . _ ' - only.",
+      "emailRequired": "Enter your email.",
+      "emailInvalid": "Enter a valid email address.",
+      "emailInUse": "This email is already used by another account.",
+      "passwordRequired": "Enter your password to confirm.",
+      "currentPasswordRequired": "Enter your current password.",
+      "passwordMismatch": "The new passwords do not match.",
+      "samePassword": "The new password must be different from the current one.",
+      "wrongPassword": "The password is incorrect.",
+      "avatarTooLarge": "The photo is too large. Choose a smaller one.",
+      "avatarUnsupported": "This file type is not supported. Use a JPEG, PNG or WebP photo.",
+      "tooManyRequests": "Too many attempts. Please wait a few minutes and try again.",
+      "storageUnavailable": "Photos cannot be saved right now: image storage is not set up on the server.",
+      "cancelled": "The request was cancelled."
     }
   },
   "navigation": {

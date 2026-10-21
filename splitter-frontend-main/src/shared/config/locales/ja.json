@@ -215,6 +215,24 @@
       "passwordComplexity": "パスワードには大文字・小文字・数字・記号を含めてください。",
       "passwordMismatch": "パスワードが一致していません。",
       "passwordDifferent": "別のパスワードを選択してください。"
+    },
+    "errors": {
+      "usernameRequired": "名前を入力してください。",
+      "usernameLength": "名前は2〜32文字にしてください。",
+      "usernameChars": "文字、数字、スペース、. _ ' - だけ使えます。",
+      "emailRequired": "メールアドレスを入力してください。",
+      "emailInvalid": "正しいメールアドレスを入力してください。",
+      "emailInUse": "このメールアドレスは別のアカウントで使われています。",
+      "passwordRequired": "確認のためパスワードを入力してください。",
+      "currentPasswordRequired": "現在のパスワードを入力してください。",
+      "passwordMismatch": "新しいパスワードが一致しません。",
+      "samePassword": "新しいパスワードは今のパスワードと違うものにしてください。",
+      "wrongPassword": "パスワードが違います。",
+      "avatarTooLarge": "写真が大きすぎます。小さい写真を選んでください。",
+      "avatarUnsupported": "この形式は使えません。JPEG、PNG、WebP の写真を使ってください。",
+      "tooManyRequests": "試行回数が多すぎます。数分待ってからもう一度お試しください。",
+      "storageUnavailable": "今は写真を保存できません。サーバーの画像保存が設定されていません。",
+      "cancelled": "リクエストがキャンセルされました。"
     }
   },
   "navigation": {

@@ -163,6 +163,24 @@
       "passwordComplexity": "Parolda katta va kichik harf, raqam va maxsus belgi bo'lishi kerak.",
       "passwordMismatch": "Parollar mos emas.",
       "passwordDifferent": "Boshqa parol tanlang."
+    },
+    "errors": {
+      "usernameRequired": "Ismingizni kiriting.",
+      "usernameLength": "Ism 2 dan 32 gacha belgidan iborat bo'lishi kerak.",
+      "usernameChars": "Faqat harf, raqam, bo'shliq va . _ ' - belgilaridan foydalaning.",
+      "emailRequired": "Emailingizni kiriting.",
+      "emailInvalid": "To'g'ri email manzilini kiriting.",
+      "emailInUse": "Bu email boshqa hisobda ishlatilgan.",
+      "passwordRequired": "Tasdiqlash uchun parolni kiriting.",
+      "currentPasswordRequired": "Joriy parolni kiriting.",
+      "passwordMismatch": "Yangi parollar mos kelmadi.",
+      "samePassword": "Yangi parol joriy paroldan farq qilishi kerak.",
+      "wrongPassword": "Parol noto'g'ri.",
+      "avatarTooLarge": "Rasm juda katta. Kichikroq rasm tanlang.",
+      "avatarUnsupported": "Bu fayl turi qo'llab-quvvatlanmaydi. JPEG, PNG yoki WebP rasm ishlating.",
+      "tooManyRequests": "Urinishlar juda ko'p. Bir necha daqiqa kutib, qayta urinib ko'ring.",
+      "storageUnavailable": "Hozir rasmni saqlab bo'lmaydi: serverda rasm xotirasi sozlanmagan.",
+      "cancelled": "So'rov bekor qilindi."
     }
   },
   "navigation": {

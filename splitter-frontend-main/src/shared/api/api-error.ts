@@ -7,12 +7,15 @@ export type ApiErrorKind = 'network' | 'timeout' | 'http' | 'cancelled' | 'unkno
 export class ApiError extends Error {
   kind: ApiErrorKind;
   status?: number;
+  /** stable machine code from the server (e.g. WRONG_PASSWORD, EMAIL_IN_USE); map it to a translated message */
+  code?: string;
 
-  constructor(message: string, kind: ApiErrorKind, status?: number) {
+  constructor(message: string, kind: ApiErrorKind, status?: number, code?: string) {
     super(message);
     this.name = 'ApiError';
     this.kind = kind;
     if (status !== undefined) this.status = status;
+    if (code !== undefined) this.code = code;
   }
 }
 
