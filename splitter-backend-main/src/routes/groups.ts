@@ -487,8 +487,8 @@ router.delete("/:groupId/invitations/:invId", authenticateToken, async (req: Aut
  * @swagger
  * /groups/{groupId}/members:
  *   post:
- *     summary: Add FRIENDS directly ({uniqueId} or {uniqueIds: up to 20}); other users must be invited. Owner only
- *     description: Returns `{ success, added: [uniqueId], skipped: [{uniqueId, code}] }`.
+ *     summary: Add FRIENDS directly (a uniqueId or a list of up to 20 uniqueIds); other users must be invited. Owner only
+ *     description: Returns success, the added uniqueIds and the skipped ones with a code.
  *     tags: [Groups]
  *     security:
  *       - bearerAuth: []
@@ -560,7 +560,7 @@ router.delete("/:groupId/members/:uniqueId", authenticateToken, async (req: Auth
  * @swagger
  * /groups/{groupId}/leave:
  *   post:
- *     summary: Leave the group (the owner must transfer ownership first: OWNER_CANNOT_LEAVE)
+ *     summary: Leave the group (the owner must transfer ownership first, error OWNER_CANNOT_LEAVE)
  *     tags: [Groups]
  *     security:
  *       - bearerAuth: []

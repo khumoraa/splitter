@@ -669,7 +669,13 @@ export default function ItemsSplitScreen() {
       (sessionReceiptId && !isMockSession ? parseInt(sessionReceiptId, 10) : undefined);
 
     // a receipt entered by hand or reviewed after a scan has no server session yet: create it now
-    const sessionIdToUse = effectiveSessionId ?? (await ReceiptApi.createSession()).id;
+    let sessionIdToUse = effectiveSessionId;
+    if (!sessionIdToUse) {
+      sessionIdToUse = (await ReceiptApi.createSession()).id;
+      // remember it: if saving fails and the user taps Save again, the same bill is reused (no orphan sessions)
+      const created = sessionIdToUse;
+      useReceiptSessionStore.setState((s) => (s.session ? { session: { ...s.session, sessionId: created } } : {}));
+    }
     if (!sessionIdToUse) {
       throw new Error(t('items.errorSessionId', 'Session ID is required'));
     }

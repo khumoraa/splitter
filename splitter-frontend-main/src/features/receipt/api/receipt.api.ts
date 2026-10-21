@@ -83,7 +83,15 @@ export const ReceiptApi = {
       if (__DEV__) console.log('[API] POST /sessions/finalize');
       if (__DEV__) console.log('[API] Request data:', JSON.stringify(payload, null, 2));
 
-      const { data } = await apiClient.post<FinalizeReceiptResponse>('/sessions/finalize', payload);
+      // Saving is idempotent on the server (the bill is upserted), so a lost answer is safely retried once
+      const send = () => apiClient.post<FinalizeReceiptResponse>('/sessions/finalize', payload, { timeout: 25000 });
+      const { data } = await send().catch(async (e: unknown) => {
+        if (isApiError(e) && (e.kind === 'timeout' || e.kind === 'network')) {
+          await new Promise((r) => setTimeout(r, 800));
+          return send();
+        }
+        throw e;
+      });
 
       if (__DEV__) console.log('[API] Response:', JSON.stringify(data, null, 2));
       return data;
