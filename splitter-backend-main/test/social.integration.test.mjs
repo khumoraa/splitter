@@ -41,7 +41,7 @@ const mkGroup = async (owner, name = "Trip") => (await api("POST", "/groups", { 
 before(async () => {
   server = spawn(process.execPath, ["--loader", "ts-node/esm", "-r", "dotenv/config", "src/server.ts"], {
     cwd: testRoot,
-    env: { ...process.env, PORT: String(PORT), DATABASE_URL: testDatabaseUrl(), JWT_SECRET: "integration-test-secret", NODE_ENV: "test", GEMINI_API_KEY: "", SEARCH_IP_LIMIT: "5000", FRIEND_REQUEST_LIMIT: "500", NODE_NO_WARNINGS: "1" },
+    env: { ...process.env, PORT: String(PORT), DATABASE_URL: testDatabaseUrl(), JWT_SECRET: "integration-test-secret", NODE_ENV: "test", GEMINI_API_KEY: "", SEARCH_IP_LIMIT: "5000", FRIEND_REQUEST_LIMIT: "500", NODE_NO_WARNINGS: "1", REGISTER_LIMIT: "100000", LOGIN_IP_LIMIT: "100000", LOGIN_EMAIL_LIMIT: "100000" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   server.stdout.on("data", (d) => (serverLog += d));

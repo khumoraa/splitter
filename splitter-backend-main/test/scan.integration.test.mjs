@@ -50,7 +50,7 @@ before(async () => {
     env: {
       ...process.env, PORT: String(PORT), DATABASE_URL: testDatabaseUrl(), JWT_SECRET: "integration-test-secret", NODE_ENV: "test",
       GEMINI_API_KEY: "", ALLOW_MOCK_SCAN: "true", SCAN_LIMIT_DAILY: String(DAILY), SCAN_LIMIT_MONTHLY: "100",
-      NODE_NO_WARNINGS: "1",
+      NODE_NO_WARNINGS: "1", REGISTER_LIMIT: "100000", LOGIN_IP_LIMIT: "100000", LOGIN_EMAIL_LIMIT: "100000",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

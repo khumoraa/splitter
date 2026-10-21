@@ -66,7 +66,7 @@ before(async () => {
       R2_ENDPOINT: "", R2_ACCESS_KEY_ID: "", R2_SECRET_ACCESS_KEY: "", R2_BUCKET: "", CDN_BASE_URL: "",
       GEMINI_API_KEY: "",
       PUBLIC_BASE_URL: "",
-      NODE_NO_WARNINGS: "1",
+      NODE_NO_WARNINGS: "1", REGISTER_LIMIT: "100000", LOGIN_IP_LIMIT: "100000", LOGIN_EMAIL_LIMIT: "100000",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

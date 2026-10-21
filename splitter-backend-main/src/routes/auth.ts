@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { rateLimit } from "../middleware/rateLimit.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../config/prisma.js";
@@ -64,7 +65,18 @@ function generateUniqueId() {
  *       415:
  *         description: Неверный Content-Type (нужен application/json)
  */
-router.post("/register", async (req, res) => {
+// Brute-force and spam protection (in memory, per process). Limits can be raised with env vars, e.g. for load tests.
+const num = (v: string | undefined, d: number) => (Number(v) > 0 ? Number(v) : d);
+const registerLimit = rateLimit({ windowMs: 60 * 60_000, max: num(process.env.REGISTER_LIMIT, 20), name: "register" });
+const loginIpLimit = rateLimit({ windowMs: 15 * 60_000, max: num(process.env.LOGIN_IP_LIMIT, 30), name: "login-ip" });
+const loginEmailLimit = rateLimit({
+  windowMs: 15 * 60_000,
+  max: num(process.env.LOGIN_EMAIL_LIMIT, 8),
+  name: "login-email",
+  key: (req) => (typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : req.ip ?? "anon"),
+});
+
+router.post("/register", registerLimit, async (req, res) => {
   const ct = String(req.headers["content-type"] || "");
   console.log("/auth/register content-type:", ct);
   try {
@@ -254,7 +266,7 @@ router.post("/register", async (req, res) => {
  *       415:
  *         description: Неверный Content-Type (нужен application/json)
  */
-router.post("/login", async (req, res) => {
+router.post("/login", loginIpLimit, loginEmailLimit, async (req, res) => {
   try {
     const ct = String(req.headers["content-type"] || "");
     if (!ct.includes("application/json")) {

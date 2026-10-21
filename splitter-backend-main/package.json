@@ -11,7 +11,7 @@
     "postinstall": "prisma generate",
     "scan:usage": "node -r dotenv/config scripts/scan-usage.mjs",
     "test:db": "node scripts/prepare-test-db.mjs",
-    "test:integration": "node --test --test-concurrency=1 test/profile.integration.test.mjs test/scan.integration.test.mjs test/social.integration.test.mjs"
+    "test:integration": "node --test --test-concurrency=1 test/profile.integration.test.mjs test/scan.integration.test.mjs test/social.integration.test.mjs test/auth-limits.integration.test.mjs"
   },
   "repository": {
     "type": "git",
