@@ -6,6 +6,8 @@ import { isUnauthorized } from '@/shared/api/api-error';
 import { getToken, removeToken } from '../utils/token-storage';
 import type { LanguageCode } from '@/shared/config/languages';
 import { DEVICE_LANGUAGE } from '@/shared/config/device-language';
+import { FALLBACK_CURRENCY, normalizeCurrency } from '@/shared/config/currencies';
+import type { ThemeMode } from '@/shared/ui/tokens';
 
 // Provider component for initialization
 import { ReactNode, useEffect, useSyncExternalStore } from 'react';
@@ -28,17 +30,23 @@ interface AppStore {
   /** true once the stored token has been read (so screens don't flash Welcome before autologin) */
   authReady: boolean;
   
-  // App settings
-  theme: 'light' | 'dark';
+  // App settings (persisted on the phone)
+  /** 'system' follows the phone's appearance */
+  themeMode: ThemeMode;
   language: LanguageCode;
+  /** currency of new bills when the receipt does not state one */
+  defaultCurrency: string;
   
   // Actions
   setToken: (token: string) => void;
   setUser: (user: User) => void;
+  /** merges changed profile fields into the signed-in user */
+  updateUser: (patch: Partial<User>) => void;
   setAuth: (token: string, user: User) => void;
   logout: () => Promise<void>;
   initializeAuth: () => Promise<void>;
-  setTheme: (theme: 'light' | 'dark') => void;
+  setThemeMode: (mode: ThemeMode) => void;
+  setDefaultCurrency: (code: string) => void;
   setLanguage: (language: LanguageCode) => void;
 }
 
@@ -50,7 +58,8 @@ export const useAppStore = create<AppStore>()(
       user: null,
       isLoading: false,
       authReady: false,
-      theme: 'light',
+      themeMode: 'system',
+      defaultCurrency: FALLBACK_CURRENCY,
       // first launch follows the phone's language; a saved choice replaces it when the store is rehydrated
       language: DEVICE_LANGUAGE,
 
@@ -61,6 +70,11 @@ export const useAppStore = create<AppStore>()(
 
       setUser: (user: User) => {
         set({ user });
+      },
+
+      updateUser: (patch) => {
+        const current = get().user;
+        if (current) set({ user: { ...current, ...patch } });
       },
 
       setAuth: (token: string, user: User) => {
@@ -116,15 +130,17 @@ export const useAppStore = create<AppStore>()(
       },
 
       // App settings actions
-      setTheme: (theme) => set({ theme }),
+      setThemeMode: (themeMode) => set({ themeMode }),
+      setDefaultCurrency: (code) => set({ defaultCurrency: normalizeCurrency(code) }),
       setLanguage: (language) => set({ language }),
     }),
     {
       name: 'app-store',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        theme: state.theme,
+        themeMode: state.themeMode,
         language: state.language,
+        defaultCurrency: state.defaultCurrency,
         // Не сохраняем токен и пользователя в AsyncStorage, 
         // так как токен сохраняется отдельно в SecureStore
       }),
