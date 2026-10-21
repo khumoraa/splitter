@@ -13,7 +13,7 @@ import { Bell } from '@tamagui/lucide-icons';
 import { useTranslation } from 'react-i18next';
 
 import { useAppStore } from '@/shared/lib/stores/app-store';
-import { useColors, useScheme } from '@/shared/lib/theme/use-colors';
+import { useColors } from '@/shared/lib/theme/use-colors';
 import { ProfileAvatar } from '@/features/profile/ui/ProfileAvatar';
 import { useFriendsStore } from '@/features/friends/model/friends.store';
 
@@ -74,7 +74,6 @@ function HeaderActions() {
 export default function AppStackLayout() {
   const { t } = useTranslation();
   const c = useColors();
-  const scheme = useScheme();
   const user = useAppStore((s) => s.user);
   const greetingName = user?.username || t('home.header.friendFallback', 'friend');
 
@@ -98,7 +97,8 @@ export default function AppStackLayout() {
         // iOS: swipe back from anywhere on the screen, not only the very edge
         fullScreenGestureEnabled: Platform.OS === 'ios',
         gestureEnabled: true,
-        statusBarStyle: scheme === 'dark' ? 'light' : 'dark',
+        // no per-screen statusBarStyle: Expo Go's Info.plist has UIViewControllerBasedStatusBarAppearance = NO and
+        // react-native-screens throws on every screen; the status bar follows the theme via expo-status-bar instead
       }}
     >
       <Stack.Screen name="index" options={{ title: t('home.header.greeting', { name: greetingName }) }} />
