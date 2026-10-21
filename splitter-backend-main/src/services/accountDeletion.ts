@@ -110,6 +110,22 @@ export async function deleteAccount(userId: number, password: string): Promise<D
         });
       }
 
+      // payment records stay for the other people involved, but point to the "Deleted user" placeholder
+      const clash = await tx.obligation.findMany({ where: { debtorId: tombstoneId, status: { not: "CANCELLED" } }, select: { sessionId: true } });
+      if (clash.length) {
+        // another deleted person already owes in the same bill: only one live debt per bill and debtor is allowed
+        const dup = await tx.obligation.findMany({ where: { debtorId: userId, status: { not: "CANCELLED" }, sessionId: { in: clash.map((c) => c.sessionId) } }, select: { id: true, sessionId: true } });
+        for (const d of dup) {
+          await tx.obligation.update({ where: { id: d.id }, data: { status: "CANCELLED" } });
+          await tx.obligationEvent.create({ data: { obligationId: d.id, sessionId: d.sessionId, actorId: tombstoneId, type: "CANCELLED", note: "account deleted" } });
+        }
+      }
+      await tx.obligation.updateMany({ where: { debtorId: userId }, data: { debtorId: tombstoneId } });
+      await tx.obligation.updateMany({ where: { creditorId: userId }, data: { creditorId: tombstoneId } });
+      await tx.obligationPayment.updateMany({ where: { recordedById: userId }, data: { recordedById: tombstoneId } });
+      await tx.obligationPayment.updateMany({ where: { resolvedById: userId }, data: { resolvedById: tombstoneId } });
+      await tx.obligationEvent.updateMany({ where: { actorId: userId }, data: { actorId: tombstoneId } });
+
       await tx.user.delete({ where: { id: userId } });
     },
     { timeout: 20_000 }

@@ -7,7 +7,10 @@ import { authenticateToken, type AuthRequest } from "../middleware/auth.js";
 import { getQuota, runScan, ScanError } from "../services/scanService.js";
 import { geminiReceiptAi, mockCallCount, mockReceiptAi } from "../services/geminiClient.js";
 import { rateLimit } from "../middleware/rateLimit.js";
-import { fromMinor, splitMinor, toMinor } from "../utils/money.js";
+import { splitMinor } from "../utils/money.js";
+import { fractionDigits, toMinorUnits } from "../utils/scanMath.js";
+import { PaymentError, planBillObligations } from "../services/obligations.js";
+import { outstandingMinor, paymentState, type ObligationStatus } from "../utils/obligationLogic.js";
 import { parseMoneyField, validateBillInput } from "../utils/sessionInput.js";
 
 const router = Router();
@@ -370,6 +373,10 @@ router.post(
       if (!req.user) return res.status(401).json({ error: "Unauthorized" });
       const { sessionId, sessionName, participants, items } = req.body || {};
       const currency = normalizeCurrencyCode(req.body?.currency);
+      // money in the currency's real minor unit: cents for USD, whole units for JPY / UZS (no phantom "tiyin")
+      const minorPerUnit = fractionDigits(currency) === 0 ? 1 : 100;
+      const toM = (amount: number) => toMinorUnits(amount, currency);
+      const fromM = (minor: number) => minor / minorPerUnit;
       if (!isDbId(Number(sessionId))) {
         return res.status(400).json({ error: "sessionId required" });
       }
@@ -492,12 +499,12 @@ router.post(
           }
           for (const [pid, units] of Object.entries(counts)) {
             const u = Number(units) || 0;
-            const shareMinor = toMinor(u * unitPrice);
+            const shareMinor = toM(u * unitPrice);
             allocs.push({
               itemId: id,
               participantId: pid,
               shareUnits: u,
-              shareAmount: fromMinor(shareMinor),
+              shareAmount: fromM(shareMinor),
               shareMinor,
             });
             // participant totals will be derived later
@@ -518,14 +525,14 @@ router.post(
             });
           }
           const ratio = 1 / valid.length;
-          const shares = splitMinor(toMinor(unitPrice * qty), valid.length, rotation);
+          const shares = splitMinor(toM(unitPrice * qty), valid.length, rotation);
           valid.forEach((pid, idx) => {
             const shareMinor = shares[idx]!;
             allocs.push({
               itemId: id,
               participantId: pid,
               shareRatio: ratio,
-              shareAmount: fromMinor(shareMinor),
+              shareAmount: fromM(shareMinor),
               shareMinor,
             });
           });
@@ -561,17 +568,18 @@ router.post(
       }
       const byItem = Array.from(byItemMap.values()).map((it) => ({
         ...it,
-        total: fromMinor(byItemMinor.get(it.itemId) || 0),
+        total: fromM(byItemMinor.get(it.itemId) || 0),
       }));
       let grandMinor = 0;
       for (const v of byItemMinor.values()) grandMinor += v;
-      const grandTotal = fromMinor(grandMinor);
+      const grandTotal = fromM(grandMinor);
       const byParticipant = pList.map((p) => {
-        const amount = fromMinor(byParticipantMinor.get(p.uniqueId) || 0);
+        const amount = fromM(byParticipantMinor.get(p.uniqueId) || 0);
         return {
           uniqueId: p.uniqueId,
           username: p.username,
           amountOwed: amount,
+          amountMinor: byParticipantMinor.get(p.uniqueId) || 0,
           participantId: p.uniqueId,
           total: amount,
         };
@@ -595,6 +603,8 @@ router.post(
         totals: {
           currency,
           grandTotal,
+          grandTotalMinor: grandMinor,
+          minorPerUnit,
           byParticipant,
           byItem,
         },
@@ -605,7 +615,24 @@ router.post(
         new Set(byParticipant.map((p) => p.uniqueId))
       ).sort();
 
-      await prisma.sessionHistoryEntry.upsert({
+      // debts for payment tracking; refused if the bill already has recorded payments and its numbers changed
+      let applyObligations: Awaited<ReturnType<typeof planBillObligations>>;
+      try {
+        applyObligations = await planBillObligations({
+          sessionId: session.id,
+          payerId: session.creatorId,
+          currency,
+          shares: byParticipant.map((bp) => ({ uniqueId: bp.uniqueId, minor: bp.amountMinor })),
+        });
+      } catch (e) {
+        if (e instanceof PaymentError) {
+          return res.status(409).json({ error: "This bill already has recorded payments and can no longer be changed", code: e.code });
+        }
+        throw e;
+      }
+
+      await prisma.$transaction(async (tx) => {
+      await tx.sessionHistoryEntry.upsert({
         where: { sessionId: session.id },
         create: {
           sessionId: session.id,
@@ -625,6 +652,8 @@ router.post(
           currency,
           finalizedAt,
         },
+      });
+      await applyObligations(tx, req.user!.id);
       });
 
       return res.json(responsePayload);
@@ -699,12 +728,35 @@ router.get(
       const whereFilter: Prisma.SessionHistoryEntryWhereInput =
         filters.length > 1 ? { OR: filters } : filters[0]!;
 
-      const entries = await prisma.sessionHistoryEntry.findMany({
+      // optional filter by the payment state of my debts in the bill: paid | partial | unpaid | none
+      const paymentFilter = req.query.paymentStatus === undefined ? null : String(req.query.paymentStatus);
+      if (paymentFilter !== null && !["paid", "partial", "unpaid", "none"].includes(paymentFilter)) {
+        return res.status(400).json({ error: "Invalid paymentStatus", code: "VALIDATION" });
+      }
+
+      const allEntries = await prisma.sessionHistoryEntry.findMany({
         where: whereFilter,
         orderBy: { finalizedAt: "desc" },
         include: { creator: { select: { uniqueId: true, username: true } } },
-        ...(fetchAll ? {} : { take: limit }),
+        ...(fetchAll || paymentFilter ? {} : { take: limit }),
       });
+
+      const myDebts = await prisma.obligation.findMany({
+        where: { sessionId: { in: allEntries.map((e) => e.sessionId) }, status: { not: "CANCELLED" }, OR: [{ debtorId: requesterId }, { creditorId: requesterId }] },
+        select: { sessionId: true, status: true, amountMinor: true, confirmedMinor: true, pendingMinor: true, debtorId: true },
+      });
+      const paymentOf = (sessionId: number) => {
+        const rows = myDebts.filter((d) => d.sessionId === sessionId).map((d) => ({ ...d, status: d.status as ObligationStatus }));
+        const outstanding = rows.reduce((s, r) => s + outstandingMinor(r, r.status), 0);
+        return {
+          status: paymentState(rows),
+          // from my side: positive = people owe me, negative = I owe
+          myBalanceMinor: rows.reduce((s, r) => s + (r.debtorId === requesterId ? -1 : 1) * outstandingMinor(r, r.status), 0),
+          outstandingMinor: outstanding,
+        };
+      };
+      const filtered = paymentFilter ? allEntries.filter((e) => paymentOf(e.sessionId).status === paymentFilter) : allEntries;
+      const entries = fetchAll || !paymentFilter ? filtered : filtered.slice(0, limit);
 
       const response = entries.map((entry) => ({
         sessionId: entry.sessionId,
@@ -717,6 +769,7 @@ router.get(
         // the creator paid the bill (see /sessions/finalize)
         payer: entry.creator,
         payload: entry.payload,
+        payment: paymentOf(entry.sessionId),
       }));
 
       return res.json({

@@ -11,6 +11,7 @@ import friendsRoutes from "./routes/friends.js";
 import groupsRoutes from "./routes/groups.js";
 import sessionsRoutes from "./routes/sessions.js";
 import usersRoutes from "./routes/users.js";
+import obligationsRoutes from "./routes/obligations.js";
 import uploadsRoutes from "./routes/uploads.js";
 import { logAuthAttempts } from "./middleware/logAuth.js";
 import { AVATAR_DIR } from "./storage/avatarStorage.js";
@@ -115,6 +116,7 @@ app.use("/groups", groupsRoutes);
 app.use("/sessions", sessionsRoutes);
 app.use("/users", usersRoutes);
 app.use("/uploads", uploadsRoutes);
+app.use("/obligations", obligationsRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

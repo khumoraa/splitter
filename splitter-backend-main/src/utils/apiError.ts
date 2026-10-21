@@ -25,6 +25,12 @@ export const ERROR_STATUS = {
   INVITE_LIMIT: 429,
   TOKEN_EXPIRED: 400,
   TOKEN_INVALID: 400,
+  OVERPAYMENT: 409,
+  OBLIGATION_CLOSED: 409,
+  PAYMENT_NOT_PENDING: 409,
+  PENDING_PAYMENTS: 409,
+  REMINDER_TOO_SOON: 429,
+  SESSION_LOCKED: 409,
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_STATUS;
@@ -53,6 +59,12 @@ const MESSAGE: Record<ErrorCode, string> = {
   INVITE_LIMIT: "Invitation limit reached",
   TOKEN_EXPIRED: "The invitation link has expired",
   TOKEN_INVALID: "The invitation link is not valid",
+  OVERPAYMENT: "The amount is more than what is left to pay",
+  OBLIGATION_CLOSED: "This debt is already settled, forgiven or cancelled",
+  PAYMENT_NOT_PENDING: "This payment was already confirmed or rejected",
+  PENDING_PAYMENTS: "Answer the pending payment first",
+  REMINDER_TOO_SOON: "A reminder was already sent in the last 24 hours",
+  SESSION_LOCKED: "This bill already has recorded payments and can no longer be changed",
 };
 
 export function fail(res: Response, code: ErrorCode, extra: Record<string, unknown> = {}) {
