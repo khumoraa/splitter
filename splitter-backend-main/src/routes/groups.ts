@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { isDbId } from "../utils/dbId.js";
 import type { Response } from "express";
 import jwt from "jsonwebtoken";
 import { Prisma } from "@prisma/client";
@@ -15,7 +16,7 @@ const router = Router();
 
 const getInviteSecret = () => process.env.GROUP_INVITE_SECRET || process.env.JWT_SECRET || "";
 const groupId = (req: AuthRequest) => Number(req.params.groupId);
-const validId = (n: number) => Number.isInteger(n) && n > 0;
+const validId = isDbId;
 type PublicUser = { id: number; username: string; uniqueId: string; avatarUrl: string | null };
 const pub = (u: PublicUser) => ({ id: u.id, uniqueId: u.uniqueId, username: u.username, avatarUrl: u.avatarUrl ?? null });
 
@@ -403,7 +404,7 @@ router.post("/:groupId/invitations", authenticateToken, async (req: AuthRequest,
     if (!g) return;
     const me = req.user!.id;
     const uid = typeof req.body?.uniqueId === "string" ? req.body.uniqueId.trim() : "";
-    const userId = Number.isInteger(req.body?.userId) ? Number(req.body.userId) : null;
+    const userId = isDbId(req.body?.userId) ? Number(req.body.userId) : null;
     if (!uid && userId === null) return fail(res, "VALIDATION", { field: "uniqueId" });
 
     const target = await prisma.user.findFirst({

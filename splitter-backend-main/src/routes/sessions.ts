@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { isDbId } from "../utils/dbId.js";
 import type { Response } from "express";
 import { prisma } from "../config/prisma.js";
 import type { Prisma } from "@prisma/client";
@@ -130,7 +131,7 @@ router.post("/", authenticateToken, async (req: AuthRequest, res: Response) => {
     let groupCheck = null as null | { ownerId: number };
     if (groupId != null) {
       const gid = Number(groupId);
-      if (!Number.isFinite(gid))
+      if (!isDbId(gid))
         return res.status(400).json({ error: "Invalid groupId" });
       groupCheck = await prisma.group.findUnique({
         where: { id: gid },
@@ -182,6 +183,7 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
     const groupId =
       req.query.groupId != null ? Number(req.query.groupId) : undefined;
+    if (groupId !== undefined && !isDbId(groupId)) return res.status(400).json({ error: "Invalid groupId", code: "VALIDATION" });
     if (groupId && Number.isFinite(groupId)) {
       const membership = await prisma.groupMember.findUnique({
         where: { groupId_userId: { groupId, userId: req.user.id } },
@@ -247,7 +249,7 @@ router.patch(
     try {
       if (!req.user) return res.status(401).json({ error: "Unauthorized" });
       const sessionId = Number(req.params.sessionId);
-      if (!Number.isFinite(sessionId))
+      if (!isDbId(sessionId))
         return res.status(400).json({ error: "Invalid sessionId" });
       const s = await prisma.session.findUnique({
         where: { id: sessionId },
@@ -368,7 +370,7 @@ router.post(
       if (!req.user) return res.status(401).json({ error: "Unauthorized" });
       const { sessionId, sessionName, participants, items } = req.body || {};
       const currency = normalizeCurrencyCode(req.body?.currency);
-      if (!Number.isFinite(Number(sessionId))) {
+      if (!isDbId(Number(sessionId))) {
         return res.status(400).json({ error: "sessionId required" });
       }
       const problem = validateBillInput(items, participants);

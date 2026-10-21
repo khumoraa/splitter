@@ -448,3 +448,20 @@ describe("group invitations", () => {
     }
   });
 });
+
+describe("hostile input never causes a 500", () => {
+  test("ids beyond the database range and NUL characters are answered with 400/404", async () => {
+    const u = await newUser();
+    const BIG = "99999999999999";
+    const calls = [
+      ["GET", `/groups/${BIG}`], ["PATCH", `/groups/${BIG}`, { name: "x" }], ["DELETE", `/groups/${BIG}`], ["POST", `/groups/${BIG}/leave`],
+      ["POST", `/groups/${BIG}/invitations`, { uniqueId: "#1" }], ["PATCH", `/groups/invitations/${BIG}/accept`], ["GET", `/friends/search?q=abcd&groupId=${BIG}`],
+      ["PATCH", "/friends/accept", { requesterId: 99999999999 }], ["GET", `/users/${BIG}`], ["GET", `/sessions?groupId=${BIG}`], ["POST", "/sessions", { groupId: BIG }],
+      ["PATCH", `/sessions/${BIG}/close`], ["DELETE", "/friends/%00"], ["GET", "/friends/search?q=%00%00"], ["POST", "/groups", { name: "a\u0000b" }],
+    ];
+    for (const [m, p, json] of calls) {
+      const r = await api(m, p, { token: u.token, ...(json ? { json } : {}) });
+      assert.ok(r.status >= 400 && r.status < 500, `${m} ${p} -> ${r.status}`);
+    }
+  });
+});

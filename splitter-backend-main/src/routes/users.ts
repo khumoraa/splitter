@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { isDbId } from "../utils/dbId.js";
 import type { Response } from "express";
 import { prisma } from "../config/prisma.js";
 import { PROFILE_SELECT } from "../config/userSelect.js";
@@ -150,7 +151,7 @@ router.delete(
 router.get("/:id", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const id = Number(req.params.id);
-    if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid id" });
+    if (!isDbId(id)) return res.status(400).json({ error: "Invalid id" });
     const user = await prisma.user.findUnique({ where: { id }, select: PROFILE_SELECT });
     if (!user) return res.status(404).json({ error: "User not found" });
     // other people's email addresses are private

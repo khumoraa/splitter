@@ -1,4 +1,5 @@
 import express from "express";
+import { hasNulChar } from "./utils/dbId.js";
 import dotenv from "dotenv";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
@@ -25,6 +26,13 @@ const app = express();
 // Default increased from Express ~100kb to 4mb to fit ~3MB binary image (base64 expands ~33%).
 const JSON_LIMIT = process.env.JSON_BODY_LIMIT || "4mb";
 app.use(express.json({ limit: JSON_LIMIT }));
+// PostgreSQL cannot store a NUL character: answer 400 here instead of a 500 from deep inside a route
+app.use((req, res, next) => {
+  let url = req.originalUrl;
+  try { url = decodeURIComponent(url); } catch { /* malformed escapes are rejected by express anyway */ }
+  if (url.includes("\u0000") || hasNulChar(req.body)) return res.status(400).json({ error: "Invalid input", code: "VALIDATION" });
+  next();
+});
 
 // Configure CORS with long preflight caching and multiple origins support
 const rawCorsOrigins = (process.env.CORS_ORIGINS || "").trim();

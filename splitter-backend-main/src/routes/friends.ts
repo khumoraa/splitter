@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { isDbId } from "../utils/dbId.js";
 import type { Response } from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "../config/prisma.js";
@@ -20,7 +21,7 @@ const toRow = (r: { id: number; requesterId: number; receiverId: number; status:
 
 /** Resolve the other person from `{uniqueId}` or `{requesterId}` (accept / reject keep their old body). */
 async function resolveOther(body: any): Promise<number | null> {
-  if (typeof body?.requesterId === "number") return body.requesterId;
+  if (body?.requesterId !== undefined) return isDbId(body.requesterId) ? body.requesterId : null;
   if (typeof body?.uniqueId === "string" && body.uniqueId.trim()) {
     const u = await prisma.user.findUnique({ where: { uniqueId: body.uniqueId.trim() }, select: { id: true } });
     return u?.id ?? null;
@@ -64,7 +65,7 @@ router.get("/search", searchIpLimit, authenticateToken, searchUserLimit, async (
     let groupId: number | undefined;
     if (req.query.groupId !== undefined) {
       groupId = Number(req.query.groupId);
-      if (!Number.isInteger(groupId)) return fail(res, "VALIDATION", { field: "groupId" });
+      if (!isDbId(groupId)) return fail(res, "VALIDATION", { field: "groupId" });
       const g = await prisma.group.findUnique({
         where: { id: groupId },
         select: { ownerId: true, members: { where: { userId: req.user.id }, select: { userId: true } } },
