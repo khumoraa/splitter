@@ -18,14 +18,17 @@ import { useAppStore } from '@/shared/lib/stores/app-store';
 import { Mail, Lock } from '@tamagui/lucide-icons';
 
 const schema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  // messages are i18n keys, translated where the error is rendered (tr below).
+  // Login only needs a non-empty password: the strength policy applies to registration, the server decides the rest.
+  email: z.string().email('auth.errors.emailInvalid'),
+  password: z.string().min(1, 'auth.errors.passwordRequired'),
 });
 
 type FormData = z.infer<typeof schema>;
 
 export default function LoginForm() {
   const { t } = useTranslation();
+  const tr = (key?: string) => (key ? t(key) : undefined);
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '' },
@@ -100,7 +103,7 @@ export default function LoginForm() {
                       onChangeText={onChange}
                       keyboardType="email-address"
                       autoCapitalize="none"
-                      error={errors.email?.message}
+                      error={tr(errors.email?.message)}
                       required
                     />
                   </YStack>
@@ -131,7 +134,7 @@ export default function LoginForm() {
                       placeholder={t('auth.passwordPlaceholder', 'Enter your password')}
                       value={value}
                       onChangeText={onChange}
-                      error={errors.password?.message}
+                      error={tr(errors.password?.message)}
                       required
                     />
                   </YStack>

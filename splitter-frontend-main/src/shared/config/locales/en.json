@@ -44,8 +44,11 @@
       "passwordSpecial": "Password must include a special character",
       "emailInUse": "This email is already registered. Try signing in.",
       "invalidCredentials": "Wrong email or password.",
-      "registerInvalid": "Please check the entered data and try again."
-    }
+      "registerInvalid": "Please check the entered data and try again.",
+      "passwordRequired": "Enter your password"
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "common": {
     "welcome": "Welcome",

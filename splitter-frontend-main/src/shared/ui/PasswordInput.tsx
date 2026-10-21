@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { XStack } from 'tamagui';
 import { Eye, EyeOff } from '@tamagui/lucide-icons';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/shared/ui/Input';
 
 type Props = {
@@ -17,7 +18,7 @@ type Props = {
 
 export default function PasswordInput({
   label,
-  placeholder = 'Enter your password',
+  placeholder,
   value,
   onChangeText,
   error,
@@ -25,6 +26,7 @@ export default function PasswordInput({
   autoCapitalize = 'none',
   textInputProps,
 }: Props) {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
 
   const eye = (
@@ -34,7 +36,7 @@ export default function PasswordInput({
       android_ripple={{ color: 'rgba(0,0,0,0.08)', borderless: true }}
       style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
       accessibilityRole="button"
-      accessibilityLabel={show ? 'Hide password' : 'Show password'}
+      accessibilityLabel={show ? t('auth.hidePassword', 'Hide password') : t('auth.showPassword', 'Show password')}
     >
       {show ? <EyeOff size={18} color="rgba(0,0,0,0.7)" /> : <Eye size={18} color="rgba(0,0,0,0.7)" />}
     </Pressable>
@@ -44,7 +46,7 @@ export default function PasswordInput({
     <XStack w="100%">
       <Input
         label={label}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('auth.passwordPlaceholder', 'Enter your password')}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={!show}
