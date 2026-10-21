@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import type { JwtPayload as LibJwtPayload } from "jsonwebtoken";
 import jwtPkg from "jsonwebtoken";
+import { prisma } from "../config/prisma.js";
 const jwt = jwtPkg as unknown as {
   verify: typeof jwtPkg.verify;
   decode: typeof jwtPkg.decode;
@@ -26,7 +27,7 @@ declare global {
 
 export interface AuthRequest extends Request {}
 
-export function authenticateToken(
+export async function authenticateToken(
   req: Request,
   res: Response,
   next: NextFunction
@@ -89,7 +90,6 @@ export function authenticateToken(
       });
     }
     req.user = userPayload;
-    next();
   } catch (err) {
     const DEBUG_AUTH =
       (process.env.DEBUG_AUTH || "").toLowerCase() === "true" ||
@@ -125,4 +125,16 @@ export function authenticateToken(
     }
     return res.status(401).json({ error: "Invalid or expired token" });
   }
+
+  // The token itself is valid, but the account may have been deleted since it was issued.
+  try {
+    const exists = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { id: true } });
+    if (!exists) {
+      return res.status(401).json({ error: "Account no longer exists", code: "ACCOUNT_DELETED" });
+    }
+  } catch (err) {
+    console.error("auth: user lookup failed:", err instanceof Error ? err.message : err);
+    return res.status(503).json({ error: "Service temporarily unavailable" });
+  }
+  next();
 }
