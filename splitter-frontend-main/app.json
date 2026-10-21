@@ -52,7 +52,10 @@
           "cameraPermission": "Splitter uses the camera to scan receipts and QR invites.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-image",
+      "expo-sharing",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
