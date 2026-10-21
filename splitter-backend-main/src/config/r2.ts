@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const R2_ENDPOINT = process.env.R2_ENDPOINT || ""; // e.g. https://<accountid>.r2.cloudflarestorage.com
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || "";
@@ -12,6 +12,21 @@ export class R2NotConfiguredError extends Error {
     super(message);
     this.name = "R2NotConfiguredError";
   }
+}
+
+/** true when every R2 setting is present (no exception, unlike assertR2Config) */
+export function isR2Configured(): boolean {
+  return Boolean(R2_ENDPOINT && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET && CDN_BASE_URL);
+}
+
+/** public CDN prefix without trailing slash ("" when not configured) */
+export function r2PublicBase(): string {
+  return CDN_BASE_URL;
+}
+
+export async function deleteAvatarObject(key: string): Promise<void> {
+  assertR2Config();
+  await r2Client.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: key }));
 }
 
 export function assertR2Config() {

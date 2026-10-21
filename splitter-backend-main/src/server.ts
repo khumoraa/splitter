@@ -13,6 +13,8 @@ import usersRoutes from "./routes/users.js";
 import uploadsRoutes from "./routes/uploads.js";
 import { logAuthAttempts } from "./middleware/logAuth.js";
 import debugRoutes from "./routes/debug.js";
+import { AVATAR_DIR } from "./storage/avatarStorage.js";
+import { absoluteMediaUrls } from "./middleware/mediaUrls.js";
 import { authenticateToken } from "./middleware/auth.js";
 
 // Load .env
@@ -75,6 +77,26 @@ if (allowAllCors) {
 
   app.use(cors(corsSettings));
 }
+
+// Local avatar files (development / no R2). Names are random UUIDs, only images we wrote ourselves live here.
+app.use(
+  "/media/avatars",
+  express.static(AVATAR_DIR, {
+    index: false,
+    dotfiles: "ignore",
+    fallthrough: false,
+    maxAge: "365d",
+    immutable: true,
+    setHeaders: (res) => {
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Security-Policy", "default-src 'none'");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
+);
+
+// Relative local avatar paths become absolute URLs in every JSON answer (see middleware/mediaUrls.ts)
+app.use(absoluteMediaUrls);
 
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

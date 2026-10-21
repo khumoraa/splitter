@@ -145,3 +145,6 @@ vite.config.ts.timestamp-*
 .node_modules/
 
 /src/generated/prisma
+
+# Locally stored avatars (development / no R2) and test uploads
+uploads/

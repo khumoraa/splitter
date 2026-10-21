@@ -1,7 +1,6 @@
 import { Router } from "express";
 import type { Response } from "express";
 import { prisma } from "../config/prisma.js";
-import { getDefaultAvatarUrl } from "../config/app.js";
 import jwt from "jsonwebtoken";
 import { authenticateToken, type AuthRequest } from "../middleware/auth.js";
 
@@ -214,7 +213,7 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
     const friends = [
       ...asRequester.map((f) => f.receiver),
       ...asReceiver.map((f) => f.requester),
-    ].map((u) => ({ ...u, avatarUrl: u.avatarUrl ?? getDefaultAvatarUrl() }));
+    ].map((u) => ({ ...u, avatarUrl: u.avatarUrl ?? null }));
     console.log("GET /friends count:", friends.length);
     return res.json(friends);
   } catch (err) {
@@ -317,7 +316,7 @@ router.get(
         select: userPublicSelect,
       });
       const result = user
-        ? [{ ...user, avatarUrl: user.avatarUrl ?? getDefaultAvatarUrl() }]
+        ? [{ ...user, avatarUrl: user.avatarUrl ?? null }]
         : [];
       console.log("GET /friends/search result count:", result.length);
       return res.json(result);

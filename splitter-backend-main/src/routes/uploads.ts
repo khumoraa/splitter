@@ -1,20 +1,14 @@
 import { Router } from "express";
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import multer from "multer";
 import { authenticateToken } from "../middleware/auth.js";
-import { R2NotConfiguredError, uploadAvatarObject } from "../config/r2.js";
+import { rateLimit } from "../middleware/rateLimit.js";
+import { R2NotConfiguredError } from "../config/r2.js";
 import { prisma } from "../config/prisma.js";
-
-type UploadFile = {
-  fieldname: string;
-  originalname: string;
-  encoding: string;
-  mimetype: string;
-  buffer: Buffer;
-  size: number;
-};
-// We rely on multer to inject req.file at runtime; keep a minimal local typing for safety
-type ReqFileMinimal = { buffer: Buffer; mimetype: string; size: number };
+import { PROFILE_SELECT } from "../config/userSelect.js";
+import { getAvatarStorage } from "../storage/avatarStorage.js";
+import { releaseAvatar } from "../storage/releaseAvatar.js";
+import { detectImageType } from "../utils/imageType.js";
 
 const router = Router();
 
@@ -25,130 +19,90 @@ const router = Router();
  *   description: File uploads (avatars)
  */
 
+export const AVATAR_MAX_BYTES = Number(process.env.AVATAR_MAX_BYTES || 5 * 1024 * 1024);
+
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: {
-    fileSize: Number(process.env.AVATAR_MAX_BYTES || 2 * 1024 * 1024), // default 2MB
-  },
+  limits: { fileSize: AVATAR_MAX_BYTES, files: 1, fields: 4, parts: 8 },
 });
 
-function pickExtByMime(
-  mime: string
-): ".webp" | ".jpg" | ".jpeg" | ".png" | ".gif" | null {
-  const m = mime.toLowerCase();
-  if (m === "image/webp") return ".webp";
-  if (m === "image/jpeg") return ".jpg";
-  if (m === "image/png") return ".png";
-  if (m === "image/gif") return ".gif";
-  return null;
+/** multer errors are turned into proper JSON answers (413 for an oversized file, 400 for a malformed form) */
+function receiveAvatarFile(req: Request, res: Response, next: NextFunction) {
+  upload.single("file")(req, res, (err: unknown) => {
+    if (!err) return next();
+    const code = (err as { code?: string }).code;
+    if (code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ error: "File too large", maxBytes: AVATAR_MAX_BYTES });
+    }
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: "Invalid upload: send a single image in the 'file' field" });
+    }
+    // busboy errors for a broken form, e.g. a hand-written 'Content-Type: multipart/form-data' header without a boundary
+    if (err instanceof Error && /^(Multipart|Unexpected end of form|Malformed)/i.test(err.message)) {
+      return res.status(400).json({ error: "Malformed multipart form (do not set the Content-Type header yourself; let the HTTP client add the boundary)" });
+    }
+    return next(err);
+  });
 }
 
 /**
  * @swagger
  * /uploads/avatar:
  *   post:
- *     summary: Upload user avatar (multipart/form-data)
+ *     summary: Upload the current user's avatar (multipart/form-data, field "file")
+ *     description: JPEG, PNG or WebP, up to 5 MB (checked by content, not by name or Content-Type). 10 uploads per 10 minutes.
  *     tags: [Uploads]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *           encoding:
- *             file:
- *               contentType: image/webp, image/jpeg, image/png, image/gif
- *       description: |
- *         Upload image using multipart/form-data with the field name `file`.
- *
- *         Example (cURL):
- *
- *           curl -X POST "https://api.example.com/uploads/avatar" \
- *             -H "Authorization: Bearer <TOKEN>" \
- *             -H "Content-Type: multipart/form-data" \
- *             -F "file=@/path/to/avatar.webp"
  *     responses:
  *       200:
- *         description: Avatar uploaded and saved
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 avatarUrl:
- *                   type: string
- *                   example: https://static.splitter.qzz.io/avatars/123/v1696070000/avatar.webp
- *                 key:
- *                   type: string
- *                   example: avatars/123/v1696070000/avatar.webp
- *       400:
- *         description: Bad request (e.g., missing file or unsupported type)
- *       401:
- *         description: Unauthorized
- *       413:
- *         description: Payload too large (exceeds AVATAR_MAX_BYTES)
+ *         description: "{ success, avatarUrl, key, user }; the previous file is deleted"
+ *       400: { description: No file / malformed form }
+ *       413: { description: File too large }
+ *       415: { description: Not a JPEG, PNG or WebP image }
+ *       429: { description: Too many uploads }
+ *       503: { description: Image storage is not configured }
  */
 router.post(
   "/avatar",
   authenticateToken,
-  upload.single("file"),
+  rateLimit({ windowMs: 10 * 60_000, max: 10, name: "avatar-upload" }),
+  receiveAvatarFile,
   async (req: Request, res: Response) => {
+    let stored: string | null = null;
+    const storage = getAvatarStorage();
     try {
-      if (!req.user) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
-      const file = (req as any).file as ReqFileMinimal | undefined;
-      if (!file) {
-        res.status(400).json({ error: "file is required" });
-        return;
+      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+      const file = req.file;
+      if (!file || !file.buffer?.length) {
+        return res.status(400).json({ error: "file is required" });
       }
 
-      const { buffer, mimetype, size } = file;
-      const maxBytes = Number(process.env.AVATAR_MAX_BYTES || 2 * 1024 * 1024);
-      if (size > maxBytes) {
-        res.status(413).json({ error: "File too large" });
-        return;
+      // The real type comes from the bytes. The client's Content-Type and file name are ignored.
+      const kind = detectImageType(file.buffer);
+      if (!kind) {
+        return res.status(415).json({ error: "Unsupported image type. Use JPEG, PNG or WebP" });
       }
 
-      const ext = pickExtByMime(mimetype);
-      if (!ext) {
-        res.status(400).json({ error: "Unsupported image type" });
-        return;
-      }
+      const before = await prisma.user.findUnique({ where: { id: req.user.id }, select: { avatarUrl: true } });
+      stored = (await storage.put(file.buffer, kind.ext, kind.mime)).stored;
 
-      // Build version from current timestamp seconds for simplicity
-      const v = Math.floor(Date.now() / 1000);
-      const key = `avatars/${req.user.id}/v${v}/avatar${ext}`;
-
-      const put = await uploadAvatarObject(key, buffer, mimetype);
-
-      // Persist URL to user
-      await prisma.user.update({
+      const user = await prisma.user.update({
         where: { id: req.user.id },
-        data: { avatarUrl: put.url },
-        select: { id: true },
+        data: { avatarUrl: stored },
+        select: PROFILE_SELECT,
       });
+      void releaseAvatar(before?.avatarUrl);
 
-      res.json({ success: true, avatarUrl: put.url, key: put.key });
-      return;
+      return res.json({ success: true, avatarUrl: user.avatarUrl, key: stored, user });
     } catch (err) {
-      console.error("POST /uploads/avatar error:", err);
+      // do not leave an orphan file when the database update failed
+      if (stored) void releaseAvatar(stored);
       if (err instanceof R2NotConfiguredError) {
-        res.status(503).json({ error: "Avatar storage is not configured" });
-        return;
+        return res.status(503).json({ error: "Avatar storage is not configured" });
       }
-      res.status(500).json({ error: "Server error" });
-      return;
+      console.error("POST /uploads/avatar error:", err instanceof Error ? err.message : err);
+      return res.status(500).json({ error: "Server error" });
     }
   }
 );
