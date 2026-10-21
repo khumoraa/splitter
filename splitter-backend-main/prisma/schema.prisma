@@ -23,6 +23,25 @@ model User {
   sessionsCreated     Session[]            @relation("SessionCreator")
   sessionParticipates SessionParticipant[]
   sessionHistoryEntries SessionHistoryEntry[]
+  scanRequests        ScanRequest[]
+}
+
+/// One receipt-scan attempt. Stores only the parsed result and the image hash, never the photo.
+model ScanRequest {
+  id        String   @id @default(uuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageHash String
+  idemKey   String?
+  status    String
+  errorCode String?
+  charged   Boolean  @default(false)
+  result    Json?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, idemKey])
+  @@index([userId, createdAt])
+  @@index([userId, imageHash])
 }
 
 model Friendship {
