@@ -5,6 +5,12 @@
  */
 export type AuthFlow = 'login' | 'register';
 type Translate = (key: string, defaultValue?: string) => string;
+
+/** Adapts react-i18next's overloaded t() to the simple signature used here. */
+export const asTranslate =
+  (t: (key: string, defaultValue: string) => string): Translate =>
+  (key, defaultValue) =>
+    t(key, defaultValue ?? key);
 type MaybeApiError = { status?: number; kind?: string; message?: string } | null | undefined;
 
 export function authErrorMessage(error: unknown, flow: AuthFlow, t: Translate): string {

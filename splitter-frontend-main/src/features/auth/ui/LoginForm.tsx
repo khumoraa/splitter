@@ -13,7 +13,7 @@ import ScreenFormContainer from '@/shared/ui/ScreenFormContainer';
 import PasswordInput from '@/shared/ui/PasswordInput';
 import { login, LoginRequest, getCurrentUser } from '../api';
 import { saveToken } from '@/shared/lib/utils/token-storage';
-import { authErrorMessage } from '../lib/auth-errors';
+import { asTranslate, authErrorMessage } from '../lib/auth-errors';
 import { useAppStore } from '@/shared/lib/stores/app-store';
 import { Mail, Lock } from '@tamagui/lucide-icons';
 
@@ -51,7 +51,7 @@ export default function LoginForm() {
       router.replace('/');
     } catch (error: unknown) {
       // translated by status / error kind, the English server text is never shown
-      Alert.alert(t('common.error', 'Error'), authErrorMessage(error, 'login', t));
+      Alert.alert(t('common.error', 'Error'), authErrorMessage(error, 'login', asTranslate(t)));
     } finally {
       setIsLoading(false);
     }
