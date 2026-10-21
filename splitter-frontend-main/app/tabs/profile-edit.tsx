@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
+import { useLeaveGuard } from '@/shared/lib/navigation/use-leave-guard';
 import { Alert, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -35,6 +36,8 @@ export default function ProfileEditScreen() {
   const [savingName, setSavingName] = useState(false);
 
   const uploading = progress !== null;
+  // unsaved name or a photo still uploading: ask before swiping away
+  useLeaveGuard({ dirty: name.trim() !== (user?.username ?? '').trim(), busy: uploading || savingName });
   const cameraBlocked = cameraPermission?.granted === false && cameraPermission.canAskAgain === false;
 
   const fail = useCallback((key: string) => {

@@ -108,7 +108,7 @@ export default function GroupScreen() {
   const confirmLeave = () =>
     Alert.alert(t('social.group.leaveTitle', { name, defaultValue: 'Leave “{{name}}”?' }), t('social.group.leaveMessage', 'You will no longer see this group. Your share of past bills stays.'), [
       { text: t('common.cancel', 'Cancel'), style: 'cancel' },
-      { text: t('social.group.leave', 'Leave group'), style: 'destructive', onPress: () => void guard(() => store().leaveGroup(gid), undefined, () => router.replace('/tabs/groups' as never)) },
+      { text: t('social.group.leave', 'Leave group'), style: 'destructive', onPress: () => void guard(() => store().leaveGroup(gid), undefined, () => router.dismissTo('/tabs/groups' as never)) },
     ]);
 
   const saveName = async () => {
@@ -116,7 +116,7 @@ export default function GroupScreen() {
     if (ok) setRenaming(false);
   };
 
-  const doDelete = () => void guard(() => store().deleteGroup(gid), undefined, () => router.replace('/tabs/groups' as never));
+  const doDelete = () => void guard(() => store().deleteGroup(gid), undefined, () => router.dismissTo('/tabs/groups' as never));
 
   if (!ready) {
     return (

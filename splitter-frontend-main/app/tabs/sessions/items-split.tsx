@@ -754,7 +754,7 @@ export default function ItemsSplitScreen() {
             params: { data: q },
           });
         } catch {
-          router.push('/tabs');
+          router.dismissTo('/tabs');
         }
 
         resetState();

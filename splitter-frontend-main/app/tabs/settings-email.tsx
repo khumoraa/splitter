@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
+import { useLeaveGuard } from '@/shared/lib/navigation/use-leave-guard';
 import { TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +24,7 @@ export default function ChangeEmailScreen() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  useLeaveGuard({ dirty: password !== '' || email.trim() !== (user?.email ?? ''), busy, saved: done });
 
   const submit = useCallback(async () => {
     if (busy) return;

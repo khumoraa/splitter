@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
+import { useLeaveGuard } from '@/shared/lib/navigation/use-leave-guard';
 import { TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,7 @@ export default function ChangePasswordScreen() {
   const [errors, setErrors] = useState<{ current?: string; next?: string; confirm?: string }>({});
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  useLeaveGuard({ dirty: current !== '' || next !== '' || confirm !== '', busy, saved: done });
 
   /** puts an error key under the field it is about */
   const place = useCallback((key: string) => {

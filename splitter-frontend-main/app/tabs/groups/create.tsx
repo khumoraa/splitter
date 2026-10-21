@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useLeaveGuard } from '@/shared/lib/navigation/use-leave-guard';
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
@@ -34,6 +35,7 @@ export default function CreateGroupScreen() {
   const [picked, setPicked] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const allowLeave = useLeaveGuard({ dirty: name.trim() !== '' || Object.values(picked).some(Boolean), busy });
 
   useFocusEffect(useCallback(() => { void fetchFriends(); }, [fetchFriends]));
 
@@ -49,6 +51,7 @@ export default function CreateGroupScreen() {
     try {
       const g = await createGroup(name, Object.keys(picked).filter((k) => picked[k]));
       haptics.success();
+      allowLeave();
       router.replace({ pathname: '/tabs/groups/[groupId]', params: { groupId: String(g.id) } } as never);
     } catch (e) {
       haptics.error();

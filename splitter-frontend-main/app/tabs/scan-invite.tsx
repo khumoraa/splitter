@@ -69,7 +69,8 @@ export default function ScanInviteScreen() {
   }, [status, fadeAnim, scaleAnim]);
 
   const goBack = () => {
-    if (from === 'friends-requests') router.replace('/tabs/friends/requests' as never);
+    if (router.canGoBack()) router.back();
+    else if (from === 'friends-requests') router.replace('/tabs/friends/requests' as never);
     else if (from === 'groups-index') router.replace('/tabs/groups' as never);
     else router.back();
   };

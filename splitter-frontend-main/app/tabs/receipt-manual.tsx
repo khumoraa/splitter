@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLeaveGuard } from '@/shared/lib/navigation/use-leave-guard';
 import { FlatList, KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useRouter } from 'expo-router';
@@ -66,6 +67,8 @@ export default function ReceiptManualScreen() {
   const [priceMinor, setPriceMinor] = useState(0);
   const [priceKey, setPriceKey] = useState(0); // remounts the price field to clear its text after adding
   const [qty, setQty] = useState(1);
+  // an item typed but not added yet would be lost (added items live in the saved draft)
+  useLeaveGuard({ dirty: name.trim() !== '' || priceMinor > 0 });
 
   // opened without a draft (e.g. via a deep link): start an empty one
   useEffect(() => {
