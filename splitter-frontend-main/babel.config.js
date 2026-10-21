@@ -20,10 +20,13 @@ module.exports = function (api) {
           }
         ]
       ] : []),
+      // NB: do not add `root: ['./']` here. With it, babel-plugin-module-resolver rewrites the bare
+      // require('.') inside node_modules (expo-router/build/navigationEvents/navigation.js) to the project root,
+      // i.e. to index.ts, and expo-router then crashes with "undefined is not a function" (emit).
+      // Covered by scripts/babel-config.test.mjs.
       [
         'module-resolver',
         {
-          root: ['./'],
           alias: {
             '@': './src'
           },
