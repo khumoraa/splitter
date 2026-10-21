@@ -1,2 +1,20 @@
+# OS / editors
 .DS_Store
 .idea/
+.vscode/
+
+# secrets: only *.env.example files are committed
+.env
+.env.*
+!.env.example
+pw.txt
+
+# dependencies and build output
+node_modules/
+dist/
+.expo/
+web-build/
+
+# runtime data
+uploads/
+*.log
