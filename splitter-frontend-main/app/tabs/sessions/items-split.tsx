@@ -816,7 +816,7 @@ export default function ItemsSplitScreen() {
       borderRadius={8}
       bg={active ? '#2ECC71' : '$backgroundPress'}
       borderWidth={1}
-      borderColor={active ? '#2ECC71' : '#E4E7EB'}
+      borderColor={active ? '#2ECC71' : '$gray5'}
     >
       <XStack ai="center" gap="$2">
         {icon}
@@ -922,7 +922,7 @@ export default function ItemsSplitScreen() {
                   w="100%"
                   borderWidth={1}
                   borderColor={
-                    isCountAndMissing ? '#E74C3C' : assigned ? '#2ECC71' : '#E4E7EB'
+                    isCountAndMissing ? '#E74C3C' : assigned ? '#2ECC71' : '$gray5'
                   }
                   borderRadius={12}
                   bg="$color1"
@@ -984,7 +984,7 @@ export default function ItemsSplitScreen() {
                         borderRadius={assigned ? 5 : 6}
                         bg={assigned ? '#2ECC711A' : '$backgroundPress'}
                         borderWidth={assigned ? 0 : 1}
-                        borderColor={assigned ? 'transparent' : '#E4E7EB'}
+                        borderColor={assigned ? 'transparent' : '$gray5'}
                         ai="center"
                         jc="center"
                       >
@@ -1134,13 +1134,13 @@ export default function ItemsSplitScreen() {
               <XStack gap="$2" mb="$2">
                 <ModeToggleButton
                   label={t('items.equalSplit', 'Equal split')}
-                  icon={<UsersIcon size={16} color={isEqualMode ? 'white' : '#2C3D4F'} />}
+                  icon={<UsersIcon size={16} color={isEqualMode ? 'white' : '$color'} />}
                   active={isEqualMode}
                   onPress={switchToEqual}
                 />
                 <ModeToggleButton
                   label={t('items.byUnits', 'By units')}
-                  icon={<PackageIcon size={16} color={isCountMode ? 'white' : '#2C3D4F'} />}
+                  icon={<PackageIcon size={16} color={isCountMode ? 'white' : '$color'} />}
                   active={isCountMode}
                   onPress={switchToCount}
                 />
@@ -1189,7 +1189,7 @@ export default function ItemsSplitScreen() {
                         jc="space-between"
                         px={16}
                         borderWidth={1}
-                        borderColor={isSelected ? '#2ECC71' : '#E4E7EB'}
+                        borderColor={isSelected ? '#2ECC71' : '$gray5'}
                         borderRadius={12}
                         bg="$color1"
                       >
@@ -1210,11 +1210,11 @@ export default function ItemsSplitScreen() {
                                 width={28}
                                 height={28}
                                 br={999}
-                                bg="#E4E7EB"
+                                bg="$gray5"
                                 ai="center"
                                 jc="center"
                               >
-                                <Minus size={16} color="#2C3D4F" />
+                                <Minus size={16} color="$color" />
                               </Button>
                               <Text minWidth={12} textAlign="center">
                                 {assignedQty}
@@ -1228,11 +1228,11 @@ export default function ItemsSplitScreen() {
                                 width={28}
                                 height={28}
                                 br={999}
-                                bg="#E4E7EB"
+                                bg="$gray5"
                                 ai="center"
                                 jc="center"
                               >
-                                <Plus size={16} color="#2C3D4F" />
+                                <Plus size={16} color="$color" />
                               </Button>
                             </XStack>
                           )}
@@ -1286,7 +1286,7 @@ export default function ItemsSplitScreen() {
                 height={41}
                 borderRadius={10}
                 borderWidth={1}
-                borderColor="#E4E7EB"
+                borderColor="$gray5"
                 ai="center"
                 jc="center"
               >

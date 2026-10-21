@@ -130,7 +130,7 @@ function BillCard({
         borderWidth={1}
         borderColor="$gray6"
         p="$3"
-        backgroundColor="white"
+        backgroundColor="$background"
       >
         <XStack jc="space-between" ai="center">
           <YStack>
@@ -199,7 +199,7 @@ export default function HomePage() {
 
   return (
     <ScreenContainer>
-      <YStack f={1} ai="center" bg="white">
+      <YStack f={1} ai="center" bg="$background">
         <YStack ai="center" mt="$6" mb="$4">
           <Pressable onPress={onScan}>
             <Circle size={64} bg="#2ECC71" ai="center" jc="center" elevationAndroid={4}>

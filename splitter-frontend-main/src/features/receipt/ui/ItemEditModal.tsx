@@ -86,7 +86,7 @@ export function ItemEditModal({ initial, currency, mode = 'edit', topInset = 0, 
         {error && <Text color="$red10" fontSize={13}>{error}</Text>}
 
         <XStack gap="$2">
-          <Button unstyled f={1} height={41} borderRadius={10} borderWidth={1} borderColor="#E4E7EB" ai="center" jc="center" onPress={onClose}>
+          <Button unstyled f={1} height={41} borderRadius={10} borderWidth={1} borderColor="$gray5" ai="center" jc="center" onPress={onClose}>
             <Text>{t('common.cancel', 'Cancel')}</Text>
           </Button>
           <Button unstyled f={1} height={41} borderRadius={10} bg="#2ECC71" ai="center" jc="center" onPress={submit} pressStyle={{ opacity: 0.9 }}>
