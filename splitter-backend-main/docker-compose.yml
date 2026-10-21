@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ***REMOVED***
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: mydb
     ports:
       - "5432:5432"
@@ -30,7 +30,7 @@ services:
       - .env
     environment:
       PORT: "3001"
-      DATABASE_URL: "postgresql://admin:***REMOVED***@postgres:5432/mydb?schema=public"
+      DATABASE_URL: "postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/mydb?schema=public"
       NODE_ENV: "production"
     depends_on:
       postgres:
