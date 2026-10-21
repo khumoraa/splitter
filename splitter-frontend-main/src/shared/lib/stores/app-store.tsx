@@ -5,10 +5,10 @@ import { getCurrentUser } from '@/features/auth/api';
 import { isUnauthorized } from '@/shared/api/api-error';
 import { getToken, removeToken } from '../utils/token-storage';
 import type { LanguageCode } from '@/shared/config/languages';
-import { DEFAULT_LANGUAGE } from '@/shared/config/languages';
+import { DEVICE_LANGUAGE } from '@/shared/config/device-language';
 
 // Provider component for initialization
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { onUnauthorized, resetUnauthorizedCooldown } from '@/shared/api/auth-events';
 
@@ -51,7 +51,8 @@ export const useAppStore = create<AppStore>()(
       isLoading: false,
       authReady: false,
       theme: 'light',
-      language: DEFAULT_LANGUAGE,
+      // first launch follows the phone's language; a saved choice replaces it when the store is rehydrated
+      language: DEVICE_LANGUAGE,
 
       // Auth actions
       setToken: (token: string) => {
@@ -130,6 +131,19 @@ export const useAppStore = create<AppStore>()(
     }
   )
 );
+
+/** true once the persisted settings (language, theme) are loaded from AsyncStorage. */
+export function useStoreHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(() => useAppStore.persist.hasHydrated());
+  useEffect(() => {
+    if (useAppStore.persist.hasHydrated()) {
+      setHydrated(true);
+      return undefined;
+    }
+    return useAppStore.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
+  return hydrated;
+}
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const initializeAuth = useAppStore((s) => s.initializeAuth);

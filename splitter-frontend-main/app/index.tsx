@@ -3,7 +3,7 @@ import React from 'react';
 import { Redirect, Link } from 'expo-router';
 import { YStack, XStack, Text, Circle, Spinner } from 'tamagui';
 import { useTranslation } from 'react-i18next';
-import { useAppStore } from '@/shared/lib/stores/app-store';
+import { useAppStore, useStoreHydrated } from '@/shared/lib/stores/app-store';
 import { LANGUAGE_OPTIONS, type LanguageCode } from '@/shared/config/languages';
 import { Button } from '@/shared/ui/Button';
 import { ScreenContainer } from '@/shared/ui/ScreenContainer';
@@ -17,12 +17,14 @@ const languages = LANGUAGE_OPTIONS.map((option) => ({
 export default function Welcome() {
   const token = useAppStore((state) => state.token);
   const authReady = useAppStore((state) => state.authReady);
+  const hydrated = useStoreHydrated();
   const { t } = useTranslation();
   const currentLanguage = useAppStore((state) => state.language);
   const setLanguage = useAppStore((state) => state.setLanguage);
 
-  // Wait until the stored token is read, otherwise Welcome flashes before autologin
-  if (!authReady) {
+  // Wait until the stored token is read (no Welcome flash before autologin) and the saved language is loaded
+  // (no flash of the wrong language)
+  if (!authReady || !hydrated) {
     return (
       <ScreenContainer>
         <YStack flex={1} ai="center" jc="center" gap="$4">

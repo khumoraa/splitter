@@ -14,3 +14,9 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
 ];
 
 export const DEFAULT_LANGUAGE: LanguageCode = 'en';
+
+/** 'ja', 'ja-JP', 'JA_jp' -> 'ja'; anything unsupported or empty -> DEFAULT_LANGUAGE. */
+export function resolveLanguage(code?: string | null): LanguageCode {
+  const base = String(code ?? '').toLowerCase().split(/[-_]/)[0] as LanguageCode;
+  return (LANGUAGE_CODES as readonly string[]).includes(base) ? base : DEFAULT_LANGUAGE;
+}

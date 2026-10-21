@@ -1,18 +1,10 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import * as Localization from 'expo-localization';
 import en from './locales/en.json';
 import ja from './locales/ja.json';
 import uz from './locales/uz.json';
-import { LANGUAGE_CODES, DEFAULT_LANGUAGE, type LanguageCode } from './languages';
-
-const detectedLocale = Localization.getLocales()[0]?.languageCode;
-const normalizedLocale = detectedLocale?.split?.('-')[0] ?? DEFAULT_LANGUAGE;
-const initialLanguage: LanguageCode = LANGUAGE_CODES.includes(
-  normalizedLocale as LanguageCode,
-)
-  ? (normalizedLocale as LanguageCode)
-  : DEFAULT_LANGUAGE;
+import { DEFAULT_LANGUAGE } from './languages';
+import { DEVICE_LANGUAGE } from './device-language';
 
 void i18n.use(initReactI18next).init({
   resources: {
@@ -20,7 +12,7 @@ void i18n.use(initReactI18next).init({
     ja: { translation: ja },
     uz: { translation: uz },
   },
-  lng: initialLanguage,
+  lng: DEVICE_LANGUAGE,
   fallbackLng: DEFAULT_LANGUAGE,
   interpolation: { escapeValue: false },
 });
