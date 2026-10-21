@@ -246,12 +246,14 @@
     "scanInvite": "Taklifni skanerlash",
     "friendQr": "Do'st QR kodi",
     "groupQr": "Guruh QR kodi",
-    "scanReceipt": "Chekni skanerlash",
     "participants": "Ishtirokchilar",
     "itemsSplit": "Xarajatlarni bo'lish",
     "finish": "Yakunlash",
     "history": "So'nggi hisoblar",
-    "historyDetails": "Hisob tafsilotlari"
+    "historyDetails": "Hisob tafsilotlari",
+    "newReceipt": "Yangi chek",
+    "receiptReview": "Chekni tekshirish",
+    "manualEntry": "Qo'lda kiritish"
   },
   "settings": {
     "language": {
@@ -477,24 +479,182 @@
     }
   },
   "scan": {
-    "title": "Chekni skanerlash",
-    "uploading": "Chek yuklanmoqda...",
-    "processing": "Ishlanmoqda...",
-    "sessionName": "Sessiya nomi",
-    "sessionNamePlaceholder": "masalan: Oktyabrdagi kafe",
-    "language": "Til",
-    "lastPhotoStored": "Oxirgi rasm saqlangan; qayta suratga olsangiz ustiga yoziladi.",
-    "useMock": "Test chekidan foydalanish",
-    "errorCapture": "Chek rasmini olib bo'lmadi. Qayta urinib ko'ring.",
-    "errorPrepare": "Rasmni yuklashga tayyorlab bo'lmadi.",
-    "errorSend": "Chekni yuborishda xatolik yuz berdi",
-    "errorGallery": "Galereyani ochib bo'lmadi",
-    "allowCamera": "Kameraga ruxsat berish",
-    "cameraDenied": "Cheklarni skanerlash uchun kameraga ruxsat bering yoki galereyadan rasm tanlang.",
-    "fromGallery": "Galereyadan tanlash",
-    "mockTitle": "Demo ma'lumotlar",
-    "mockMessage": "Server sizning rasmingiz o'rniga namunaviy chekni qaytardi. Serverda tanib olish o'chirilgan.",
-    "openSettings": "Sozlamalarni ochish"
+    "new": {
+      "title": "Yangi chek",
+      "subtitle": "Rasmdan o'qish soni cheklangan, shuning uchun kerak bo'lganda foydalaning. Qo'lda kiritish bepul va cheksiz.",
+      "camera": {
+        "title": "Rasmga olish",
+        "subtitle": "Kamerani chekka qarating"
+      },
+      "gallery": {
+        "title": "Galereyadan tanlash",
+        "subtitle": "Mavjud rasmdan foydalaning"
+      },
+      "manual": {
+        "title": "Qo'lda kiritish",
+        "subtitle": "Bepul — o'qish shart emas"
+      },
+      "leftToday_one": "Bugun yana {{count}} ta o'qish qoldi",
+      "leftToday_other": "Bugun yana {{count}} ta o'qish qoldi",
+      "leftMonth_one": "Bu oy yana {{count}} ta o'qish qoldi",
+      "leftMonth_other": "Bu oy yana {{count}} ta o'qish qoldi",
+      "unavailable": "Mavjud emas",
+      "blocked": {
+        "offline": "Siz oflayndasiz. Rasmdan o'qish uchun internet kerak — mahsulotlarni qo'lda kiritishingiz mumkin.",
+        "quota": "Hozircha barcha o'qishlar ishlatildi. Ular {{when}} da qaytadi. Qo'lda kiritish bepul.",
+        "quotaNoTime": "Hozircha barcha o'qishlar ishlatildi. Qo'lda kiritish bepul.",
+        "unavailable": "Rasmdan o'qish vaqtincha ishlamayapti. Mahsulotlarni qo'lda kiritishingiz mumkin."
+      },
+      "quotaError": "Qolgan o'qishlar sonini tekshirib bo'lmadi.",
+      "privacy": "Rasm o'qish uchun yuboriladi va saqlanmaydi.",
+      "draft": {
+        "title": "Tugallanmagan chek",
+        "summary_one": "{{count}} ta mahsulot · {{total}}",
+        "summary_other": "{{count}} ta mahsulot · {{total}}",
+        "continue": "Davom etish",
+        "discard": "O'chirish"
+      },
+      "replace": {
+        "title": "Yangi chek boshlansinmi?",
+        "message": "Tugallanmagan chek almashtiriladi.",
+        "confirm": "Almashtirish"
+      },
+      "discard": {
+        "title": "Bu chek o'chirilsinmi?",
+        "message": "Kiritilgan mahsulotlar o'chiriladi.",
+        "confirm": "O'chirish"
+      },
+      "galleryError": "Galereyani ochib bo'lmadi"
+    },
+    "camera": {
+      "close": "Yopish",
+      "torch": "Chiroq",
+      "gallery": "Galereyadan tanlash",
+      "shutter": "Suratga olish",
+      "hint": "Butun chekni ramkaga joylang. Uni tekis, yorug' joyda va aniq tuting.",
+      "captureError": "Rasmga olib bo'lmadi. Qayta urinib ko'ring.",
+      "perm": {
+        "title": "Kameraga ruxsat",
+        "explain": "Splitter kameradan faqat chekni suratga olish uchun foydalanadi. Rasm o'qish uchun yuboriladi va saqlanmaydi.",
+        "allow": "Kameraga ruxsat berish",
+        "deniedTitle": "Kamera o'chirilgan",
+        "deniedMessage": "Chekni suratga olish uchun Sozlamalarda kamerani yoqing. Galereyadan rasm tanlashingiz yoki mahsulotlarni qo'lda kiritishingiz ham mumkin."
+      }
+    },
+    "preview": {
+      "title": "Rasmni tekshiring",
+      "empty": "Rasm tanlanmagan",
+      "backToStart": "“Yangi chek”ga qaytish",
+      "imageA11y": "Chek rasmi",
+      "rotate": "90° aylantirish",
+      "crop": "Ramka bo'yicha qirqish",
+      "cost": "Yuborish 1 ta o'qishni sarflaydi. Xuddi shu rasmni qayta yuborish bepul.",
+      "use": "Shu rasmdan foydalanish",
+      "retake": "Qayta suratga olish",
+      "chooseAnother": "Boshqasini tanlash",
+      "prepareError": "Rasmni tayyorlab bo'lmadi. Qayta urinib ko'ring."
+    },
+    "processing": {
+      "title": "Chek o'qilmoqda",
+      "step": {
+        "uploading": "Rasm yuklanmoqda",
+        "reading": "Chek o'qilmoqda",
+        "checking": "Summalar tekshirilmoqda"
+      },
+      "state": {
+        "done": "tayyor",
+        "active": "jarayonda",
+        "pending": "kutmoqda"
+      },
+      "slow": "Odatdagidan uzoqroq davom etmoqda. Kutishingiz yoki bekor qilishingiz mumkin.",
+      "privacy": "Rasm saqlanmaydi.",
+      "cancel": "Bekor qilish"
+    },
+    "errors": {
+      "title": "Chekni o'qib bo'lmadi",
+      "retry": "Qayta urinish",
+      "retake": "Boshqa rasm bilan urinish",
+      "back": "Orqaga",
+      "offline": "Aloqa yo'q. Internetni tekshirib qayta urinib ko'ring yoki mahsulotlarni qo'lda kiriting.",
+      "timeout": "Server juda uzoq javob berdi. Qayta urinib ko'ring yoki mahsulotlarni qo'lda kiriting.",
+      "imageTooLarge": "Rasm juda katta. Kichikroq rasmni sinab ko'ring.",
+      "quota": "Hozircha barcha o'qishlar ishlatildi. Ular {{when}} da qaytadi. Qo'lda kiritish bepul.",
+      "quotaNoTime": "Hozircha barcha o'qishlar ishlatildi. Qo'lda kiritish bepul.",
+      "aiUnavailable": "O'qish vaqtincha ishlamayapti. Keyinroq urinib ko'ring yoki mahsulotlarni qo'lda kiriting.",
+      "notAReceipt": "Bu chekka o'xshamaydi. Butun chek aniq ko'ringan rasmni sinab ko'ring.",
+      "parseFailed": "Chekni tushunib bo'lmadi. Qayta urinib ko'ring yoki mahsulotlarni qo'lda kiriting.",
+      "inProgress": "Bu rasm allaqachon o'qilmoqda. Biroz kuting.",
+      "unknown": "Xatolik yuz berdi. Qayta urinib ko'ring.",
+      "invalidImage": {
+        "UNSUPPORTED_TYPE": "Bu fayl qo'llab-quvvatlanmaydi (JPEG, PNG yoki WebP ishlating).",
+        "TOO_SMALL": "Rasm o'qish uchun juda kichik. Yaqinroq borib qayta suratga oling.",
+        "TOO_LARGE_DIMENSIONS": "Rasm juda katta. Kichikroq rasmni sinab ko'ring.",
+        "BLANK": "Rasm bo'sh yoki juda qorong'i ko'rinadi. Yorug'likni tekshirib qayta urinib ko'ring.",
+        "CORRUPT": "Rasm shikastlangan. Qayta suratga oling."
+      }
+    },
+    "review": {
+      "merchant": "Joy nomi",
+      "merchantPlaceholder": "masalan, Kafe Roma",
+      "date": "Sana",
+      "dateInvalid": "YYYY-MM-DD formatida kiriting",
+      "currency": "Valyuta",
+      "items": "Mahsulotlar",
+      "itemName": "Mahsulot nomi",
+      "qtyDown": "{{name}} sonini kamaytirish",
+      "qtyUp": "{{name}} sonini oshirish",
+      "qtyValue": "Soni: {{n}}",
+      "unitPrice": "{{name}} narxi (1 dona)",
+      "lineTotalA11y": "Qator jami: {{amount}}",
+      "delete": "O'chirish",
+      "checkLine": "Bu qatorga ishonchim komil emas — tekshiring",
+      "swipeHint": "O'chirish uchun mahsulotni chapga suring.",
+      "addItem": "Mahsulot qo'shish",
+      "noItems": "Hali mahsulot yo'q. Birinchisini qo'shing.",
+      "extras": "Soliq, choychaqa va chegirma",
+      "tax": "Soliq / QQS",
+      "tip": "Choychaqa / xizmat haqi",
+      "discount": "Chegirma",
+      "equals": "= {{amount}}",
+      "percentOf": "{{name}}, oraliq summadan foiz",
+      "amountOf": "{{name}} summasi",
+      "receiptTotal": "Chekdagi jami summa",
+      "receiptTotalHelper": "Ixtiyoriy. Xatolarni topish uchun qatorlar yig'indisi bilan solishtiriladi.",
+      "optional": "Ixtiyoriy",
+      "matches": "Summalar chek bilan mos.",
+      "subtotal": "Oraliq summa",
+      "total": "Jami",
+      "mismatch": "Qatorlar yig'indisi {{computed}}, lekin chekdagi jami {{expected}} (farq {{diff}}).",
+      "fix": "Avtomatik tuzatish",
+      "fixHintMissing": "Yetishmayotgan {{diff}} alohida qator sifatida qo'shiladi",
+      "fixHintExcess": "{{diff}} chegirmaga qo'shiladi",
+      "editManually": "Qo'lda tahrirlash",
+      "otherLine": "Boshqa (ko'rsatilmagan)",
+      "lowInfo": "Qizil ramkali qatorlar noto'g'ri o'qilgan bo'lishi mumkin. Tekshirib chiqing.",
+      "cached": "Bu rasm avval o'qilgan, shuning uchun o'qish sarflanmadi.",
+      "fixErrors": "Avval ajratilgan maydonlarni to'ldiring.",
+      "deleted": "Mahsulot o'chirildi",
+      "undo": "Qaytarish",
+      "next": "Keyingi: ishtirokchilarni tanlash",
+      "empty": {
+        "title": "Hali tekshiradigan narsa yo'q",
+        "message": "Avval yangi chek boshlang.",
+        "cta": "Yangi chek"
+      }
+    },
+    "manual": {
+      "intro": "Chekdagi har bir mahsulotni qo'shing. Soliq, choychaqa va jami summa keyingi ekranda.",
+      "name": "Mahsulot nomi",
+      "namePlaceholder": "Mahsulot, masalan, Pitsa",
+      "price": "Narxi (1 dona)",
+      "pricePlaceholder": "Narx",
+      "add": "Qo'shish",
+      "empty": "Hali mahsulot yo'q.",
+      "count_one": "{{count}} ta mahsulot",
+      "count_other": "{{count}} ta mahsulot",
+      "itemLine": "{{name}}, {{qty}} × {{price}}, jami {{total}}",
+      "review": "Chekni ko'rib chiqish"
+    }
   },
   "scanInvite": {
     "title": "Taklifni skanerlash",

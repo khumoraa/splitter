@@ -9,13 +9,16 @@ export class ApiError extends Error {
   status?: number;
   /** stable machine code from the server (e.g. WRONG_PASSWORD, EMAIL_IN_USE); map it to a translated message */
   code?: string;
+  /** extra machine-readable fields of the server answer (e.g. { reason } for INVALID_IMAGE, { resetAt } for QUOTA_EXCEEDED) */
+  details?: Record<string, unknown>;
 
-  constructor(message: string, kind: ApiErrorKind, status?: number, code?: string) {
+  constructor(message: string, kind: ApiErrorKind, status?: number, code?: string, details?: Record<string, unknown>) {
     super(message);
     this.name = 'ApiError';
     this.kind = kind;
     if (status !== undefined) this.status = status;
     if (code !== undefined) this.code = code;
+    if (details !== undefined) this.details = details;
   }
 }
 

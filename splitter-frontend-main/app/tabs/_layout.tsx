@@ -36,6 +36,7 @@ function DotBadge({ value }: { value?: number }) {
 const SUB_SCREENS = new Set([
   'settings', 'profile-edit', 'profile-qr', 'settings-email', 'settings-password',
   'settings-language', 'settings-currency', 'settings-delete', 'about', 'legal',
+  'new-receipt', 'receipt-review', 'receipt-manual',
 ]);
 
 // --- Global Header for all Tabs ---
@@ -138,7 +139,9 @@ export default function TabLayout() {
   const scanInviteTitle = t('navigation.scanInvite', 'Scan Invite');
   const friendQrTitle = t('navigation.friendQr', 'My Friend QR');
   const groupQrTitle = t('navigation.groupQr', 'Group QR');
-  const scanReceiptTitle = t('navigation.scanReceipt', 'Scan Receipt');
+  const newReceiptTitle = t('navigation.newReceipt', 'New receipt');
+  const receiptReviewTitle = t('navigation.receiptReview', 'Check receipt');
+  const manualEntryTitle = t('navigation.manualEntry', 'Enter manually');
   const participantsTitle = t('navigation.participants', 'Participants');
   const itemsSplitTitle = t('navigation.itemsSplit', 'Items Split');
   const finishTitle = t('navigation.finish', 'Finish');
@@ -197,7 +200,12 @@ export default function TabLayout() {
       <Tabs.Screen name="friends/invite" options={{ href: null, title: friendQrTitle }} />
       <Tabs.Screen name="groups/invite" options={{ href: null, title: groupQrTitle }} />
 
-      <Tabs.Screen name="scan-receipt" options={{ href: null, title: scanReceiptTitle }} />
+      <Tabs.Screen name="new-receipt" options={{ href: null, title: newReceiptTitle }} />
+      <Tabs.Screen name="scan-camera" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="scan-preview" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="scan-processing" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="receipt-review" options={{ href: null, title: receiptReviewTitle }} />
+      <Tabs.Screen name="receipt-manual" options={{ href: null, title: manualEntryTitle }} />
       <Tabs.Screen name="sessions/participants" options={{ href: null, title: participantsTitle }} />
       <Tabs.Screen name="sessions/items-split" options={{ href: null, title: itemsSplitTitle }} />
       <Tabs.Screen name="sessions/finish" options={{ href: null, title: finishTitle }} />

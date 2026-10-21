@@ -4,23 +4,12 @@ import type {
   FinalizeReceiptItemPayload,
   FinalizeTotalsByItem,
   FinalizeTotalsByParticipant,
-  ParseReceiptRequest,
-  ParseReceiptResponse,
   ReceiptParticipant,
-  ReceiptSummary,
   ReceiptSplitMode,
   ReceiptAllocation,
 } from '@/features/receipt/api/receipt.api';
 import { ReceiptApi } from '@/features/receipt/api/receipt.api';
 import { useAppStore } from '@/shared/lib/stores/app-store';
-
-export type CapturedReceiptImage = {
-  uri?: string;
-  mimeType: string;
-  base64: string;
-  width?: number;
-  height?: number;
-};
 
 export interface ReceiptSplitItem {
   id: string;
@@ -34,11 +23,24 @@ export interface ReceiptSplitItem {
   perPersonCount: Record<string, number>;
 }
 
+/** A reviewed line handed to the split flow. Tax/tip/discount arrive as lines with a kind. */
+export interface ReviewedItem {
+  id: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+  kind?: string;
+}
+
+/** lines that belong to the whole table and are shared by everyone unless the user changes it */
+const SHARED_KINDS = new Set(['tax', 'tip', 'discount', 'fee']);
+
 export interface ReceiptSessionMeta {
-  sessionId: number;
+  /** absent until the bill is finalized: the session is created on the server lazily (see items-split) */
+  sessionId?: number;
   sessionName: string;
   language: string;
-  summary?: ReceiptSummary;
 }
 
 export type FinishPayload = {
@@ -58,9 +60,6 @@ export type FinishPayload = {
 };
 
 interface ReceiptSessionStore {
-  capture?: CapturedReceiptImage;
-  parsing: boolean;
-  parseError?: string;
   session?: ReceiptSessionMeta;
   items: ReceiptSplitItem[];
   participants: ReceiptParticipant[];
@@ -70,26 +69,22 @@ interface ReceiptSessionStore {
   finalized?: FinalizeReceiptResponse;
   lastFinishPayload?: FinishPayload;
 
-  setCapture: (capture?: CapturedReceiptImage) => void;
-  clearCapture: () => void;
   setSessionName: (sessionName: string) => void;
   setParticipants: (participants: ReceiptParticipant[]) => void;
   setCurrency: (currency: string) => void; // ✅ Добавлен метод
   updateItem: (itemId: string, updater: (prev: ReceiptSplitItem) => ReceiptSplitItem) => void;
   setItems: (items: ReceiptSplitItem[]) => void;
+  /** starts the split flow from the reviewed receipt (scan or manual entry) */
+  startFromReview: (input: { sessionName: string; language: string; currency: string; items: ReviewedItem[] }) => void;
   setLastFinishPayload: (payload?: FinishPayload) => void;
 
-  parseReceipt: (payload: ParseReceiptRequest) => Promise<ParseReceiptResponse>;
   finalizeSession: () => Promise<FinalizeReceiptResponse>;
   reset: () => void;
 }
 
 const INITIAL_STATE: Pick<ReceiptSessionStore,
-  'capture' | 'parsing' | 'parseError' | 'session' | 'items' | 'participants' | 'currency' | 'finalizing' | 'finalizeError' | 'finalized' | 'lastFinishPayload'
+  'session' | 'items' | 'participants' | 'currency' | 'finalizing' | 'finalizeError' | 'finalized' | 'lastFinishPayload'
 > = {
-  capture: undefined,
-  parsing: false,
-  parseError: undefined,
   session: undefined,
   items: [],
   participants: [],
@@ -103,9 +98,6 @@ const INITIAL_STATE: Pick<ReceiptSessionStore,
 export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => ({
   ...INITIAL_STATE,
 
-  setCapture: (capture) => set({ capture }),
-  clearCapture: () => set({ capture: undefined }),
-
   setSessionName: (sessionName) => {
     set((state) => {
       if (!state.session) return {};
@@ -113,7 +105,31 @@ export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => 
     });
   },
 
-  setParticipants: (participants) => set({ participants }),
+  setParticipants: (participants) =>
+    set((state) => ({
+      participants,
+      // tax, tip and discount lines are split equally between everyone who takes part
+      items: state.items.map((item) =>
+        item.kind && SHARED_KINDS.has(item.kind) && item.assignedTo.length === 0
+          ? { ...item, splitMode: 'equal' as const, assignedTo: participants.map((p) => p.uniqueId) }
+          : item
+      ),
+    })),
+
+  startFromReview: ({ sessionName, language, currency, items }) =>
+    set({
+      session: { sessionName, language },
+      items: items.map((item) => ({
+        ...item,
+        splitMode: item.quantity > 1 && !item.kind ? 'count' : 'equal',
+        assignedTo: [],
+        perPersonCount: {},
+      })),
+      participants: [],
+      currency,
+      finalized: undefined,
+      finalizeError: undefined,
+    }),
 
   setCurrency: (currency) => set({ currency }), // ✅ Новый метод
 
@@ -126,53 +142,10 @@ export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => 
   setItems: (items) => set({ items }),
   setLastFinishPayload: (payload) => set({ lastFinishPayload: payload }),
 
-  parseReceipt: async (payload) => {
-    set({ parsing: true, parseError: undefined });
-    try {
-      const response = await ReceiptApi.parse(payload);
-      const splitItems: ReceiptSplitItem[] = response.items.map((item) => ({
-        id: item.id,
-        name: item.name,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        totalPrice: item.totalPrice,
-        kind: item.kind,
-        splitMode: item.quantity > 1 ? 'count' : 'equal',
-        assignedTo: [],
-        perPersonCount: {},
-      }));
-
-      // ✅ Извлекаем валюту из ответа API
-      // currency stated on the receipt, otherwise the one chosen in Settings → Bills
-      const detectedCurrency = response.summary?.currency || useAppStore.getState().defaultCurrency;
-
-      set({
-        parsing: false,
-        parseError: undefined,
-        session: {
-          sessionId: response.sessionId,
-          sessionName: response.sessionName,
-          language: response.language,
-          summary: response.summary,
-        },
-        items: splitItems,
-        participants: [],
-        currency: detectedCurrency, // ✅ Сохраняем валюту
-        finalized: undefined,
-        finalizeError: undefined,
-      });
-
-      return response;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to parse receipt';
-      set({ parsing: false, parseError: message });
-      throw error;
-    }
-  },
-
   finalizeSession: async () => {
     const { session, participants, items, currency } = get();
     if (!session) throw new Error('No session to finalize');
+    const sessionId = session.sessionId ?? (await ReceiptApi.createSession()).id;
     if (participants.length === 0) throw new Error('Add at least one participant');
 
     const payloadItems: FinalizeReceiptItemPayload[] = items.map((item) => ({
@@ -189,7 +162,7 @@ export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => 
     set({ finalizing: true, finalizeError: undefined });
     try {
       const response = await ReceiptApi.finalize({
-        sessionId: session.sessionId,
+        sessionId,
         sessionName: session.sessionName,
         participants,
         items: payloadItems,

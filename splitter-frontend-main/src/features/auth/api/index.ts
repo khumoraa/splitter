@@ -41,7 +41,8 @@ apiClient.interceptors.request.use(async (config) => {
     const url = `${config.baseURL}${config.url}`;
     console.log(`[API] ${method} ${url}`);
     if (config.params) console.log('[API] Params:', config.params);
-    if (config.data) console.log('[API] Request data:', config.data);
+    // receipt photos and recognised receipts are never logged
+    if (config.data && !String(config.url).startsWith('/sessions/scan')) console.log('[API] Request data:', config.data);
   }
 
   return config;
@@ -50,7 +51,7 @@ apiClient.interceptors.request.use(async (config) => {
 apiClient.interceptors.response.use(
   (response) => {
     if (__DEV__) {
-      console.log('[API] Response:', response.data);
+      console.log('[API] Response:', String(response.config?.url).startsWith('/sessions/scan') ? '[scan response hidden]' : response.data);
       console.log('[API] Status:', response.status);
     }
     return response;
@@ -68,7 +69,7 @@ apiClient.interceptors.response.use(
       console[level]('[API] Error details:', {
         message: error.message,
         code: (error as any).code,
-        response: error.response?.data,
+        response: String(error.config?.url).startsWith('/sessions/scan') ? { code: error.response?.data?.code } : error.response?.data,
         status: error.response?.status,
         headers: error.response?.headers,
       });
@@ -78,6 +79,8 @@ apiClient.interceptors.response.use(
       const status = error.response.status;
       const data = error.response.data as any;
       const serverCode: string | undefined = typeof data?.code === 'string' ? data.code : undefined;
+      const details: Record<string, unknown> | undefined =
+        data && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : undefined;
       const serverMsg: string | undefined =
         typeof data === 'string' ? data : data?.message || data?.error;
 
@@ -88,9 +91,9 @@ apiClient.interceptors.response.use(
           throw new ApiError(i18n.t('errors.unauthorized'), 'http', status, serverCode);
         default:
           if (status >= 500) {
-            throw new ApiError(serverMsg || i18n.t('errors.server'), 'http', status, serverCode);
+            throw new ApiError(serverMsg || i18n.t('errors.server'), 'http', status, serverCode, details);
           }
-          throw new ApiError(serverMsg || i18n.t('errors.request', { status }), 'http', status, serverCode);
+          throw new ApiError(serverMsg || i18n.t('errors.request', { status }), 'http', status, serverCode, details);
       }
     } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
       throw new ApiError(i18n.t('errors.timeout'), 'timeout');

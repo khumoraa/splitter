@@ -192,7 +192,7 @@ export default function HomePage() {
 
   const openFriends = () => router.push('/tabs/friends');
   const openGroups = () => router.push('/tabs/groups');
-  const onScan = () => router.push('/tabs/scan-receipt');
+  const onScan = () => router.push('/tabs/new-receipt' as never);
   const openAllSessions = () => router.push('/tabs/sessions/history');
 
   const recent = useMemo<SessionHistoryEntry[]>(() => sessions.slice(0, 3), [sessions]);

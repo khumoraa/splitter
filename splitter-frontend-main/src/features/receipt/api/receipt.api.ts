@@ -1,42 +1,8 @@
 import { apiClient } from '@/features/auth/api';
+import { logLevelForStatus, isApiError } from '@/shared/api/api-error';
 
-export type ReceiptImagePayload = {
-  mimeType: string;
-  data: string; // base64 without data URI prefix
-};
+export type ParsedReceiptItemKind = 'item' | 'fee' | 'tax' | 'tip' | 'discount' | string;
 
-export interface ParseReceiptRequest {
-  sessionName: string;
-  language: string;
-  image: ReceiptImagePayload;
-}
-
-export type ParsedReceiptItemKind = 'item' | 'fee' | 'discount' | string;
-
-export interface ParsedReceiptItem {
-  id: string;
-  name: string;
-  unitPrice: number;
-  quantity: number;
-  totalPrice: number;
-  kind?: ParsedReceiptItemKind;
-}
-
-export interface ReceiptSummary {
-  grandTotal: number;
-  currency?: string; // ✅ Валюта в summary
-  [key: string]: unknown;
-}
-
-export interface ParseReceiptResponse {
-  sessionId: number;
-  sessionName: string;
-  language: string;
-  items: ParsedReceiptItem[];
-  summary?: ReceiptSummary;
-  /** 'mock' = server returned demo data (OCR disabled), not a real recognition */
-  source?: 'gemini' | 'mock';
-}
 
 export type ReceiptParticipant = {
   uniqueId: string;
@@ -106,22 +72,10 @@ const normalizeError = (error: unknown): Error => {
 };
 
 export const ReceiptApi = {
-  async parse(payload: ParseReceiptRequest): Promise<ParseReceiptResponse> {
-    try {
-      // console.log('[API] POST /sessions/scan');
-      // console.log('[API] Request data:', JSON.stringify(payload, null, 2));
-
-      const { data } = await apiClient.post<ParseReceiptResponse>('/sessions/scan', payload, {
-        // OCR may try several models on the server; the default 60 s is too short for it
-        timeout: 120000,
-      });
-
-      if (__DEV__) console.log('[API] Response:', JSON.stringify(data, null, 2));
-      return data;
-    } catch (error) {
-      console.error('[API] Error (parse):', error);
-      throw normalizeError(error);
-    }
+  /** Creates the (empty) bill on the server. Done at the last step, so a receipt that is never finished leaves nothing behind. */
+  async createSession(): Promise<{ id: number }> {
+    const { data } = await apiClient.post<{ id: number }>('/sessions', {});
+    return data;
   },
 
   async finalize(payload: FinalizeReceiptRequest): Promise<FinalizeReceiptResponse> {
@@ -134,7 +88,8 @@ export const ReceiptApi = {
       if (__DEV__) console.log('[API] Response:', JSON.stringify(data, null, 2));
       return data;
     } catch (error) {
-      console.error('[API] Error (finalize):', error);
+      // a rejected bill (400) is an expected outcome the UI explains; only real failures are errors
+      console[isApiError(error) ? logLevelForStatus(error.status) : 'error']('[API] finalize failed');
       throw normalizeError(error);
     }
   },

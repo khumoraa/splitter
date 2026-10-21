@@ -298,12 +298,14 @@
     "scanInvite": "招待をスキャン",
     "friendQr": "友だちのQRコード",
     "groupQr": "グループQRコード",
-    "scanReceipt": "レシートをスキャン",
     "participants": "参加者",
     "itemsSplit": "アイテムの分割",
     "finish": "完了",
     "history": "最近の明細",
-    "historyDetails": "明細の詳細"
+    "historyDetails": "明細の詳細",
+    "newReceipt": "新しいレシート",
+    "receiptReview": "レシートを確認",
+    "manualEntry": "手入力"
   },
   "settings": {
     "language": {
@@ -477,24 +479,182 @@
     }
   },
   "scan": {
-    "title": "レシートをスキャン",
-    "uploading": "レシートをアップロード中...",
-    "processing": "処理中...",
-    "sessionName": "セッション名",
-    "sessionNamePlaceholder": "例: 10月のカフェ",
-    "language": "言語",
-    "lastPhotoStored": "前回の写真を保存済みです。再撮影すると上書きされます。",
-    "useMock": "テスト用レシートを使う",
-    "errorCapture": "レシートを撮影できませんでした。もう一度お試しください。",
-    "errorPrepare": "アップロード用に写真を準備できませんでした。",
-    "errorSend": "レシートの送信中に問題が発生しました",
-    "errorGallery": "ギャラリーを開けませんでした",
-    "allowCamera": "カメラを許可",
-    "cameraDenied": "レシートをスキャンするにはカメラへのアクセスを許可するか、ギャラリーから写真を選んでください。",
-    "fromGallery": "ギャラリーから選ぶ",
-    "mockTitle": "デモデータ",
-    "mockMessage": "サーバーは撮影した写真ではなくサンプルのレシートを返しました。サーバーで認識が無効になっています。",
-    "openSettings": "設定を開く"
+    "new": {
+      "title": "新しいレシート",
+      "subtitle": "写真の読み取りには回数の上限があります。手入力は無料で、回数の制限はありません。",
+      "camera": {
+        "title": "写真を撮る",
+        "subtitle": "カメラをレシートに向けます"
+      },
+      "gallery": {
+        "title": "ギャラリーから選ぶ",
+        "subtitle": "すでにある写真を使います"
+      },
+      "manual": {
+        "title": "手入力",
+        "subtitle": "無料・読み取りは不要です"
+      },
+      "leftToday_one": "今日はあと{{count}}回読み取れます",
+      "leftToday_other": "今日はあと{{count}}回読み取れます",
+      "leftMonth_one": "今月はあと{{count}}回読み取れます",
+      "leftMonth_other": "今月はあと{{count}}回読み取れます",
+      "unavailable": "利用できません",
+      "blocked": {
+        "offline": "オフラインです。写真の読み取りにはインターネットが必要です。手入力はできます。",
+        "quota": "今は読み取りの回数を使い切りました。{{when}}に戻ります。手入力は無料です。",
+        "quotaNoTime": "今は読み取りの回数を使い切りました。手入力は無料です。",
+        "unavailable": "写真の読み取りは今、使えません。手入力はできます。"
+      },
+      "quotaError": "残りの回数を確認できませんでした。",
+      "privacy": "写真は読み取りのために送られ、保存されません。",
+      "draft": {
+        "title": "未完成のレシート",
+        "summary_one": "{{count}}品 · {{total}}",
+        "summary_other": "{{count}}品 · {{total}}",
+        "continue": "続ける",
+        "discard": "破棄する"
+      },
+      "replace": {
+        "title": "新しいレシートを始めますか？",
+        "message": "未完成のレシートは置き換えられます。",
+        "confirm": "置き換える"
+      },
+      "discard": {
+        "title": "このレシートを破棄しますか？",
+        "message": "入力した品目は削除されます。",
+        "confirm": "破棄する"
+      },
+      "galleryError": "ギャラリーを開けませんでした"
+    },
+    "camera": {
+      "close": "閉じる",
+      "torch": "ライト",
+      "gallery": "ギャラリーから選ぶ",
+      "shutter": "撮影",
+      "hint": "レシート全体を枠に入れます。平らにして、明るい場所で、ぶれないように撮ります。",
+      "captureError": "写真を撮れませんでした。もう一度お試しください。",
+      "perm": {
+        "title": "カメラの利用",
+        "explain": "Splitterは、レシートを撮るためだけにカメラを使います。写真は読み取りのために送られ、保存されません。",
+        "allow": "カメラを許可",
+        "deniedTitle": "カメラがオフです",
+        "deniedMessage": "レシートを撮るには、設定でカメラをオンにしてください。ギャラリーの写真を選ぶことも、手入力することもできます。"
+      }
+    },
+    "preview": {
+      "title": "写真を確認",
+      "empty": "写真が選ばれていません",
+      "backToStart": "「新しいレシート」に戻る",
+      "imageA11y": "レシートの写真",
+      "rotate": "90°回転",
+      "crop": "枠に合わせて切り取る",
+      "cost": "送信すると読み取りを1回使います。同じ写真をもう一度送るのは無料です。",
+      "use": "この写真を使う",
+      "retake": "撮り直す",
+      "chooseAnother": "別の写真を選ぶ",
+      "prepareError": "写真を準備できませんでした。もう一度お試しください。"
+    },
+    "processing": {
+      "title": "レシートを読み取り中",
+      "step": {
+        "uploading": "写真を送信中",
+        "reading": "レシートを読んでいます",
+        "checking": "合計を確認中"
+      },
+      "state": {
+        "done": "完了",
+        "active": "処理中",
+        "pending": "待機中"
+      },
+      "slow": "いつもより時間がかかっています。待つか、キャンセルできます。",
+      "privacy": "写真は保存されません。",
+      "cancel": "キャンセル"
+    },
+    "errors": {
+      "title": "レシートを読み取れませんでした",
+      "retry": "もう一度試す",
+      "retake": "別の写真を試す",
+      "back": "戻る",
+      "offline": "接続できません。インターネットを確認してもう一度お試しください。手入力もできます。",
+      "timeout": "サーバーの応答が遅すぎます。もう一度試すか、手入力してください。",
+      "imageTooLarge": "写真が大きすぎます。小さい写真を試してください。",
+      "quota": "今は読み取りの回数を使い切りました。{{when}}に戻ります。手入力は無料です。",
+      "quotaNoTime": "今は読み取りの回数を使い切りました。手入力は無料です。",
+      "aiUnavailable": "読み取りは今、使えません。あとでもう一度試すか、手入力してください。",
+      "notAReceipt": "レシートに見えません。レシート全体がはっきり写った写真を試してください。",
+      "parseFailed": "レシートの内容を理解できませんでした。もう一度試すか、手入力してください。",
+      "inProgress": "この写真はすでに読み取り中です。少し待ってください。",
+      "unknown": "問題が起きました。もう一度お試しください。",
+      "invalidImage": {
+        "UNSUPPORTED_TYPE": "この形式の写真は使えません（JPEG、PNG、WebPを使ってください）。",
+        "TOO_SMALL": "写真が小さすぎて読めません。近づいて撮り直してください。",
+        "TOO_LARGE_DIMENSIONS": "写真が大きすぎます。小さい写真を試してください。",
+        "BLANK": "写真が空か暗すぎるようです。明るさを確認して撮り直してください。",
+        "CORRUPT": "写真が壊れています。もう一度撮ってください。"
+      }
+    },
+    "review": {
+      "merchant": "お店",
+      "merchantPlaceholder": "例：カフェ ローマ",
+      "date": "日付",
+      "dateInvalid": "YYYY-MM-DDの形式で入力してください",
+      "currency": "通貨",
+      "items": "品目",
+      "itemName": "品名",
+      "qtyDown": "{{name}}の数を減らす",
+      "qtyUp": "{{name}}の数を増やす",
+      "qtyValue": "数量 {{n}}",
+      "unitPrice": "{{name}}の単価",
+      "lineTotalA11y": "この品目の合計 {{amount}}",
+      "delete": "削除",
+      "checkLine": "この行は自信がありません。確認してください",
+      "swipeHint": "品目を左にスワイプすると削除できます。",
+      "addItem": "品目を追加",
+      "noItems": "まだ品目がありません。最初の1つを追加しましょう。",
+      "extras": "税、チップ、割引",
+      "tax": "税 / 消費税",
+      "tip": "チップ / サービス料",
+      "discount": "割引",
+      "equals": "= {{amount}}",
+      "percentOf": "{{name}}（小計に対する%）",
+      "amountOf": "{{name}}の金額",
+      "receiptTotal": "レシートの合計",
+      "receiptTotalHelper": "任意です。間違いを見つけるため、品目の合計と比べます。",
+      "optional": "任意",
+      "matches": "合計がレシートと一致しています。",
+      "subtotal": "小計",
+      "total": "合計",
+      "mismatch": "品目の合計は{{computed}}ですが、レシートの合計は{{expected}}です（差額 {{diff}}）。",
+      "fix": "自動で直す",
+      "fixHintMissing": "足りない{{diff}}を別の行として追加します",
+      "fixHintExcess": "{{diff}}を割引に加えます",
+      "editManually": "手で直す",
+      "otherLine": "その他（記載なし）",
+      "lowInfo": "赤い枠の行は読み間違いの可能性があります。確認してください。",
+      "cached": "この写真は前に読み取り済みなので、読み取り回数は使いません。",
+      "fixErrors": "先に強調された項目を入力してください。",
+      "deleted": "品目を削除しました",
+      "undo": "元に戻す",
+      "next": "次へ：人を選ぶ",
+      "empty": {
+        "title": "確認するものがありません",
+        "message": "先に新しいレシートを始めてください。",
+        "cta": "新しいレシート"
+      }
+    },
+    "manual": {
+      "intro": "レシートの品目を1つずつ追加します。税・チップ・合計は次の画面で入力します。",
+      "name": "品名",
+      "namePlaceholder": "品名（例：ピザ）",
+      "price": "単価",
+      "pricePlaceholder": "価格",
+      "add": "追加",
+      "empty": "まだ品目がありません。",
+      "count_one": "{{count}}品目",
+      "count_other": "{{count}}品目",
+      "itemLine": "{{name}}、{{qty}} × {{price}}、合計 {{total}}",
+      "review": "レシートを確認"
+    }
   },
   "scanInvite": {
     "title": "招待をスキャン",

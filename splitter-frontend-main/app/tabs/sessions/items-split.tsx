@@ -12,6 +12,7 @@ import { useAppStore } from '@/shared/lib/stores/app-store';
 import { useReceiptSessionStore } from '@/features/receipt/model/receipt-session.store';
 import type { FinishPayload, ReceiptSplitItem } from '@/features/receipt/model/receipt-session.store';
 import { ReceiptApi } from '@/features/receipt/api/receipt.api';
+import { useDraftStore } from '@/features/scan/model/draft.store';
 import type { FinalizeReceiptItemPayload, FinalizeTotalsByItem, FinalizeTotalsByParticipant, ReceiptAllocation } from '@/features/receipt/api/receipt.api';
 import { formatAmount, fromMinor, splitMinor, toMinor } from '@/shared/lib/utils/money';
 
@@ -290,7 +291,7 @@ export default function ItemsSplitScreen() {
   }, [storeParticipants, participantsFromParams, me?.uniqueId, me?.username]);
 
   const isMockSession = receiptId === 'mock-001';
-  const sessionReceiptId = receiptId ?? (session ? String(session.sessionId) : undefined);
+  const sessionReceiptId = receiptId ?? (session?.sessionId ? String(session.sessionId) : undefined);
 
   const loadItemsFromSource = useCallback(() => {
     const hasStoreItems = Array.isArray(storeItems) && storeItems.length > 0;
@@ -667,14 +668,16 @@ export default function ItemsSplitScreen() {
       session?.sessionId ??
       (sessionReceiptId && !isMockSession ? parseInt(sessionReceiptId, 10) : undefined);
 
-    if (!effectiveSessionId) {
+    // a receipt entered by hand or reviewed after a scan has no server session yet: create it now
+    const sessionIdToUse = effectiveSessionId ?? (await ReceiptApi.createSession()).id;
+    if (!sessionIdToUse) {
       throw new Error(t('items.errorSessionId', 'Session ID is required'));
     }
 
       const fallbackFinalization = buildLocalFinalization(items, participants);
 
       const result = await ReceiptApi.finalize({
-      sessionId: effectiveSessionId,
+      sessionId: sessionIdToUse,
       sessionName: session?.sessionName || t('items.defaultSessionName', 'Split Session'),
       participants: participants.map((p) => ({
         uniqueId: p.uniqueId,
@@ -683,6 +686,9 @@ export default function ItemsSplitScreen() {
       items: finalizeItems,
       currency: storeCurrency, // ✅ Добавьте эту строку
     });
+
+      // the bill is saved on the server: the unfinished-receipt draft is no longer needed
+      useDraftStore.getState().clear();
 
       const backendByParticipant = result.totals?.byParticipant ?? [];
       const hasBackendByParticipant = backendByParticipant.length > 0;

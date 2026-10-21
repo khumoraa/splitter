@@ -298,12 +298,14 @@
     "scanInvite": "Scan Invite",
     "friendQr": "My Friend QR",
     "groupQr": "Group QR",
-    "scanReceipt": "Scan Receipt",
     "participants": "Participants",
     "itemsSplit": "Items Split",
     "finish": "Finish",
     "history": "Recent bills",
-    "historyDetails": "Bill details"
+    "historyDetails": "Bill details",
+    "newReceipt": "New receipt",
+    "receiptReview": "Check receipt",
+    "manualEntry": "Enter manually"
   },
   "settings": {
     "language": {
@@ -477,24 +479,182 @@
     }
   },
   "scan": {
-    "title": "Scan receipt",
-    "uploading": "Uploading receipt...",
-    "processing": "Processing...",
-    "sessionName": "Session name",
-    "sessionNamePlaceholder": "e.g. Cafe on October",
-    "language": "Language",
-    "lastPhotoStored": "Last photo stored; capturing again will overwrite it.",
-    "useMock": "Use mock receipt",
-    "errorCapture": "Could not capture the receipt photo. Please try again.",
-    "errorPrepare": "Failed to prepare the receipt photo for upload.",
-    "errorSend": "Something went wrong while sending the receipt",
-    "errorGallery": "Could not open the gallery",
-    "allowCamera": "Allow camera",
-    "cameraDenied": "Allow camera access to scan receipts, or choose a photo from the gallery.",
-    "fromGallery": "Choose from gallery",
-    "mockTitle": "Demo data",
-    "mockMessage": "The server returned a sample receipt, not your photo. Recognition is disabled on the server.",
-    "openSettings": "Open settings"
+    "new": {
+      "title": "New receipt",
+      "subtitle": "Photo recognition is limited, so use it when it helps. Entering items by hand is free and unlimited.",
+      "camera": {
+        "title": "Take a photo",
+        "subtitle": "Point the camera at the receipt"
+      },
+      "gallery": {
+        "title": "Choose from gallery",
+        "subtitle": "Use a photo you already have"
+      },
+      "manual": {
+        "title": "Enter manually",
+        "subtitle": "Free — no recognition needed"
+      },
+      "leftToday_one": "{{count}} recognition left today",
+      "leftToday_other": "{{count}} recognitions left today",
+      "leftMonth_one": "{{count}} recognition left this month",
+      "leftMonth_other": "{{count}} recognitions left this month",
+      "unavailable": "Unavailable",
+      "blocked": {
+        "offline": "You're offline. Photo recognition needs internet — you can still enter the items by hand.",
+        "quota": "You have used all recognitions for now. They come back at {{when}}. Entering items by hand is free.",
+        "quotaNoTime": "You have used all recognitions for now. Entering items by hand is free.",
+        "unavailable": "Photo recognition is temporarily unavailable. You can enter the items by hand."
+      },
+      "quotaError": "Couldn't check how many recognitions are left.",
+      "privacy": "The photo is sent for recognition and is not stored.",
+      "draft": {
+        "title": "Unfinished receipt",
+        "summary_one": "{{count}} item · {{total}}",
+        "summary_other": "{{count}} items · {{total}}",
+        "continue": "Continue",
+        "discard": "Discard"
+      },
+      "replace": {
+        "title": "Start a new receipt?",
+        "message": "Your unfinished receipt will be replaced.",
+        "confirm": "Replace"
+      },
+      "discard": {
+        "title": "Discard this receipt?",
+        "message": "The items you entered will be deleted.",
+        "confirm": "Discard"
+      },
+      "galleryError": "Could not open the gallery"
+    },
+    "camera": {
+      "close": "Close",
+      "torch": "Flashlight",
+      "gallery": "Choose from gallery",
+      "shutter": "Take photo",
+      "hint": "Fit the whole receipt in the frame. Keep it flat, well lit and sharp.",
+      "captureError": "Could not take the photo. Please try again.",
+      "perm": {
+        "title": "Camera access",
+        "explain": "Splitter uses the camera only to photograph a receipt. The photo is sent for recognition and is not stored.",
+        "allow": "Allow camera",
+        "deniedTitle": "Camera access is off",
+        "deniedMessage": "To photograph receipts, turn the camera on in Settings. You can also choose a photo from the gallery or enter the items by hand."
+      }
+    },
+    "preview": {
+      "title": "Check the photo",
+      "empty": "No photo selected",
+      "backToStart": "Back to New receipt",
+      "imageA11y": "Photo of the receipt",
+      "rotate": "Rotate 90°",
+      "crop": "Crop to frame",
+      "cost": "Sending uses 1 recognition. Sending the same photo again is free.",
+      "use": "Use this photo",
+      "retake": "Retake",
+      "chooseAnother": "Choose another",
+      "prepareError": "Could not prepare the photo. Please try again."
+    },
+    "processing": {
+      "title": "Recognising your receipt",
+      "step": {
+        "uploading": "Uploading the photo",
+        "reading": "Reading the receipt",
+        "checking": "Checking the sums"
+      },
+      "state": {
+        "done": "done",
+        "active": "in progress",
+        "pending": "waiting"
+      },
+      "slow": "This is taking longer than usual. You can keep waiting or cancel.",
+      "privacy": "The photo is not stored.",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "title": "Couldn't read the receipt",
+      "retry": "Try again",
+      "retake": "Try another photo",
+      "back": "Back",
+      "offline": "No connection. Check your internet and try again, or enter the items by hand.",
+      "timeout": "The server took too long to answer. Try again, or enter the items by hand.",
+      "imageTooLarge": "The photo is too large. Try a smaller one.",
+      "quota": "You have used all recognitions for now. They come back at {{when}}. Entering items by hand is free.",
+      "quotaNoTime": "You have used all recognitions for now. Entering items by hand is free.",
+      "aiUnavailable": "Recognition is temporarily unavailable. Try again later, or enter the items by hand.",
+      "notAReceipt": "This doesn't look like a receipt. Try a clearer photo of the whole receipt.",
+      "parseFailed": "The receipt could not be understood. Try again, or enter the items by hand.",
+      "inProgress": "This photo is already being recognised. Please wait a moment.",
+      "unknown": "Something went wrong. Please try again.",
+      "invalidImage": {
+        "UNSUPPORTED_TYPE": "This file is not a supported photo (use JPEG, PNG or WebP).",
+        "TOO_SMALL": "The photo is too small to read. Move closer and try again.",
+        "TOO_LARGE_DIMENSIONS": "The photo is too large. Try a smaller one.",
+        "BLANK": "The photo looks empty or too dark. Check the lighting and try again.",
+        "CORRUPT": "The photo is damaged. Please take it again."
+      }
+    },
+    "review": {
+      "merchant": "Place",
+      "merchantPlaceholder": "e.g. Cafe Roma",
+      "date": "Date",
+      "dateInvalid": "Use the format YYYY-MM-DD",
+      "currency": "Currency",
+      "items": "Items",
+      "itemName": "Item name",
+      "qtyDown": "Decrease quantity of {{name}}",
+      "qtyUp": "Increase quantity of {{name}}",
+      "qtyValue": "Quantity {{n}}",
+      "unitPrice": "Price per unit of {{name}}",
+      "lineTotalA11y": "Line total {{amount}}",
+      "delete": "Delete",
+      "checkLine": "Not sure about this line — please check",
+      "swipeHint": "Swipe an item left to delete it.",
+      "addItem": "Add item",
+      "noItems": "No items yet. Add the first one.",
+      "extras": "Tax, tip and discount",
+      "tax": "Tax / VAT",
+      "tip": "Tip / service",
+      "discount": "Discount",
+      "equals": "= {{amount}}",
+      "percentOf": "{{name}}, percent of subtotal",
+      "amountOf": "{{name}}, amount",
+      "receiptTotal": "Total on the receipt",
+      "receiptTotalHelper": "Optional. It is compared with the sum of the lines to catch mistakes.",
+      "optional": "Optional",
+      "matches": "The sums match the receipt.",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "mismatch": "The lines add up to {{computed}}, but the receipt total is {{expected}} (difference {{diff}}).",
+      "fix": "Fix automatically",
+      "fixHintMissing": "Adds the missing {{diff}} as a separate line",
+      "fixHintExcess": "Adds {{diff}} to the discount",
+      "editManually": "Edit manually",
+      "otherLine": "Other (not listed)",
+      "lowInfo": "Lines outlined in red may be misread. Please check them.",
+      "cached": "This photo was recognised before, so no recognition was used.",
+      "fixErrors": "Fill in the highlighted fields first.",
+      "deleted": "Item deleted",
+      "undo": "Undo",
+      "next": "Next: choose people",
+      "empty": {
+        "title": "Nothing to check yet",
+        "message": "Start a new receipt first.",
+        "cta": "New receipt"
+      }
+    },
+    "manual": {
+      "intro": "Add each item from the receipt. Tax, tip and the receipt total come on the next screen.",
+      "name": "Item name",
+      "namePlaceholder": "Item, e.g. Pizza",
+      "price": "Price per unit",
+      "pricePlaceholder": "Price",
+      "add": "Add",
+      "empty": "No items yet.",
+      "count_one": "{{count}} item",
+      "count_other": "{{count}} items",
+      "itemLine": "{{name}}, {{qty}} × {{price}}, total {{total}}",
+      "review": "Review receipt"
+    }
   },
   "scanInvite": {
     "title": "Scan invite",
