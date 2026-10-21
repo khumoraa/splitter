@@ -41,7 +41,7 @@ if (allowAllCors) {
     cors({
       origin: "*",
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Idempotency-Key"],
       credentials: false,
       maxAge: 86400,
     })
@@ -70,7 +70,7 @@ if (allowAllCors) {
       return callback(new Error("Not allowed by CORS"));
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Idempotency-Key"],
     credentials: true,
     maxAge: 86400, // 24h preflight caching (OPTIONS)
   };

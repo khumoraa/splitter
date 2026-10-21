@@ -9,8 +9,9 @@
     "build": "tsc -p tsconfig.json",
     "start:prod": "node dist/server.js",
     "postinstall": "prisma generate",
+    "scan:usage": "node -r dotenv/config scripts/scan-usage.mjs",
     "test:db": "node scripts/prepare-test-db.mjs",
-    "test:integration": "node --test --test-concurrency=1 test/profile.integration.test.mjs"
+    "test:integration": "node --test --test-concurrency=1 test/profile.integration.test.mjs test/scan.integration.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,6 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.899.0",
     "@aws-sdk/s3-request-presigner": "^3.899.0",
-    "@google/generative-ai": "^0.21.0",
     "@prisma/client": "^6.16.2",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",

@@ -22,6 +22,11 @@ export function errorHandler(
     console.error("Unhandled error:", err);
   }
 
+  // body-parser rejects an oversized JSON body before any route runs; on the scan route that means a too-large photo
+  if ((err as { type?: string } | null)?.type === "entity.too.large") {
+    return res.status(413).json({ success: false, error: "Payload too large", code: _req.path.startsWith("/sessions/scan") ? "IMAGE_TOO_LARGE" : "PAYLOAD_TOO_LARGE" });
+  }
+
   return res.status(Number(status)).json({
     success: false,
     error: message,

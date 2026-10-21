@@ -3,8 +3,11 @@ import type { Response } from "express";
 import { prisma } from "../config/prisma.js";
 import type { Prisma } from "@prisma/client";
 import { authenticateToken, type AuthRequest } from "../middleware/auth.js";
-import { parseReceipt, ReceiptParseError } from "../services/receiptParser.js";
+import { getQuota, runScan, ScanError } from "../services/scanService.js";
+import { geminiReceiptAi, mockCallCount, mockReceiptAi } from "../services/geminiClient.js";
+import { rateLimit } from "../middleware/rateLimit.js";
 import { fromMinor, splitMinor, toMinor } from "../utils/money.js";
+import { parseMoneyField, validateBillInput } from "../utils/sessionInput.js";
 
 const router = Router();
 
@@ -18,134 +21,66 @@ function normalizeCurrencyCode(input: unknown): string {
   return /^[A-Z]{3}$/.test(upper) ? upper : DEFAULT_CURRENCY_CODE;
 }
 
+
 /**
  * @swagger
- * /sessions/scan:
- *   post:
- *     summary: Parse receipt image (session creation + immediate normalized items)
+ * /sessions/scan/quota:
+ *   get:
+ *     summary: Remaining AI receipt recognitions for the current user
  *     tags: [Sessions]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [sessionName, language, image]
- *             properties:
- *               sessionName:
- *                 type: string
- *                 example: "Кафе на Октябрь"
- *               language:
- *                 type: string
- *                 example: ru-RU
- *               image:
- *                 type: object
- *                 required: [mimeType, data]
- *                 properties:
- *                   mimeType:
- *                     type: string
- *                     example: image/jpeg
- *                   data:
- *                     type: string
- *                     description: Base64 image data
  *     responses:
  *       200:
- *         description: Parsed receipt items
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 sessionId: { type: integer }
- *                 sessionName: { type: string }
- *                 language: { type: string }
- *                 items:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id: { type: string }
- *                       name: { type: string }
- *                       unitPrice: { type: number }
- *                       quantity: { type: number }
- *                       totalPrice: { type: number }
- *                       kind: { type: string, nullable: true }
- *                 summary:
- *                   type: object
- *                   properties:
- *                     grandTotal: { type: number }
- *                     currency: { type: string, nullable: true, example: "USD" }
+ *         description: "{ remaining, limit, resetAt, daily, monthly }"
+ * /sessions/scan:
+ *   post:
+ *     summary: Recognise a receipt photo (one paid AI call; cached by image hash)
+ *     description: |
+ *       Body `{ image: { mimeType, data(base64) }, language?, currency? }`; optional `Idempotency-Key` header.
+ *       The photo is never stored. Does NOT create a session (the client creates it with POST /sessions).
+ *       Errors carry a stable `code`: INVALID_IMAGE (422, `reason`), IMAGE_TOO_LARGE (413), QUOTA_EXCEEDED (429, `resetAt`),
+ *       AI_UNAVAILABLE (503), NOT_A_RECEIPT (422), PARSE_FAILED (502), REQUEST_IN_PROGRESS (409), INVALID_REQUEST (400).
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: "{ receipt, cached, replayed, quota }; amounts are integer minor units; receipt.warnings may hold TOTAL_MISMATCH"
  */
-router.post(
-  "/scan",
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-      const { sessionName, language, image } = req.body || {};
-      if (!sessionName || typeof sessionName !== "string") {
-        return res.status(400).json({ error: "sessionName required" });
-      }
-      if (!language || typeof language !== "string") {
-        return res.status(400).json({ error: "language required" });
-      }
-      if (
-        !image ||
-        typeof image !== "object" ||
-        !image.mimeType ||
-        !image.data
-      ) {
-        return res
-          .status(400)
-          .json({ error: "image { mimeType, data } required" });
-      }
-
-      const parseResult = await parseReceipt({
-        language,
-        sessionName,
-        mimeType: image.mimeType,
-        imageBase64: image.data,
-      });
-
-      // Create the session only after successful recognition, so failed scans leave no orphan sessions
-      const session = await prisma.session.create({
-        data: {
-          creatorId: req.user.id,
-          status: "ACTIVE",
-        },
-        select: { id: true },
-      });
-
-      return res.json({
-        sessionId: session.id,
-        sessionName,
-        language,
-        items: parseResult.items,
-        summary: parseResult.summary,
-        source: parseResult.source,
-        ...(process.env.DEBUG_PARSE === "1" && parseResult.rawModelText
-          ? {
-              _debug: {
-                model: parseResult.model,
-                durationMs: parseResult.durationMs,
-                usedModelVersion: parseResult.usedModelVersion,
-                modelsTried: parseResult.modelsTried,
-                raw: parseResult.rawModelText,
-              },
-            }
-          : {}),
-      });
-    } catch (err) {
-      if (err instanceof ReceiptParseError) {
-        return res.status(err.statusCode).json({ error: err.message });
-      }
-      console.error("POST /sessions/scan error", err);
-      return res.status(500).json({ error: "Server error" });
-    }
+router.get("/scan/quota", authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized", code: "UNAUTHORIZED" });
+    return res.json(await getQuota(req.user.id));
+  } catch (err) {
+    console.error("GET /sessions/scan/quota error", err);
+    return res.status(500).json({ error: "Server error", code: "SERVER_ERROR" });
   }
-);
+});
+
+const scanLimiter = rateLimit({ windowMs: 60_000, max: 20, name: "scan" });
+
+router.post("/scan", authenticateToken, scanLimiter, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized", code: "UNAUTHORIZED" });
+    const mockMode = process.env.ALLOW_MOCK_SCAN === "true";
+    const ai = mockMode ? mockReceiptAi(String(req.header("x-mock-ai") ?? "ok")) : geminiReceiptAi;
+    const result = await runScan({
+      userId: req.user.id,
+      body: req.body,
+      idempotencyKey: req.header("idempotency-key") ?? undefined,
+      ai,
+    });
+    return res.json(mockMode ? { ...result, _mockAiCalls: mockCallCount() } : result);
+  } catch (err) {
+    if (err instanceof ScanError) {
+      if (err.code === "QUOTA_EXCEEDED") res.setHeader("Retry-After", "3600");
+      return res.status(err.status).json({ error: err.code, code: err.code, ...err.extra });
+    }
+    console.error("POST /sessions/scan error", err);
+    return res.status(500).json({ error: "Server error", code: "SERVER_ERROR" });
+  }
+});
 
 /**
  * @swagger
@@ -186,8 +121,11 @@ router.post("/", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
     const groupId = req.body?.groupId;
-    const serviceFee = Number(req.body?.serviceFee ?? 0);
-    const total = Number(req.body?.total ?? 0);
+    const serviceFee = parseMoneyField(req.body?.serviceFee);
+    const total = parseMoneyField(req.body?.total);
+    if (serviceFee === null || total === null) {
+      return res.status(400).json({ error: "Invalid amount", code: "INVALID_REQUEST" });
+    }
 
     let groupCheck = null as null | { ownerId: number };
     if (groupId != null) {
@@ -433,11 +371,9 @@ router.post(
       if (!Number.isFinite(Number(sessionId))) {
         return res.status(400).json({ error: "sessionId required" });
       }
-      if (!Array.isArray(participants) || participants.length === 0) {
-        return res.status(400).json({ error: "participants array required" });
-      }
-      if (!Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: "items array required" });
+      const problem = validateBillInput(items, participants);
+      if (problem) {
+        return res.status(400).json({ error: "Invalid bill", code: problem.code, field: problem.field, index: problem.index });
       }
 
       const session = await prisma.session.findUnique({

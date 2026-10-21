@@ -46,10 +46,13 @@ Running together with the phone app: see "Run on a phone (Expo Go) with the loca
 
 Receipt parsing (Gemini) optional:
 
-- `GEMINI_API_KEY` — enables real receipt parsing. Without it `/sessions/scan` answers 503; an invalid key (HTTP 401/403 from Google) also answers 503 immediately; other model failures answer 502
-- `ALLOW_MOCK_OCR=1` — development only: return a sample receipt (`source: "mock"`) instead of an error when recognition is unavailable
-- `GEMINI_MODEL_PARSE` — model name (default `gemini-1.5-flash`)
-- `DEBUG_PARSE=1` — include raw model text & timing in response under `_debug`
+- `GEMINI_API_KEY` — enables real receipt parsing. Without it `/sessions/scan` answers 503 `AI_UNAVAILABLE` (a failed AI call is never charged to the user)
+- `ALLOW_MOCK_SCAN=true` — tests/demos only: a free fake AI; the `X-Mock-Ai` header picks `ok | mismatch | not_receipt | garbage | unavailable`
+- `SCAN_LIMIT_DAILY` (default 10) / `SCAN_LIMIT_MONTHLY` (default 100) — per-user rolling-window quota of PAID AI calls; `GET /sessions/scan/quota` reports it, exhaustion answers 429 `QUOTA_EXCEEDED` with `resetAt`
+- `SCAN_CACHE_DAYS` (default 30) — the same photo (SHA-256) from the same user is answered from the stored result: no AI call, no charge. Only the parsed result and the hash are stored, never the photo
+- `SCAN_MAX_IMAGE_BYTES` (default 3000000) — decoded photo size limit (413 `IMAGE_TOO_LARGE`)
+- `npm run scan:usage [days]` — AI spend summary (counters only)
+- `GEMINI_MODEL_PARSE` — model name (default `gemini-3.5-flash`); exactly one request per receipt, retried once only if the network failed
 
 Body size tuning:
 
