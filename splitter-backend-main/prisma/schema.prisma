@@ -8,22 +8,24 @@ datasource db {
 }
 
 model User {
-  id                  Int                  @id @default(autoincrement())
-  email               String               @unique
-  password            String
-  username            String
-  uniqueId            String               @unique
-  createdAt           DateTime             @default(now())
-  avatarUrl           String?
-  receivedFriendships Friendship[]         @relation("UserFriendshipReceiver")
-  sentFriendships     Friendship[]         @relation("UserFriendshipRequester")
-  ownedGroups         Group[]              @relation("GroupOwner")
-  groupMemberships    GroupMember[]
-  itemAssignments     ItemAssignment[]
-  sessionsCreated     Session[]            @relation("SessionCreator")
-  sessionParticipates SessionParticipant[]
+  id                    Int                   @id @default(autoincrement())
+  email                 String                @unique
+  password              String
+  username              String
+  uniqueId              String                @unique
+  createdAt             DateTime              @default(now())
+  avatarUrl             String?
+  receivedFriendships   Friendship[]          @relation("UserFriendshipReceiver")
+  sentFriendships       Friendship[]          @relation("UserFriendshipRequester")
+  ownedGroups           Group[]               @relation("GroupOwner")
+  groupMemberships      GroupMember[]
+  itemAssignments       ItemAssignment[]
+  sessionsCreated       Session[]             @relation("SessionCreator")
+  sessionParticipates   SessionParticipant[]
   sessionHistoryEntries SessionHistoryEntry[]
-  scanRequests        ScanRequest[]
+  scanRequests          ScanRequest[]
+  invitationsSent       GroupInvitation[]     @relation("InvitationInviter")
+  invitationsReceived   GroupInvitation[]     @relation("InvitationInvitee")
 }
 
 /// One receipt-scan attempt. Stores only the parsed result and the image hash, never the photo.
@@ -58,13 +60,14 @@ model Friendship {
 }
 
 model Group {
-  id        Int           @id @default(autoincrement())
-  name      String
-  ownerId   Int
-  createdAt DateTime      @default(now())
-  owner     User          @relation("GroupOwner", fields: [ownerId], references: [id])
-  members   GroupMember[]
-  sessions  Session[]
+  id          Int               @id @default(autoincrement())
+  name        String
+  ownerId     Int
+  createdAt   DateTime          @default(now())
+  owner       User              @relation("GroupOwner", fields: [ownerId], references: [id])
+  members     GroupMember[]
+  sessions    Session[]
+  invitations GroupInvitation[]
 }
 
 model GroupMember {
@@ -95,19 +98,19 @@ model Session {
 }
 
 model SessionHistoryEntry {
-  id                    Int       @id @default(autoincrement())
-  sessionId             Int       @unique
-  creatorId             Int
-  sessionName           String?
-  payload               Json
-  participantUniqueIds  String[]  @default([])
-  grandTotal            Decimal   @default(0)
-  currency              String    @default("UNKNOWN")
-  finalizedAt           DateTime  @default(now())
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  session               Session   @relation(fields: [sessionId], references: [id])
-  creator               User      @relation(fields: [creatorId], references: [id])
+  id                   Int      @id @default(autoincrement())
+  sessionId            Int      @unique
+  creatorId            Int
+  sessionName          String?
+  payload              Json
+  participantUniqueIds String[] @default([])
+  grandTotal           Decimal  @default(0)
+  currency             String   @default("UNKNOWN")
+  finalizedAt          DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  session              Session  @relation(fields: [sessionId], references: [id])
+  creator              User     @relation(fields: [creatorId], references: [id])
 
   @@index([creatorId])
   @@index([participantUniqueIds], type: Gin)
@@ -157,4 +160,29 @@ enum SessionStatus {
   ACTIVE
   CLOSED
   CANCELED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+/// An owner's invitation for a registered user to join a group; the user must accept.
+/// At most one PENDING row per (group, invitee): partial unique index added by hand in the migration SQL.
+model GroupInvitation {
+  id          Int              @id @default(autoincrement())
+  groupId     Int
+  inviterId   Int
+  inviteeId   Int
+  status      InvitationStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  respondedAt DateTime?
+  group       Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  inviter     User             @relation("InvitationInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee     User             @relation("InvitationInvitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@index([inviteeId, status])
+  @@index([groupId, status])
 }
