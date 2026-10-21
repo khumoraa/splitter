@@ -59,7 +59,8 @@
     "confirm": "Confirm",
     "continue": "Continue",
     "back": "Back",
-    "retry": "Retry"
+    "retry": "Retry",
+    "openSettings": "Open settings"
   },
   "friends": {
     "title": "Friends",
@@ -148,7 +149,12 @@
       "saved": "Saved"
     },
     "actions": {
-      "copy": "Copy"
+      "copy": "Copy",
+      "edit": "Edit profile",
+      "qr": "QR code & share",
+      "save": "Save",
+      "settings": "Settings",
+      "settingsHint": "Account, appearance, language, data"
     },
     "labels": {
       "guest": "Guest",
@@ -160,7 +166,17 @@
       "upload": "Upload from phone",
       "uploading": "Uploading...",
       "reset": "Reset avatar",
-      "resetting": "Resetting..."
+      "resetting": "Resetting...",
+      "a11y": "Photo of {{name}}",
+      "a11yNoName": "Profile photo",
+      "change": "Change photo",
+      "library": "Choose from library",
+      "camera": "Take a photo",
+      "remove": "Remove photo",
+      "removeTitle": "Remove photo?",
+      "removeMessage": "Your initials will be shown instead.",
+      "updated": "Photo updated",
+      "removed": "Photo removed"
     },
     "info": {
       "title": "User information",
@@ -232,7 +248,39 @@
       "avatarUnsupported": "This file type is not supported. Use a JPEG, PNG or WebP photo.",
       "tooManyRequests": "Too many attempts. Please wait a few minutes and try again.",
       "storageUnavailable": "Photos cannot be saved right now: image storage is not set up on the server.",
-      "cancelled": "The request was cancelled."
+      "cancelled": "The request was cancelled.",
+      "prepareFailed": "Could not prepare this photo. Try another one."
+    },
+    "saved": "Saved",
+    "stats": {
+      "friends": "Friends",
+      "groups": "Groups",
+      "bills": "Bills"
+    },
+    "id": {
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyA11y": "Your ID {{id}}. Copy"
+    },
+    "fields": {
+      "name": "Name",
+      "nameHelp": "2–32 characters: letters, digits, spaces and . _ ' -",
+      "email": "Email",
+      "emailHelp": "To change your email you confirm with your password."
+    },
+    "permission": {
+      "cameraTitle": "Camera access is off",
+      "cameraMessage": "To take a profile photo, allow camera access for this app in your phone settings.",
+      "photosTitle": "Photo access is off",
+      "photosMessage": "To choose a profile photo, allow access to your photos for this app in your phone settings."
+    },
+    "qr": {
+      "title": "My QR code",
+      "a11y": "QR code with your ID {{id}}",
+      "hint": "A friend can scan this code in Splitter (Friends → Scan invite) to send you a request.",
+      "copyId": "Copy my ID",
+      "share": "Share",
+      "shareMessage": "Add me in Splitter: {{name}}, ID {{id}}"
     }
   },
   "navigation": {
@@ -265,11 +313,14 @@
         "en": "English",
         "ja": "Japanese",
         "uz": "Uzbek"
-      }
+      },
+      "current": "Current language"
     },
     "account": {
       "title": "Account settings",
-      "description": "Update your username and password using the forms below."
+      "description": "Update your username and password using the forms below.",
+      "password": "Change password",
+      "signOut": "Sign out"
     },
     "username": {
       "title": "Username",
@@ -299,9 +350,72 @@
       "errorLength": "New password must be at least 8 characters",
       "errorStrength": "Password must include uppercase, lowercase, number, and special character",
       "errorMismatch": "Passwords do not match",
-      "errorSame": "Choose a different password"
+      "errorSame": "Choose a different password",
+      "done": "Password changed",
+      "rules": "At least 8 characters with an uppercase letter, a lowercase letter, a digit and a special character.",
+      "submit": "Change password"
     },
-    "unavailable": "Unavailable"
+    "unavailable": "Unavailable",
+    "sections": {
+      "account": "Account",
+      "appearance": "Appearance",
+      "language": "Language",
+      "bills": "Bills",
+      "data": "Your data",
+      "about": "About",
+      "danger": "Danger zone"
+    },
+    "signOut": {
+      "title": "Sign out?",
+      "message": "You will need to sign in again to use the app.",
+      "confirm": "Sign out"
+    },
+    "appearance": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark",
+      "footer": "\"System\" follows your phone's light or dark setting."
+    },
+    "bills": {
+      "currency": "Default currency",
+      "footer": "Used for a new bill when the receipt does not show a currency."
+    },
+    "data": {
+      "export": "Export my data",
+      "exporting": "Preparing...",
+      "footer": "A file with your profile, friends, groups and bills that you can save or send.",
+      "shareUnavailable": "Sharing is not available on this device."
+    },
+    "about": {
+      "title": "About the app",
+      "version": "Version {{version}}",
+      "feedback": "Send feedback",
+      "feedbackSubject": "Splitter feedback"
+    },
+    "danger": {
+      "delete": "Delete account",
+      "footer": "Deleting your account cannot be undone."
+    },
+    "email": {
+      "title": "Change email",
+      "new": "New email",
+      "password": "Your password",
+      "passwordHelp": "We ask for it to make sure it is really you."
+    },
+    "delete": {
+      "title": "Delete account",
+      "warning": "This is permanent. Read what will happen:",
+      "b1": "Your profile, photo and sign-in are deleted.",
+      "b2": "Your friendships are removed.",
+      "b3": "Groups you own go to another member; if you are alone in a group, it is deleted.",
+      "b4": "Bills you shared with other people stay for them, but your name is replaced with “Deleted user”.",
+      "b5": "Bills that only you were in are deleted.",
+      "password": "Enter your password to confirm",
+      "submit": "Delete my account",
+      "confirmTitle": "Delete your account?",
+      "confirmMessage": "This cannot be undone. Your profile will be deleted for good.",
+      "confirm": "Delete forever"
+    }
   },
   "groups": {
     "title": "Groups",
@@ -487,5 +601,34 @@
     "request": "Request failed ({{status}})",
     "unexpected": "Unexpected error while performing the request.",
     "offline": "You're offline. Some features won't work until the connection is back."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Privacy policy",
+      "body": "Draft text: it must be reviewed before the app is published.\n\nWhat we store: your name, email, a hashed password, an optional profile photo, your friends and groups, and the bills you split (items, amounts and participants).\n\nWhy: only to run the app: signing in, splitting bills with the people you choose, and showing your history.\n\nReceipt photos you scan are sent to our server and to a text-recognition service to read the items. We do not keep the photo after the items are read.\n\nWho sees your data: people you add as friends or share a bill with see your name, photo and that bill. We do not sell your data and show no ads.\n\nYour control: in Settings you can change your name, email, password and photo, export your data and delete your account.\n\nQuestions: write to the address in “About the app”."
+    },
+    "terms": {
+      "title": "Terms of use",
+      "body": "Draft text: it must be reviewed before the app is published.\n\nSplitter helps you split a bill with friends. The amounts it shows are calculated from the items you confirm; please check them before you pay.\n\nYou are responsible for your account and password. Do not share them.\n\nDo not use the app to harass other people or to break the law. We may remove accounts that do.\n\nThe app is provided “as is”, without guarantees. Receipt recognition can make mistakes: always review the items.\n\nYou can delete your account at any time in Settings."
+    },
+    "licenses": {
+      "title": "Open-source licenses",
+      "intro": "Splitter is built with these open-source packages. Thank you to their authors."
+    },
+    "updated": "Last updated: October 2026"
+  },
+  "currencies": {
+    "UZS": "Uzbekistani sum",
+    "USD": "US dollar",
+    "EUR": "Euro",
+    "JPY": "Japanese yen",
+    "RUB": "Russian ruble",
+    "KZT": "Kazakhstani tenge",
+    "KRW": "South Korean won",
+    "GBP": "British pound",
+    "CNY": "Chinese yuan",
+    "TRY": "Turkish lira",
+    "AED": "UAE dirham",
+    "INR": "Indian rupee"
   }
 }

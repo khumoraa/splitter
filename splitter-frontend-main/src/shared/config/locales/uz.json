@@ -59,7 +59,8 @@
     "confirm": "Tasdiqlash",
     "continue": "Davom etish",
     "back": "Orqaga",
-    "retry": "Qayta urinish"
+    "retry": "Qayta urinish",
+    "openSettings": "Sozlamalarni ochish"
   },
   "home": {
     "header": {
@@ -96,7 +97,12 @@
       "saved": "Saqlandi"
     },
     "actions": {
-      "copy": "Nusxa olish"
+      "copy": "Nusxa olish",
+      "edit": "Profilni tahrirlash",
+      "qr": "QR kod va ulashish",
+      "save": "Saqlash",
+      "settings": "Sozlamalar",
+      "settingsHint": "Hisob, ko'rinish, til, ma'lumotlar"
     },
     "labels": {
       "guest": "Mehmon",
@@ -108,7 +114,17 @@
       "upload": "Telefoningizdan yuklash",
       "uploading": "Yuklanmoqda...",
       "reset": "Avatarni tiklash",
-      "resetting": "Tiklanmoqda..."
+      "resetting": "Tiklanmoqda...",
+      "a11y": "{{name}} rasmi",
+      "a11yNoName": "Profil rasmi",
+      "change": "Rasmni almashtirish",
+      "library": "Galereyadan tanlash",
+      "camera": "Rasmga olish",
+      "remove": "Rasmni o'chirish",
+      "removeTitle": "Rasm o'chirilsinmi?",
+      "removeMessage": "Uning o'rniga ismingizning bosh harflari ko'rsatiladi.",
+      "updated": "Rasm yangilandi",
+      "removed": "Rasm o'chirildi"
     },
     "info": {
       "title": "Foydalanuvchi ma'lumotlari",
@@ -180,7 +196,39 @@
       "avatarUnsupported": "Bu fayl turi qo'llab-quvvatlanmaydi. JPEG, PNG yoki WebP rasm ishlating.",
       "tooManyRequests": "Urinishlar juda ko'p. Bir necha daqiqa kutib, qayta urinib ko'ring.",
       "storageUnavailable": "Hozir rasmni saqlab bo'lmaydi: serverda rasm xotirasi sozlanmagan.",
-      "cancelled": "So'rov bekor qilindi."
+      "cancelled": "So'rov bekor qilindi.",
+      "prepareFailed": "Bu rasmni tayyorlab bo'lmadi. Boshqasini sinab ko'ring."
+    },
+    "saved": "Saqlandi",
+    "stats": {
+      "friends": "Do'stlar",
+      "groups": "Guruhlar",
+      "bills": "Hisoblar"
+    },
+    "id": {
+      "copy": "Nusxalash",
+      "copied": "Nusxalandi",
+      "copyA11y": "Sizning ID: {{id}}. Nusxalash"
+    },
+    "fields": {
+      "name": "Ism",
+      "nameHelp": "2–32 belgi: harf, raqam, bo'shliq va . _ ' -",
+      "email": "Email",
+      "emailHelp": "Emailni o'zgartirish uchun parol bilan tasdiqlaysiz."
+    },
+    "permission": {
+      "cameraTitle": "Kameraga ruxsat o'chiq",
+      "cameraMessage": "Profil rasmini olish uchun telefon sozlamalarida ilovaga kameradan foydalanishga ruxsat bering.",
+      "photosTitle": "Rasmlarga ruxsat o'chiq",
+      "photosMessage": "Profil rasmini tanlash uchun telefon sozlamalarida ilovaga rasmlarga kirishga ruxsat bering."
+    },
+    "qr": {
+      "title": "Mening QR kodim",
+      "a11y": "ID {{id}} bilan QR kod",
+      "hint": "Do'stingiz Splitter'da (Do'stlar → Taklifni skanerlash) bu kodni skanerlab, sizga so'rov yuborishi mumkin.",
+      "copyId": "ID'imni nusxalash",
+      "share": "Ulashish",
+      "shareMessage": "Meni Splitter'da qo'shing: {{name}}, ID {{id}}"
     }
   },
   "navigation": {
@@ -213,11 +261,14 @@
         "en": "Ingliz tili",
         "ja": "Yapon tili",
         "uz": "O'zbek tili"
-      }
+      },
+      "current": "Joriy til"
     },
     "account": {
       "title": "Hisob sozlamalari",
-      "description": "Foydalanuvchi nomi va parolni quyidagi shakllar orqali yangilang."
+      "description": "Foydalanuvchi nomi va parolni quyidagi shakllar orqali yangilang.",
+      "password": "Parolni o'zgartirish",
+      "signOut": "Chiqish"
     },
     "username": {
       "title": "Foydalanuvchi nomi",
@@ -247,9 +298,72 @@
       "errorLength": "Yangi parol kamida 8 ta belgidan iborat bo'lishi kerak",
       "errorStrength": "Parolda bosh harf, kichik harf, raqam va maxsus belgi bo'lishi kerak",
       "errorMismatch": "Parollar mos kelmadi",
-      "errorSame": "Boshqa parol tanlang"
+      "errorSame": "Boshqa parol tanlang",
+      "done": "Parol o'zgartirildi",
+      "rules": "Kamida 8 belgi: bosh harf, kichik harf, raqam va maxsus belgi bo'lishi kerak.",
+      "submit": "Parolni o'zgartirish"
     },
-    "unavailable": "Mavjud emas"
+    "unavailable": "Mavjud emas",
+    "sections": {
+      "account": "Hisob",
+      "appearance": "Ko'rinish",
+      "language": "Til",
+      "bills": "Hisoblar",
+      "data": "Ma'lumotlaringiz",
+      "about": "Ilova haqida",
+      "danger": "Xavfli amallar"
+    },
+    "signOut": {
+      "title": "Chiqasizmi?",
+      "message": "Ilovadan foydalanish uchun qaytadan kirishingiz kerak bo'ladi.",
+      "confirm": "Chiqish"
+    },
+    "appearance": {
+      "system": "Tizim",
+      "light": "Yorug'",
+      "dark": "Qorong'i",
+      "footer": "\"Tizim\" telefoningizning yorug' yoki qorong'i rejimiga mos keladi."
+    },
+    "bills": {
+      "currency": "Standart valyuta",
+      "footer": "Chekda valyuta ko'rsatilmagan bo'lsa, yangi hisob uchun ishlatiladi."
+    },
+    "data": {
+      "export": "Ma'lumotlarimni eksport qilish",
+      "exporting": "Tayyorlanmoqda...",
+      "footer": "Profil, do'stlar, guruhlar va hisoblaringiz bor fayl. Uni saqlash yoki yuborish mumkin.",
+      "shareUnavailable": "Bu qurilmada ulashib bo'lmaydi."
+    },
+    "about": {
+      "title": "Ilova haqida",
+      "version": "Versiya {{version}}",
+      "feedback": "Fikr-mulohaza yuborish",
+      "feedbackSubject": "Splitter bo'yicha fikr"
+    },
+    "danger": {
+      "delete": "Hisobni o'chirish",
+      "footer": "Hisobni o'chirishni bekor qilib bo'lmaydi."
+    },
+    "email": {
+      "title": "Emailni o'zgartirish",
+      "new": "Yangi email",
+      "password": "Parolingiz",
+      "passwordHelp": "Bu sizligingizni tasdiqlash uchun so'raladi."
+    },
+    "delete": {
+      "title": "Hisobni o'chirish",
+      "warning": "Bu qaytarib bo'lmaydi. Nima bo'lishini o'qing:",
+      "b1": "Profilingiz, rasmingiz va kirish ma'lumotlaringiz o'chiriladi.",
+      "b2": "Do'stlik aloqalaringiz o'chiriladi.",
+      "b3": "Siz yaratgan guruhlar boshqa a'zoga o'tadi; guruhda yolg'iz bo'lsangiz, u o'chiriladi.",
+      "b4": "Boshqalar bilan bo'lishgan hisoblar ularda qoladi, lekin ismingiz \"O'chirilgan foydalanuvchi\" bilan almashtiriladi.",
+      "b5": "Faqat siz ishtirok etgan hisoblar o'chiriladi.",
+      "password": "Tasdiqlash uchun parolni kiriting",
+      "submit": "Hisobimni o'chirish",
+      "confirmTitle": "Hisobingiz o'chirilsinmi?",
+      "confirmMessage": "Buni qaytarib bo'lmaydi. Profilingiz butunlay o'chiriladi.",
+      "confirm": "Butunlay o'chirish"
+    }
   },
   "friends": {
     "title": "Do'stlar",
@@ -487,5 +601,34 @@
     "request": "So'rov bajarilmadi ({{status}})",
     "unexpected": "So'rovni bajarishda kutilmagan xatolik yuz berdi.",
     "offline": "Siz oflaynsiz. Aloqa tiklanmaguncha ba'zi imkoniyatlar ishlamaydi."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Maxfiylik siyosati",
+      "body": "Qoralama matn: ilovani e'lon qilishdan oldin uni tekshirish shart.\n\nNimani saqlaymiz: ismingiz, email, shifrlangan parol, ixtiyoriy profil rasmi, do'st va guruhlaringiz hamda bo'lishgan hisoblaringiz (pozitsiyalar, summalar va ishtirokchilar).\n\nNima uchun: faqat ilovani ishlatish uchun: kirish, tanlagan odamlaringiz bilan hisobni bo'lish va tarixingizni ko'rsatish.\n\nSkanerlagan chek rasmlari pozitsiyalarni o'qish uchun serverimizga va matnni tanish xizmatiga yuboriladi. Pozitsiyalar o'qilgach, rasmni saqlamaymiz.\n\nMa'lumotlaringizni kim ko'radi: do'st qilib qo'shgan yoki hisob ulashgan odamlar ismingiz, rasmingiz va o'sha hisobni ko'radi. Ma'lumotlaringizni sotmaymiz va reklama ko'rsatmaymiz.\n\nSizning nazoratingiz: Sozlamalarda ism, email, parol va rasmni o'zgartirish, ma'lumotlarni eksport qilish va hisobni o'chirish mumkin.\n\nSavollar: \"Ilova haqida\" bo'limidagi manzilga yozing."
+    },
+    "terms": {
+      "title": "Foydalanish shartlari",
+      "body": "Qoralama matn: ilovani e'lon qilishdan oldin uni tekshirish shart.\n\nSplitter do'stlar bilan hisobni bo'lishishga yordam beradi. Ko'rsatilgan summalar siz tasdiqlagan pozitsiyalardan hisoblanadi; to'lashdan oldin ularni tekshiring.\n\nHisobingiz va parolingiz uchun o'zingiz javobgarsiz. Ularni boshqalarga bermang.\n\nIlovadan boshqalarni bezovta qilish yoki qonunni buzish uchun foydalanmang. Bunday hisoblarni o'chirishimiz mumkin.\n\nIlova \"boricha\" taqdim etiladi, kafolatsiz. Chekni tanish xato qilishi mumkin: pozitsiyalarni doim tekshiring.\n\nHisobingizni istalgan vaqtda Sozlamalardan o'chirishingiz mumkin."
+    },
+    "licenses": {
+      "title": "Ochiq manba litsenziyalari",
+      "intro": "Splitter quyidagi ochiq manbali paketlar asosida yaratilgan. Mualliflariga rahmat."
+    },
+    "updated": "Oxirgi yangilanish: 2026-yil oktyabr"
+  },
+  "currencies": {
+    "UZS": "O'zbekiston so'mi",
+    "USD": "AQSh dollari",
+    "EUR": "Yevro",
+    "JPY": "Yapon iyenasi",
+    "RUB": "Rossiya rubli",
+    "KZT": "Qozog'iston tengesi",
+    "KRW": "Janubiy Koreya voni",
+    "GBP": "Britaniya funti",
+    "CNY": "Xitoy yuani",
+    "TRY": "Turkiya lirasi",
+    "AED": "BAA dirhami",
+    "INR": "Hind rupiyasi"
   }
 }

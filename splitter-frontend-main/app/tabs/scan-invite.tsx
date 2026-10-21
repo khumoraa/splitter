@@ -79,7 +79,10 @@ export default function ScanInviteScreen() {
       setStatus('loading');
       
       let response;
-      if (parsed.kind === 'friend') {
+      if (parsed.kind === 'friend-id') {
+        // someone's "my QR" (profile screen): send them a friend request by their short id
+        response = await FriendsApi.sendRequest(parsed.token);
+      } else if (parsed.kind === 'friend') {
         response = await FriendsApi.joinByToken(parsed.token);
       } else {
         response = await GroupsApi.joinByToken(parsed.token);

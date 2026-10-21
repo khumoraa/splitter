@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from 'expo-router/react-navigation';
 
 import { useAppStore } from '@/shared/lib/stores/app-store';
-import UserAvatar from '@/shared/ui/UserAvatar';
+import { ProfileAvatar } from '@/features/profile/ui/ProfileAvatar';
 import { useFriendsStore } from '@/features/friends/model/friends.store';
 
 // --- Reusable Badge Component ---
@@ -32,6 +32,12 @@ function DotBadge({ value }: { value?: number }) {
   );
 }
 
+/** Screens of the profile/settings section: the header shows "< Back" instead of "< Main menu". */
+const SUB_SCREENS = new Set([
+  'settings', 'profile-edit', 'profile-qr', 'settings-email', 'settings-password',
+  'settings-language', 'settings-currency', 'settings-delete', 'about', 'legal',
+]);
+
 // --- Global Header for all Tabs ---
 function GlobalTabsHeader(props: any) {
   const insets = useSafeAreaInsets();
@@ -46,6 +52,8 @@ function GlobalTabsHeader(props: any) {
     routeName.startsWith('groups') ||
     routeName.startsWith('sessions');
   const onBackToHome = () => router.replace({ pathname: '/tabs' });
+  const isSub = SUB_SCREENS.has(routeName);
+  const onBack = () => (router.canGoBack() ? router.back() : router.replace('/tabs/profile' as never));
 
   useEffect(() => {
     fetchAll();
@@ -66,7 +74,6 @@ function GlobalTabsHeader(props: any) {
 
   const requestsCount = useFriendsStore((s) => s.requestsRaw?.incoming?.length ?? 0);
   const displayName = user?.username || t('profile.labels.guest', 'Guest');
-  const userInitial = displayName.slice(0, 1).toUpperCase();
 
   const handleOpenProfile = useCallback(() => {
     router.push({ pathname: '/tabs/profile' });
@@ -76,7 +83,15 @@ function GlobalTabsHeader(props: any) {
     <YStack bg="$background" pt={insets.top}>
       <XStack h={50} ai="center" jc="space-between" px="$4">
         <XStack ai="center" gap="$2">
-          {showHomeShortcut && (
+          {isSub && (
+            <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('common.back', 'Back')} style={{ minHeight: 44, justifyContent: 'center' }}>
+              <XStack ai="center" gap="$1">
+                <ChevronLeft size={22} color="$gray11" />
+                <Text fontSize={14} color="$gray11">{t('common.back', 'Back')}</Text>
+              </XStack>
+            </Pressable>
+          )}
+          {showHomeShortcut && !isSub && (
             <Pressable onPress={onBackToHome} hitSlop={10}>
               <XStack ai="center" gap="$1">
                 <ChevronLeft size={20} color="$gray11" />
@@ -99,8 +114,8 @@ function GlobalTabsHeader(props: any) {
             </View>
           </Pressable>
 
-          <Pressable onPress={handleOpenProfile} hitSlop={10}>
-            <UserAvatar uri={user?.avatarUrl ?? undefined} label={userInitial} size={36} textSize={14} />
+          <Pressable onPress={handleOpenProfile} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('profile.title', 'Profile')}>
+            <ProfileAvatar uri={user?.avatarUrl} name={displayName} seed={user?.uniqueId} size={36} />
           </Pressable>
         </XStack>
       </XStack>
@@ -157,13 +172,16 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
-        name="profile"
-        options={{
-          href: null,
-          title: profileTitle,
-        }}
-      />
+      <Tabs.Screen name="profile" options={{ href: null, title: profileTitle }} />
+      <Tabs.Screen name="profile-edit" options={{ href: null, title: t('profile.actions.edit', 'Edit profile') }} />
+      <Tabs.Screen name="profile-qr" options={{ href: null, title: t('profile.qr.title', 'My QR code') }} />
+      <Tabs.Screen name="settings-email" options={{ href: null, title: t('settings.email.title', 'Change email') }} />
+      <Tabs.Screen name="settings-password" options={{ href: null, title: t('settings.password.title', 'Change password') }} />
+      <Tabs.Screen name="settings-language" options={{ href: null, title: t('settings.language.title', 'Language') }} />
+      <Tabs.Screen name="settings-currency" options={{ href: null, title: t('settings.bills.currency', 'Default currency') }} />
+      <Tabs.Screen name="settings-delete" options={{ href: null, title: t('settings.delete.title', 'Delete account') }} />
+      <Tabs.Screen name="about" options={{ href: null, title: t('settings.about.title', 'About the app') }} />
+      <Tabs.Screen name="legal" options={{ href: null, title: t('settings.about.title', 'About the app') }} />
 
       {/* Friends stack (hidden) */}
       <Tabs.Screen name="friends/index" options={{ href: null, title: t('friends.title', 'Friends') }} />

@@ -1,267 +1,134 @@
-// app/tabs/settings.tsx
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { YStack, Text, Separator, XStack } from 'tamagui';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useState } from 'react';
+import { Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Coins, Download, Globe, Info, KeyRound, LogOut, Mail, Moon, Smartphone, Sun, Trash2, User as UserIcon } from '@tamagui/lucide-icons';
 
-import { Button } from '@/shared/ui/Button';
-import { ScreenContainer } from '@/shared/ui/ScreenContainer';
-import Input from '@/shared/ui/Input';
-import PasswordInput from '@/shared/ui/PasswordInput';
 import { useAppStore } from '@/shared/lib/stores/app-store';
-import { changePassword, updateUsername } from '@/features/auth/api';
-import { LANGUAGE_OPTIONS, type LanguageCode } from '@/shared/config/languages';
+import { useColors } from '@/shared/lib/theme/use-colors';
+import { LANGUAGE_NATIVE_NAMES } from '@/shared/config/languages';
+import { haptics } from '@/shared/lib/haptics';
+import { useProfileActions } from '@/features/profile/model/use-profile-actions';
+import { profileApi } from '@/features/profile/api/profile.api';
+import { shareAsJsonFile } from '@/features/profile/lib/export-data';
+import { profileErrorKey } from '@/features/profile/lib/profile-errors';
+import { Banner, FadeIn, Row, Screen, Section } from '@/features/profile/ui/kit';
+import type { ThemeMode } from '@/shared/ui/tokens';
 
 export default function SettingsScreen() {
-  const { user, setUser, language, setLanguage } = useAppStore();
   const { t } = useTranslation();
-  const isLoggedIn = !!user;
+  const c = useColors();
+  const router = useRouter();
+  const user = useAppStore((s) => s.user);
+  const themeMode = useAppStore((s) => s.themeMode);
+  const setThemeMode = useAppStore((s) => s.setThemeMode);
+  const language = useAppStore((s) => s.language);
+  const currency = useAppStore((s) => s.defaultCurrency);
+  const actions = useProfileActions();
+  const [exporting, setExporting] = useState(false);
+  const [notice, setNotice] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
-  const [usernameValue, setUsernameValue] = useState(user?.username ?? '');
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
+  const confirmSignOut = useCallback(() => {
+    Alert.alert(t('settings.signOut.title', 'Sign out?'), t('settings.signOut.message', 'You will need to sign in again to use the app.'), [
+      { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+      {
+        text: t('settings.signOut.confirm', 'Sign out'),
+        style: 'destructive',
+        onPress: async () => {
+          await actions.signOut();
+          router.replace('/');
+        },
+      },
+    ]);
+  }, [actions, router, t]);
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-
-  useEffect(() => {
-    setUsernameValue(user?.username ?? '');
-  }, [user?.username]);
-
-  const usernameDirty = useMemo(() => {
-    const trimmed = usernameValue.trim();
-    return trimmed.length > 0 && trimmed !== (user?.username ?? '').trim();
-  }, [usernameValue, user?.username]);
-
-  const validateUsername = (value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed) return t('settings.username.errorEmpty', 'Username cannot be empty');
-    if (trimmed.length < 2) return t('settings.username.errorShort', 'Username must be at least 2 characters');
-    return null;
-  };
-
-  const validatePasswordForm = () => {
-    if (!currentPassword.trim()) return t('settings.password.errorCurrent', 'Enter your current password');
-    if (newPassword.length < 8) return t('settings.password.errorLength', 'New password must be at least 8 characters');
-    const hasUppercase = /[A-Z]/.test(newPassword);
-    const hasLowercase = /[a-z]/.test(newPassword);
-    const hasNumber = /\d/.test(newPassword);
-    const hasSymbol = /[^A-Za-z0-9\s]/.test(newPassword);
-    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSymbol) {
-      return t('settings.password.errorStrength', 'Password must include uppercase, lowercase, number, and special character');
-    }
-    if (newPassword !== confirmPassword) return t('settings.password.errorMismatch', 'Passwords do not match');
-    if (newPassword === currentPassword) return t('settings.password.errorSame', 'Choose a different password');
-    return null;
-  };
-
-  const handleLanguageChange = (code: LanguageCode) => {
-    if (code === language) return;
-    setLanguage(code);
-  };
-
-  const handleSaveUsername = async () => {
-    if (!isLoggedIn) {
-      Alert.alert(t('settings.unavailable', 'Unavailable'), t('settings.username.signInRequired', 'Sign in to update your username.'));
-      return;
-    }
-    const error = validateUsername(usernameValue);
-    if (error) {
-      setUsernameError(error);
-      return;
-    }
-    setUsernameError(null);
-
-    const trimmed = usernameValue.trim();
-
+  const exportData = useCallback(async () => {
+    if (exporting) return;
+    setExporting(true);
+    setNotice(null);
     try {
-      setIsUpdatingUsername(true);
-      const updatedUser = await updateUsername({ username: trimmed });
-      setUser(updatedUser);
-      Alert.alert(t('common.success', 'Success'), t('settings.username.updated', 'Username updated.'));
-    } catch (error) {
-      console.error('Username update failed:', error);
-      const message = error instanceof Error ? error.message : t('settings.username.updateFailed', 'Could not update the username.');
-      Alert.alert(t('common.error', 'Error'), message);
+      const data = await profileApi.exportMyData();
+      const result = await shareAsJsonFile(data, 'splitter-my-data');
+      if (result === 'unavailable') setNotice({ kind: 'error', text: t('settings.data.shareUnavailable', 'Sharing is not available on this device.') });
+      else haptics.success();
+    } catch (e) {
+      haptics.error();
+      setNotice({ kind: 'error', text: t(profileErrorKey(e)) });
     } finally {
-      setIsUpdatingUsername(false);
+      setExporting(false);
     }
-  };
+  }, [exporting, t]);
 
-  const handleChangePassword = async () => {
-    if (!isLoggedIn) {
-      Alert.alert(t('settings.unavailable', 'Unavailable'), t('settings.password.signInRequired', 'Sign in to change your password.'));
-      return;
-    }
-
-    const error = validatePasswordForm();
-    if (error) {
-      setPasswordError(error);
-      return;
-    }
-    setPasswordError(null);
-
-    try {
-      setIsChangingPassword(true);
-      await changePassword({ currentPassword, newPassword });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      Alert.alert(t('settings.password.updatedTitle', 'Password updated'), t('settings.password.updatedMessage', 'Your password has been changed.'));
-    } catch (error) {
-      console.error('Password change failed:', error);
-      const message = error instanceof Error ? error.message : t('settings.password.changeFailed', 'Could not change the password.');
-      Alert.alert(t('common.error', 'Error'), message);
-    } finally {
-      setIsChangingPassword(false);
-    }
-  };
-
-  useEffect(() => {
-    if (usernameError && usernameValue.trim().length >= 2) {
-      setUsernameError(null);
-    }
-  }, [usernameError, usernameValue]);
-
-  useEffect(() => {
-    if (passwordError) {
-      const err = validatePasswordForm();
-      if (!err) setPasswordError(null);
-    }
-  }, [currentPassword, newPassword, confirmPassword, passwordError]);
+  const modes: Array<{ mode: ThemeMode; label: string; icon: React.ReactNode }> = [
+    { mode: 'system', label: t('settings.appearance.system', 'System'), icon: <Smartphone size={22} color={c.accentText} /> },
+    { mode: 'light', label: t('settings.appearance.light', 'Light'), icon: <Sun size={22} color={c.accentText} /> },
+    { mode: 'dark', label: t('settings.appearance.dark', 'Dark'), icon: <Moon size={22} color={c.accentText} /> },
+  ];
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.select({ ios: 0, android: 0 }) ?? 0}
-      >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <ScreenContainer>
-            <YStack space="$5">
-              {/* Header */}
-              <YStack space="$3" mt="$4">
-                <Text fontSize={20} fontWeight="700">
-                  {t('settings.account.title', 'Account settings')}
-                </Text>
-                <Text color="$gray10">
-                  {t('settings.account.description', 'Update your username and password using the forms below.')}
-                </Text>
-              </YStack>
+    <Screen keyboard={false}>
+      {notice && <Banner kind={notice.kind}>{notice.text}</Banner>}
 
-              {/* LANGUAGE */}
-              <YStack space="$3">
-                <Text fontSize={16} fontWeight="600">
-                  {t('settings.language.title', 'Language')}
-                </Text>
-                <Text fontSize={14} color="$gray10">
-                  {t('settings.language.description', 'Choose the language used across the app.')}
-                </Text>
+      <FadeIn>
+        <Section title={t('settings.sections.account', 'Account')}>
+          <Row icon={<UserIcon size={22} color={c.accentText} />} label={t('profile.fields.name', 'Name')} value={user?.username} onPress={() => router.push('/tabs/profile-edit')} />
+          <Row icon={<Mail size={22} color={c.accentText} />} label={t('profile.fields.email', 'Email')} value={user?.email} onPress={() => router.push('/tabs/settings-email')} />
+          <Row icon={<KeyRound size={22} color={c.accentText} />} label={t('settings.account.password', 'Change password')} onPress={() => router.push('/tabs/settings-password')} />
+          <Row icon={<LogOut size={22} color={c.danger} />} label={t('settings.account.signOut', 'Sign out')} destructive onPress={confirmSignOut} chevron={false} />
+        </Section>
+      </FadeIn>
 
-                <XStack
-                  space="$2"
-                  backgroundColor="$gray3"
-                  borderRadius="$8"
-                  padding="$1"
-                  flexWrap="wrap"
-                >
-                  {LANGUAGE_OPTIONS.map((option) => {
-                    const isActive = option.code === language;
-                    const label = t(
-                      `settings.language.options.${option.code}`,
-                      option.shortLabel
-                    );
-                    return (
-                      <Button
-                        key={option.code}
-                        title={label}
-                        variant={isActive ? 'primary' : 'outline'}
-                        size="small"
-                        onPress={() => handleLanguageChange(option.code)}
-                      />
-                    );
-                  })}
-                </XStack>
-              </YStack>
+      <FadeIn delay={50}>
+        <Section title={t('settings.sections.appearance', 'Appearance')} footer={t('settings.appearance.footer', '"System" follows your phone’s light or dark setting.')}>
+          {modes.map((m) => (
+            <Row
+              key={m.mode}
+              icon={m.icon}
+              label={m.label}
+              role="radio"
+              selected={themeMode === m.mode}
+              onPress={() => setThemeMode(m.mode)}
+              accessibilityLabel={m.label}
+            />
+          ))}
+        </Section>
+      </FadeIn>
 
-              <Separator />
+      <FadeIn delay={100}>
+        <Section title={t('settings.sections.language', 'Language')}>
+          <Row icon={<Globe size={22} color={c.accentText} />} label={t('settings.language.title', 'Language')} value={LANGUAGE_NATIVE_NAMES[language]} onPress={() => router.push('/tabs/settings-language')} />
+        </Section>
+      </FadeIn>
 
-              {/* USERNAME */}
-              <YStack space="$3">
-                <Text fontSize={16} fontWeight="600">{t('settings.username.title', 'Username')}</Text>
-                <Input
-                  value={usernameValue}
-                  onChangeText={setUsernameValue}
-                  placeholder={t('settings.username.placeholder', 'Enter a new username')}
-                  textInputProps={{ autoCapitalize: 'none', autoCorrect: false }}
-                  error={usernameError || undefined}
-                />
-                <XStack space="$2">
-                  <Button
-                    title={isUpdatingUsername ? t('settings.username.saving', 'Saving...') : t('settings.username.save', 'Save username')}
-                    variant="primary"
-                    size="medium"
-                    disabled={!usernameDirty || isUpdatingUsername}
-                    onPress={handleSaveUsername}
-                  />
-                  <Button
-                    title={t('settings.username.reset', 'Reset')}
-                    variant="outline"
-                    size="medium"
-                    disabled={!usernameDirty}
-                    onPress={() => setUsernameValue(user?.username ?? '')}
-                  />
-                </XStack>
-              </YStack>
+      <FadeIn delay={150}>
+        <Section title={t('settings.sections.bills', 'Bills')} footer={t('settings.bills.footer', 'Used for a new bill when the receipt does not show a currency.')}>
+          <Row icon={<Coins size={22} color={c.accentText} />} label={t('settings.bills.currency', 'Default currency')} value={currency} onPress={() => router.push('/tabs/settings-currency')} />
+        </Section>
+      </FadeIn>
 
-              <Separator />
+      <FadeIn delay={200}>
+        <Section title={t('settings.sections.data', 'Your data')} footer={t('settings.data.footer', 'A file with your profile, friends, groups and bills that you can save or send.')}>
+          <Row
+            icon={<Download size={22} color={c.accentText} />}
+            label={exporting ? t('settings.data.exporting', 'Preparing...') : t('settings.data.export', 'Export my data')}
+            onPress={exportData}
+            disabled={exporting}
+            chevron={false}
+          />
+        </Section>
+      </FadeIn>
 
-              {/* PASSWORD */}
-              <YStack space="$3">
-                <Text fontSize={16} fontWeight="600">{t('settings.password.title', 'Password')}</Text>
-                <PasswordInput
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  placeholder={t('settings.password.current', 'Current password')}
-                  textInputProps={{ returnKeyType: 'next' }}
-                />
-                <PasswordInput
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  placeholder={t('settings.password.new', 'New password')}
-                  textInputProps={{ returnKeyType: 'next' }}
-                />
-                <Text fontSize={12} color="$gray10">
-                  {t('settings.password.hint', 'Password must be at least 8 characters and include uppercase, lowercase, number, and special symbol.')}
-                </Text>
-                <PasswordInput
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder={t('settings.password.confirm', 'Confirm new password')}
-                  error={passwordError || undefined}
-                  textInputProps={{ returnKeyType: 'done' }}
-                />
-                <Button
-                  title={isChangingPassword ? t('settings.password.changing', 'Updating...') : t('settings.password.change', 'Change password')}
-                  variant="primary"
-                  size="medium"
-                  disabled={isChangingPassword}
-                  onPress={handleChangePassword}
-                />
-              </YStack>
-            </YStack>
-          </ScreenContainer>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      <FadeIn delay={250}>
+        <Section title={t('settings.sections.about', 'About')}>
+          <Row icon={<Info size={22} color={c.accentText} />} label={t('settings.about.title', 'About the app')} onPress={() => router.push('/tabs/about')} />
+        </Section>
+      </FadeIn>
+
+      <FadeIn delay={300}>
+        <Section title={t('settings.sections.danger', 'Danger zone')} footer={t('settings.danger.footer', 'Deleting your account cannot be undone.')}>
+          <Row icon={<Trash2 size={22} color={c.danger} />} label={t('settings.danger.delete', 'Delete account')} destructive onPress={() => router.push('/tabs/settings-delete')} />
+        </Section>
+      </FadeIn>
+    </Screen>
   );
 }

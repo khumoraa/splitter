@@ -20,3 +20,10 @@ export function resolveLanguage(code?: string | null): LanguageCode {
   const base = String(code ?? '').toLowerCase().split(/[-_]/)[0] as LanguageCode;
   return (LANGUAGE_CODES as readonly string[]).includes(base) ? base : DEFAULT_LANGUAGE;
 }
+
+/** Each language is shown in its own language, so a person who cannot read the current one can still find theirs. */
+export const LANGUAGE_NATIVE_NAMES: Record<LanguageCode, string> = {
+  en: 'English',
+  ja: '日本語',
+  uz: "O'zbek",
+};

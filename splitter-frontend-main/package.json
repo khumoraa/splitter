@@ -7,10 +7,11 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "node --test src/shared/lib/utils/money.test.mjs src/shared/config/locales.test.mjs src/shared/lib/utils/settlement.test.mjs src/shared/api/api-error.test.mjs src/shared/lib/utils/password.test.mjs src/shared/api/auth-events.test.mjs scripts/env-file.test.mjs src/shared/config/languages.test.mjs scripts/babel-config.test.mjs src/features/auth/lib/auth-errors.test.mjs scripts/check-i18n.test.mjs src/shared/ui/tokens.test.mjs src/shared/config/currencies.test.mjs src/features/profile/lib/validation.test.mjs src/features/profile/lib/avatar-style.test.mjs src/features/profile/lib/profile-actions.test.mjs",
+    "test": "node --test src/shared/lib/utils/money.test.mjs src/shared/config/locales.test.mjs src/shared/lib/utils/settlement.test.mjs src/shared/api/api-error.test.mjs src/shared/lib/utils/password.test.mjs src/shared/api/auth-events.test.mjs scripts/env-file.test.mjs src/shared/config/languages.test.mjs scripts/babel-config.test.mjs src/features/auth/lib/auth-errors.test.mjs scripts/check-i18n.test.mjs src/shared/ui/tokens.test.mjs src/shared/config/currencies.test.mjs src/features/profile/lib/validation.test.mjs src/features/profile/lib/avatar-style.test.mjs src/features/profile/lib/profile-actions.test.mjs src/shared/lib/utils/invite.test.mjs",
     "lint": "expo lint",
     "dev:lan": "node scripts/dev-lan.mjs",
-    "check:i18n": "node scripts/check-i18n.mjs"
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "gen:licenses": "node scripts/gen-licenses.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
