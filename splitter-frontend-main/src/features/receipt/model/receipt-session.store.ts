@@ -110,11 +110,19 @@ export const useReceiptSessionStore = create<ReceiptSessionStore>((set, get) => 
     set((state) => ({
       participants,
       // tax, tip and discount lines are split equally between everyone who takes part
-      items: state.items.map((item) =>
-        item.kind && SHARED_KINDS.has(item.kind) && item.assignedTo.length === 0
-          ? { ...item, splitMode: 'equal' as const, assignedTo: participants.map((p) => p.uniqueId) }
-          : item
-      ),
+      items: state.items.map((item) => {
+        // tax, tip and discount always follow the current group of people
+        if (item.kind && SHARED_KINDS.has(item.kind)) {
+          return { ...item, splitMode: 'equal' as const, assignedTo: participants.map((p) => p.uniqueId), perPersonCount: {} };
+        }
+        // someone was removed after items were assigned: drop them, otherwise the server refuses the bill
+        // ("Unknown participant") and the user cannot save
+        const ids = new Set(participants.map((p) => p.uniqueId));
+        const assignedTo = item.assignedTo.filter((id) => ids.has(id));
+        const perPersonCount = Object.fromEntries(Object.entries(item.perPersonCount ?? {}).filter(([id]) => ids.has(id)));
+        const unchanged = assignedTo.length === item.assignedTo.length && Object.keys(perPersonCount).length === Object.keys(item.perPersonCount ?? {}).length;
+        return unchanged ? item : { ...item, assignedTo, perPersonCount };
+      }),
     })),
 
   startFromReview: ({ sessionName, language, currency, items }) =>
