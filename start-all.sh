@@ -1,5 +1,6 @@
 #!/bin/bash
 # Splitter: start everything for Expo Go on a phone.
+# Expo runs offline (EXPO_OFFLINE=1, no Expo login needed). Do not pass --offline together with --lan: the CLI rejects it.
 #   ./start-all.sh            PostgreSQL + backend (background) + Expo (foreground, QR visible)
 #   ./start-all.sh --no-expo  everything except Expo (for checks)
 # Stop with ./stop-all.sh (PostgreSQL is left running).
@@ -82,9 +83,9 @@ echo "  2. Expo Go: scan the QR below or type  exp://$IP:$METRO_PORT"
 echo
 
 if [ "$NO_EXPO" = 1 ]; then
-  echo "--no-expo: not starting Expo. Start it with:  cd splitter-frontend-main && REACT_NATIVE_PACKAGER_HOSTNAME=$IP npx expo start --lan -c --offline"
+  echo "--no-expo: not starting Expo. Start it with:  cd splitter-frontend-main && EXPO_OFFLINE=1 REACT_NATIVE_PACKAGER_HOSTNAME=$IP npx expo start --lan -c"
   exit 0
 fi
 
 cd "$FRONTEND_DIR" || die "frontend folder not found"
-REACT_NATIVE_PACKAGER_HOSTNAME="$IP" exec npx expo start --lan -c --offline
+EXPO_OFFLINE=1 REACT_NATIVE_PACKAGER_HOSTNAME="$IP" exec npx expo start --lan -c
