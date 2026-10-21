@@ -108,7 +108,7 @@ function GlobalTabsHeader(props: any) {
         </XStack>
 
         <XStack ai="center" gap="$3">
-          <Pressable onPress={() => router.push('/tabs/friends/requests')}>
+          <Pressable onPress={() => router.push('/tabs/friends/requests')} hitSlop={10} accessibilityRole="button" accessibilityLabel={requestsCount > 0 ? t('social.bell.withCount', { count: requestsCount, defaultValue: 'Friend requests, {{count}} new' }) : t('social.bell.none', 'Friend requests')} style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
             <View>
               <Bell size={22} color="$gray11" />
               <DotBadge value={requestsCount} />

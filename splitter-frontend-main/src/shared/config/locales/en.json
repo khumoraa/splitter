@@ -984,6 +984,11 @@
       "INVITE_LIMIT": "Too many invitations. Try again later.",
       "TOKEN_EXPIRED": "This invitation link has expired. Ask for a new one.",
       "TOKEN_INVALID": "This invitation link is not valid."
+    },
+    "bell": {
+      "none": "Friend requests",
+      "withCount_one": "Friend requests, {{count}} new",
+      "withCount_other": "Friend requests, {{count}} new"
     }
   }
 }

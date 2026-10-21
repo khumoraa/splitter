@@ -1209,8 +1209,10 @@ export default function ItemsSplitScreen() {
                                   e?.stopPropagation?.();
                                   modalDec(p.uniqueId);
                                 }}
-                                width={28}
-                                height={28}
+                                hitSlop={8}
+                                accessibilityLabel={t('scan.review.qtyDown', { name: p.username, defaultValue: 'Decrease quantity of {{name}}' })}
+                                width={32}
+                                height={32}
                                 br={999}
                                 bg="$gray5"
                                 ai="center"
@@ -1227,8 +1229,10 @@ export default function ItemsSplitScreen() {
                                   e?.stopPropagation?.();
                                   modalInc(p.uniqueId);
                                 }}
-                                width={28}
-                                height={28}
+                                hitSlop={8}
+                                accessibilityLabel={t('scan.review.qtyUp', { name: p.username, defaultValue: 'Increase quantity of {{name}}' })}
+                                width={32}
+                                height={32}
                                 br={999}
                                 bg="$gray5"
                                 ai="center"

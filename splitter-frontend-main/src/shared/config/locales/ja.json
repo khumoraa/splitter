@@ -984,6 +984,11 @@
       "INVITE_LIMIT": "招待が多すぎます。しばらくしてからお試しください。",
       "TOKEN_EXPIRED": "この招待リンクは期限切れです。新しいリンクをもらってください。",
       "TOKEN_INVALID": "この招待リンクは使えません。"
+    },
+    "bell": {
+      "none": "友だちリクエスト",
+      "withCount_one": "友だちリクエスト、新着{{count}}件",
+      "withCount_other": "友だちリクエスト、新着{{count}}件"
     }
   }
 }

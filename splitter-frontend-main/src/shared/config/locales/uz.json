@@ -984,6 +984,11 @@
       "INVITE_LIMIT": "Takliflar juda ko'p. Keyinroq urinib ko'ring.",
       "TOKEN_EXPIRED": "Bu taklif havolasining muddati tugagan. Yangisini so'rang.",
       "TOKEN_INVALID": "Bu taklif havolasi yaroqsiz."
+    },
+    "bell": {
+      "none": "Do'stlik so'rovlari",
+      "withCount_one": "Do'stlik so'rovlari, {{count}} ta yangi",
+      "withCount_other": "Do'stlik so'rovlari, {{count}} ta yangi"
     }
   }
 }
