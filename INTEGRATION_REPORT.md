@@ -417,6 +417,20 @@ cd /Users/vazira/Desktop/коворк/splitter-frontend-main && export PATH=$HOM
 
 ### 12.2 Коммиты (от `upgrade/sdk-57`)
 
+- `a148968` docs: profile & settings audit and design specification
+- `78a5b6e` feat(backend): pure utilities with tests - image magic bytes, username rules, rate limiter, account anonymizer
+- `4b301e8` feat(backend): avatar storage (R2 or local disk), hardened upload, null avatars, account export and deletion
+- `ec3b5fb` feat(backend): safer profile endpoints - username rules, email/password need the current password, tokens die 
+- `ef19a47` test(backend): integration tests for avatar, profile and account deletion against a separate test database
+- `ce09825` chore(deps): add expo-haptics, expo-image, expo-sharing, expo-file-system, expo-application, expo-web-browser,
+- `c913937` feat(theme): design tokens (WCAG-checked), theme mode system/light/dark applied app-wide, default currency set
+- `83ecef3` feat(profile): logic layer - validation (parity-tested with the server), error mapping by server code, testabl
+- `cf604fb` feat(profile): UI kit (screen, sections, rows, buttons, fields, banners, skeleton), cached avatar, haptics
+- `2387e38` feat(profile): new Profile, Edit profile, QR & share, grouped Settings with sub-screens, About and legal (en/j
+- `2116171` feat(settings): default currency is used for new bills; remove the old profile API functions
+- `c6abf95` docs: implementation notes for profile/settings and the new backend endpoints
+- `f4815b7` docs: integration report - profile and settings rework
+
 ### 12.3 Что изменилось в API (для документации)
 - **Добавлено:** `GET /users/me/export`; `DELETE /users/me` (тело `{password}`); раздача `/media/avatars/<uuid>.<jpg|png|webp>`; коды ошибок `code` в ответах `/user/*`; 429 с `Retry-After` на загрузку аватара, смену email/пароля и удаление.
 - **Изменено:** `POST /uploads/avatar` → `{success, avatarUrl, key, user}`, лимит 5 МБ (было 2), 413/415/400/503 вместо 500; `DELETE /users/me/avatar` → `{success, avatarUrl:null, user}`; `PATCH /user/email` теперь требует `currentPassword`; `PATCH /user/username` строже; `GET /users/:id` не отдаёт чужой email; `avatarUrl` — URL или `null` везде (раньше placeholder на `placehold.co` в `/friends`, `/friends/search`, `/users/:id`); любой защищённый маршрут отвечает 401 `ACCOUNT_DELETED`, если аккаунт удалён.
